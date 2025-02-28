@@ -390,8 +390,8 @@ def create_backup(self, slot):
         except Exception as e:
             logger.error(f"Error creating backup of save slot {slot}: {e}")
             return False
-    
-        def restore_backup(self, slot):
+
+def restore_backup(self, slot):
         """
         Restore a save from its backup.
         
