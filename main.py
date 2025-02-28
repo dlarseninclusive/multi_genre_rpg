@@ -10,6 +10,7 @@ from game_states.investigation_state import InvestigationState
 from game_states.dungeon_state import DungeonState
 from game_states.base_building_state import BaseBuildingState
 from game_states.combat_state import CombatGameState
+from game_states.pause_menu_state import PauseMenuState
 from event_bus import EventBus
 from settings import Settings
 from save_system import SaveSystem
@@ -55,8 +56,11 @@ class Game:
         from notification_system import NotificationManager
         self.notification_manager = NotificationManager(self.event_bus)
         
-        # Create state manager and register game states
+        # Make save system available to all states
         self.state_manager = StateManager(self.screen, self.event_bus)
+        self.state_manager.set_persistent_data("save_system", self.save_system)
+        
+        # State manager already created above when setting persistent data
         self._register_game_states()
         
         # Set initial state to main menu
@@ -78,6 +82,7 @@ class Game:
         self.state_manager.register_state("dungeon", DungeonState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("base_building", BaseBuildingState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("combat", CombatGameState(self.state_manager, self.event_bus, self.settings))
+        self.state_manager.register_state("pause_menu", PauseMenuState(self.state_manager, self.event_bus, self.settings))
     
     def handle_events(self):
         """Process all game events."""

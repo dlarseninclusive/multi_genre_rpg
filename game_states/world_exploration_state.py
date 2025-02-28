@@ -111,9 +111,14 @@ class WorldExplorationState(GameState):
         self.font = pygame.font.SysFont(None, 24)
         
         # Get or generate world
-        if self.state_manager.get_persistent_data("world"):
-            self.world = self.state_manager.get_persistent_data("world")
-            logger.info("Loaded existing world")
+        world_data = self.state_manager.get_persistent_data("world")
+        if world_data:
+            try:
+                self.world = world_data
+                logger.info("Loaded existing world")
+            except Exception as e:
+                logger.error(f"Error loading world data: {e}", exc_info=True)
+                self._generate_world()  # Fallback to generating a new world
         else:
             # Generate new world
             self._generate_world()
@@ -167,8 +172,14 @@ class WorldExplorationState(GameState):
     def handle_event(self, event):
         """Handle pygame events."""
         if event.type == pygame.KEYDOWN:
+            # Escape key for pause menu
+            if event.key == pygame.K_ESCAPE:
+                logger.info("Opening pause menu")
+                self.push_state("pause_menu")
+                return True
+                
             # Movement keys
-            if event.key == pygame.K_w or event.key == pygame.K_UP:
+            elif event.key == pygame.K_w or event.key == pygame.K_UP:
                 self.player_direction = (self.player_direction[0], -1)
                 self.player_moving = True
             elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
@@ -412,8 +423,12 @@ class WorldExplorationState(GameState):
                     "duration": 3.0
                 })
                 
-                # Eventually will transition to town state:
-                self.push_state("town", {"location": self.current_location})
+                # Show notification instead of pushing to town state
+                self.event_bus.publish("show_notification", {
+                    "title": "Town Visit",
+                    "message": f"You're exploring {self.current_location.name}. Town feature coming soon!",
+                    "duration": 3.0
+                })
                 
             elif self.current_location.location_type == LocationType.DUNGEON:
                 # Show notification
