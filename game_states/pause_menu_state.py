@@ -112,40 +112,55 @@ class PauseMenuState(GameState):
     
     def _save_game(self):
         """Save the current game."""
-        # Get persistent data for saving
-        world = self.state_manager.get_persistent_data("world")
-        player_pos = self.state_manager.get_persistent_data("player_world_position")
-        player_character = self.state_manager.get_persistent_data("player_character")
-        
-        # Create game state to save
-        game_state = {
-            "world": world,
-            "player_world_position": player_pos,
-            "player_character": player_character
-        }
-        
-        # Get save system
-        save_system = self.state_manager.get_persistent_data("save_system")
-        if save_system:
-            # Use slot 1 for now
-            success = save_system.save_game(1, game_state)
+        try:
+            # Get persistent data for saving
+            world = self.state_manager.get_persistent_data("world")
+            player_pos = self.state_manager.get_persistent_data("player_world_position")
+            player_character = self.state_manager.get_persistent_data("player_character")
             
-            if success:
-                self.event_bus.publish("show_notification", {
-                    "title": "Game Saved",
-                    "message": "Your game has been saved successfully.",
-                    "duration": 2.0
-                })
-                logger.info("Game saved successfully")
+            logger.debug(f"Preparing to save: world={type(world)}, player_pos={player_pos}")
+            
+            # Create game state to save
+            game_state = {
+                "world": world,
+                "player_world_position": player_pos,
+                "player_character": player_character
+            }
+            
+            # Get save system
+            save_system = self.state_manager.get_persistent_data("save_system")
+            if save_system:
+                # Use slot 1 for now
+                success = save_system.save_game(1, game_state)
+                
+                if success:
+                    self.event_bus.publish("show_notification", {
+                        "title": "Game Saved",
+                        "message": "Your game has been saved successfully.",
+                        "duration": 2.0
+                    })
+                    logger.info("Game saved successfully")
+                else:
+                    self.event_bus.publish("show_notification", {
+                        "title": "Save Failed",
+                        "message": "Failed to save the game.",
+                        "duration": 2.0
+                    })
+                    logger.error("Failed to save game")
             else:
+                logger.error("Save system not found")
                 self.event_bus.publish("show_notification", {
-                    "title": "Save Failed",
-                    "message": "Failed to save the game.",
+                    "title": "Save Error",
+                    "message": "Save system not available.",
                     "duration": 2.0
                 })
-                logger.error("Failed to save game")
-        else:
-            logger.error("Save system not found")
+        except Exception as e:
+            logger.error(f"Error in save game: {e}", exc_info=True)
+            self.event_bus.publish("show_notification", {
+                "title": "Save Error",
+                "message": f"An error occurred: {str(e)}",
+                "duration": 3.0
+            })
     
     def _return_to_main_menu(self):
         """Return to the main menu."""

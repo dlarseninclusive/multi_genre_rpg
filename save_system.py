@@ -203,10 +203,15 @@ class SaveSystem:
         """
         # If object has to_dict method, use it
         if hasattr(obj, 'to_dict') and callable(obj.to_dict):
+            # For Location and River objects
             return obj.to_dict()
         
+        # Handle numpy arrays
+        elif hasattr(obj, 'tolist') and callable(obj.tolist):
+            return obj.tolist()
+        
         # If object has __dict__, convert to dictionary
-        if hasattr(obj, '__dict__'):
+        elif hasattr(obj, '__dict__'):
             return {
                 '_type': obj.__class__.__name__,
                 '_module': obj.__class__.__module__,
@@ -214,7 +219,7 @@ class SaveSystem:
             }
         
         # If object is enumeration
-        if hasattr(obj, 'value') and hasattr(obj, 'name'):
+        elif hasattr(obj, 'value') and hasattr(obj, 'name'):
             return {
                 '_type': 'Enum',
                 'value': obj.value,
@@ -222,11 +227,15 @@ class SaveSystem:
             }
         
         # If all else fails, use pickle/base64
-        import base64
-        return {
-            '_type': 'pickle',
-            'data': base64.b64encode(pickle.dumps(obj)).decode('ascii')
-        }
+        try:
+            import base64
+            return {
+                '_type': 'pickle',
+                'data': base64.b64encode(pickle.dumps(obj)).decode('ascii')
+            }
+        except:
+            # Last resort - convert to string
+            return str(obj)
     
     def has_save(self, slot):
         """

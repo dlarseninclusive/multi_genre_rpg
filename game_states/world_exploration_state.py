@@ -115,6 +115,29 @@ class WorldExplorationState(GameState):
         world_data = self.state_manager.get_persistent_data("world")
         if world_data:
             try:
+                # Convert the world data back to proper objects if needed
+                if isinstance(world_data, dict):
+                    # Check if locations are dictionaries instead of Location objects
+                    if world_data['locations'] and isinstance(world_data['locations'][0], dict):
+                        # Convert location dictionaries to Location objects
+                        world_data['locations'] = [
+                            Location.from_dict(loc_data) if isinstance(loc_data, dict) else loc_data
+                            for loc_data in world_data['locations']
+                        ]
+                    
+                    # Check if rivers are dictionaries instead of River objects
+                    if world_data['rivers'] and isinstance(world_data['rivers'][0], dict):
+                        # Convert river dictionaries to River objects
+                        from world_generator import River  # Import here to avoid circular imports
+                        world_data['rivers'] = [
+                            River.from_dict(river_data) if isinstance(river_data, dict) else river_data
+                            for river_data in world_data['rivers']
+                        ]
+                    
+                    # Ensure terrain is a numpy array
+                    if isinstance(world_data['terrain'], list):
+                        world_data['terrain'] = np.array(world_data['terrain'])
+                    
                 self.world = world_data
                 logger.info("Loaded existing world")
             except Exception as e:
