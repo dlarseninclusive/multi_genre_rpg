@@ -95,16 +95,19 @@ class Game:
         """Main game loop."""
         logger.info("Starting game loop")
         
-        while self.running:
-            # Calculate delta time (time since last frame) in seconds
-            dt = self.clock.tick(self.settings.fps) / 1000.0
-            
-            # Handle events, update game state, and render
-            self.handle_events()
-            self.update(dt)
-            self.render()
-        
-        self._cleanup()
+        try:
+            while self.running:
+                # Calculate delta time (time since last frame) in seconds
+                dt = self.clock.tick(self.settings.fps) / 1000.0
+                
+                # Handle events, update game state, and render
+                self.handle_events()
+                self.update(dt)
+                self.render()
+        except Exception as e:
+            logger.error(f"Exception in main game loop: {e}", exc_info=True)
+        finally:
+            self._cleanup()
     
     def _cleanup(self):
         """Clean up resources before exiting."""

@@ -133,110 +133,138 @@ class WorldGenerator:
         """Generate a complete world with terrain, locations, and rivers."""
         logger.info("Starting world generation")
         
-        self._generate_terrain()
-        self._generate_rivers()
-        self._generate_locations()
-        
-        logger.info("World generation completed")
-        return {
-            'terrain': self.terrain,
-            'locations': self.locations,
-            'rivers': self.rivers,
-            'seed': self.seed,
-            'width': self.width,
-            'height': self.height
-        }
+        try:
+            self._generate_terrain()
+            logger.info("Terrain generation completed")
+            
+            self._generate_rivers()
+            logger.info("River generation completed")
+            
+            self._generate_locations()
+            logger.info("Locations generation completed")
+            
+            logger.info(f"World generation completed with {len(self.locations)} locations and {len(self.rivers)} rivers")
+            return {
+                'terrain': self.terrain,
+                'locations': self.locations,
+                'rivers': self.rivers,
+                'seed': self.seed,
+                'width': self.width,
+                'height': self.height
+            }
+        except Exception as e:
+            logger.error(f"Error during world generation: {e}", exc_info=True)
+            raise  # Re-raise to be caught by the main loop
     
     def _generate_terrain(self):
         """Generate the base terrain using noise functions."""
         logger.info("Generating terrain")
         
-        # Parameters for noise generation
-        scale = 100.0
-        octaves = 6
-        persistence = 0.5
-        lacunarity = 2.0
-        
-        for y in range(self.height):
-            for x in range(self.width):
-                # Generate base noise value
-                nx = x / self.width - 0.5
-                ny = y / self.height - 0.5
-                
-                # Elevation noise
-                elevation = noise.pnoise2(
-                    nx * scale,
-                    ny * scale,
-                    octaves=octaves,
-                    persistence=persistence,
-                    lacunarity=lacunarity,
-                    repeatx=self.width,
-                    repeaty=self.height,
-                    base=self.seed
-                )
-                
-                # Moisture noise (for determining forest vs. plains)
-                moisture = noise.pnoise2(
-                    nx * scale * 2,
-                    ny * scale * 2,
-                    octaves=octaves - 2,
-                    persistence=persistence,
-                    lacunarity=lacunarity,
-                    repeatx=self.width,
-                    repeaty=self.height,
-                    base=self.seed + 1
-                )
-                
-                # Map noise values to terrain types
-                if elevation < -0.2:
-                    self.terrain[y][x] = TerrainType.WATER.value
-                elif elevation < -0.15:
-                    self.terrain[y][x] = TerrainType.BEACH.value
-                elif elevation > 0.3:
-                    self.terrain[y][x] = TerrainType.MOUNTAINS.value
-                elif moisture > 0.1:
-                    self.terrain[y][x] = TerrainType.FOREST.value
-                else:
-                    self.terrain[y][x] = TerrainType.PLAINS.value
+        try:
+            # Parameters for noise generation
+            scale = 100.0
+            octaves = 6
+            persistence = 0.5
+            lacunarity = 2.0
+            
+            for y in range(self.height):
+                for x in range(self.width):
+                    # Generate base noise value
+                    nx = x / self.width - 0.5
+                    ny = y / self.height - 0.5
+                    
+                    # Elevation noise
+                    elevation = noise.pnoise2(
+                        nx * scale,
+                        ny * scale,
+                        octaves=octaves,
+                        persistence=persistence,
+                        lacunarity=lacunarity,
+                        repeatx=self.width,
+                        repeaty=self.height,
+                        base=self.seed
+                    )
+                    
+                    # Moisture noise (for determining forest vs. plains)
+                    moisture = noise.pnoise2(
+                        nx * scale * 2,
+                        ny * scale * 2,
+                        octaves=octaves - 2,
+                        persistence=persistence,
+                        lacunarity=lacunarity,
+                        repeatx=self.width,
+                        repeaty=self.height,
+                        base=self.seed + 1
+                    )
+                    
+                    # Map noise values to terrain types
+                    if elevation < -0.2:
+                        self.terrain[y][x] = TerrainType.WATER.value
+                    elif elevation < -0.15:
+                        self.terrain[y][x] = TerrainType.BEACH.value
+                    elif elevation > 0.3:
+                        self.terrain[y][x] = TerrainType.MOUNTAINS.value
+                    elif moisture > 0.1:
+                        self.terrain[y][x] = TerrainType.FOREST.value
+                    else:
+                        self.terrain[y][x] = TerrainType.PLAINS.value
+            
+            logger.debug("Terrain generation complete")
+        except Exception as e:
+            logger.error(f"Error generating terrain: {e}", exc_info=True)
+            raise
     
     def _generate_rivers(self):
         """Generate rivers flowing from mountains to water."""
         logger.info("Generating rivers")
         
-        # Find mountain and water tiles
-        mountain_tiles = []
-        water_tiles = []
-        
-        for y in range(self.height):
-            for x in range(self.width):
-                if self.terrain[y][x] == TerrainType.MOUNTAINS.value:
-                    mountain_tiles.append((x, y))
-                elif self.terrain[y][x] == TerrainType.WATER.value:
-                    water_tiles.append((x, y))
-        
-        # Number of rivers to generate
-        num_rivers = min(len(mountain_tiles) // 10 + 1, 10)
-        
-        for _ in range(num_rivers):
-            if not mountain_tiles:
-                break
-                
-            # Start from a random mountain tile
-            start_idx = random.randint(0, len(mountain_tiles) - 1)
-            start = mountain_tiles.pop(start_idx)
+        try:
+            # Find mountain and water tiles
+            mountain_tiles = []
+            water_tiles = []
             
-            # Find path to nearest water
-            river_points = self._generate_river_path(start, water_tiles)
+            for y in range(self.height):
+                for x in range(self.width):
+                    if self.terrain[y][x] == TerrainType.MOUNTAINS.value:
+                        mountain_tiles.append((x, y))
+                    elif self.terrain[y][x] == TerrainType.WATER.value:
+                        water_tiles.append((x, y))
             
-            if river_points:
-                # Create river and mark tiles
-                self.rivers.append(River(river_points))
+            logger.debug(f"Found {len(mountain_tiles)} mountain tiles and {len(water_tiles)} water tiles")
+            
+            # Number of rivers to generate
+            num_rivers = min(len(mountain_tiles) // 10 + 1, 10)
+            logger.debug(f"Attempting to generate {num_rivers} rivers")
+            
+            for i in range(num_rivers):
+                if not mountain_tiles:
+                    logger.debug("No more mountain tiles available for river sources")
+                    break
+                    
+                # Start from a random mountain tile
+                start_idx = random.randint(0, len(mountain_tiles) - 1)
+                start = mountain_tiles.pop(start_idx)
                 
-                # Update terrain (ensure river tiles are marked as water)
-                for x, y in river_points:
-                    if 0 <= x < self.width and 0 <= y < self.height:
-                        if self.terrain[y][x] != TerrainType.WATER.value:
-                            self.terrain[y][x] = TerrainType.WATER.value
+                # Find path to nearest water
+                river_points = self._generate_river_path(start, water_tiles)
+                
+                if river_points:
+                    # Create river and mark tiles
+                    self.rivers.append(River(river_points))
+                    logger.debug(f"Generated river {i+1} with {len(river_points)} points")
+                    
+                    # Update terrain (ensure river tiles are marked as water)
+                    for x, y in river_points:
+                        if 0 <= x < self.width and 0 <= y < self.height:
+                            if self.terrain[y][x] != TerrainType.WATER.value:
+                                self.terrain[y][x] = TerrainType.WATER.value
+                else:
+                    logger.debug(f"Failed to generate river path for river {i+1}")
+            
+            logger.debug(f"Generated {len(self.rivers)} rivers successfully")
+        except Exception as e:
+            logger.error(f"Error generating rivers: {e}", exc_info=True)
+            raise
     
     def _generate_river_path(self, start, water_tiles):
         """
@@ -249,80 +277,103 @@ class WorldGenerator:
         Returns:
             List of (x, y) coordinates for the river path
         """
-        if not water_tiles:
-            return []
-            
-        # Find nearest water tile
-        nearest_water = min(water_tiles, key=lambda w: ((w[0] - start[0])**2 + (w[1] - start[1])**2))
-        
-        # Generate path with some randomness
-        path = [start]
-        current = start
-        
-        while current != nearest_water:
-            x, y = current
-            
-            # Potential moves (with diagonal moves)
-            moves = [
-                (x+1, y), (x-1, y), (x, y+1), (x, y-1),
-                (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)
-            ]
-            
-            # Filter valid moves
-            valid_moves = [
-                move for move in moves
-                if 0 <= move[0] < self.width and 0 <= move[1] < self.height
-            ]
-            
-            if not valid_moves:
-                break
+        try:
+            if not water_tiles:
+                logger.debug("No water tiles available for river path")
+                return []
                 
-            # Choose move that gets closest to water with some randomness
-            move_scores = []
-            for move in valid_moves:
-                dist = ((move[0] - nearest_water[0])**2 + (move[1] - nearest_water[1])**2)
-                # Add randomness to avoid straight lines
-                randomness = random.uniform(0, 5)
-                score = dist + randomness
-                move_scores.append((move, score))
+            # Find nearest water tile
+            nearest_water = min(water_tiles, key=lambda w: ((w[0] - start[0])**2 + (w[1] - start[1])**2))
             
-            next_move = min(move_scores, key=lambda x: x[1])[0]
+            # Generate path with some randomness
+            path = [start]
+            current = start
             
-            # Check if we've reached water
-            if self.terrain[next_move[1]][next_move[0]] == TerrainType.WATER.value:
+            logger.debug(f"Generating river from {start} to nearest water at {nearest_water}")
+            
+            while current != nearest_water:
+                x, y = current
+                
+                # Potential moves (with diagonal moves)
+                moves = [
+                    (x+1, y), (x-1, y), (x, y+1), (x, y-1),
+                    (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)
+                ]
+                
+                # Filter valid moves
+                valid_moves = [
+                    move for move in moves
+                    if 0 <= move[0] < self.width and 0 <= move[1] < self.height
+                ]
+                
+                if not valid_moves:
+                    logger.debug(f"No valid moves from {current}, ending river path")
+                    break
+                    
+                # Choose move that gets closest to water with some randomness
+                move_scores = []
+                for move in valid_moves:
+                    dist = ((move[0] - nearest_water[0])**2 + (move[1] - nearest_water[1])**2)
+                    # Add randomness to avoid straight lines
+                    randomness = random.uniform(0, 5)
+                    score = dist + randomness
+                    move_scores.append((move, score))
+                
+                next_move = min(move_scores, key=lambda x: x[1])[0]
+                
+                # Check if we've reached water
+                if self.terrain[next_move[1]][next_move[0]] == TerrainType.WATER.value:
+                    path.append(next_move)
+                    logger.debug(f"River reached water at {next_move}")
+                    break
+                    
+                # Add to path and continue
                 path.append(next_move)
-                break
+                current = next_move
                 
-            # Add to path and continue
-            path.append(next_move)
-            current = next_move
+                # Prevent infinite loops
+                if len(path) > (self.width + self.height):
+                    logger.debug("River path exceeded maximum length, terminating")
+                    break
             
-            # Prevent infinite loops
-            if len(path) > (self.width + self.height):
-                break
-        
-        return path
+            logger.debug(f"Generated river path with {len(path)} points")
+            return path
+        except Exception as e:
+            logger.error(f"Error generating river path: {e}", exc_info=True)
+            raise
     
     def _generate_locations(self):
         """Generate special locations throughout the world."""
         logger.info("Generating locations")
         
-        # Determine number of locations based on map size
-        num_towns = max(3, self.width * self.height // 1000)
-        num_dungeons = max(5, self.width * self.height // 800)
-        num_special = max(2, self.width * self.height // 1200)
-        
-        # Generate towns (prefer plains near water)
-        self._generate_towns(num_towns)
-        
-        # Generate dungeons (prefer mountains and forests)
-        self._generate_dungeons(num_dungeons)
-        
-        # Generate special sites (can be anywhere)
-        self._generate_special_sites(num_special)
-        
-        # Connect locations with paths
-        self._connect_locations()
+        try:
+            # Determine number of locations based on map size
+            num_towns = max(3, self.width * self.height // 1000)
+            num_dungeons = max(5, self.width * self.height // 800)
+            num_special = max(2, self.width * self.height // 1200)
+            
+            logger.debug(f"Planning to generate: {num_towns} towns, {num_dungeons} dungeons, {num_special} special sites")
+            
+            # Generate towns (prefer plains near water)
+            self._generate_towns(num_towns)
+            logger.debug(f"Generated {sum(1 for loc in self.locations if loc.location_type == LocationType.TOWN)} towns")
+            
+            # Generate dungeons (prefer mountains and forests)
+            self._generate_dungeons(num_dungeons)
+            logger.debug(f"Generated {sum(1 for loc in self.locations if loc.location_type == LocationType.DUNGEON)} dungeons")
+            
+            # Generate special sites (can be anywhere)
+            self._generate_special_sites(num_special)
+            logger.debug(f"Generated {sum(1 for loc in self.locations if loc.location_type == LocationType.SPECIAL_SITE)} special sites")
+            
+            # Connect locations with paths
+            self._connect_locations()
+            logger.debug("Connected locations with paths")
+            
+            logger.debug(f"Total locations generated: {len(self.locations)}")
+        except Exception as e:
+            logger.error(f"Error generating locations: {e}", exc_info=True)
+            raise
     
     def _generate_towns(self, count):
         """
@@ -493,60 +544,73 @@ class WorldGenerator:
     
     def _connect_locations(self):
         """Create connections between locations to form paths."""
-        if len(self.locations) < 2:
-            return
-            
-        # Use a simple algorithm to connect all locations
-        # First, connect closest pairs to form a minimum spanning tree
-        connected = set([0])  # Start with the first location
-        unconnected = set(range(1, len(self.locations)))
-        
-        while unconnected:
-            best_distance = float('inf')
-            best_connection = None
-            
-            # Find the closest connection between a connected and unconnected location
-            for connected_idx in connected:
-                connected_loc = self.locations[connected_idx]
+        try:
+            if len(self.locations) < 2:
+                logger.debug("Not enough locations to connect")
+                return
                 
-                for unconnected_idx in unconnected:
-                    unconnected_loc = self.locations[unconnected_idx]
+            logger.debug(f"Connecting {len(self.locations)} locations")
+                
+            # Use a simple algorithm to connect all locations
+            # First, connect closest pairs to form a minimum spanning tree
+            connected = set([0])  # Start with the first location
+            unconnected = set(range(1, len(self.locations)))
+            
+            while unconnected:
+                best_distance = float('inf')
+                best_connection = None
+                
+                # Find the closest connection between a connected and unconnected location
+                for connected_idx in connected:
+                    connected_loc = self.locations[connected_idx]
                     
-                    distance = ((connected_loc.x - unconnected_loc.x)**2 + 
-                               (connected_loc.y - unconnected_loc.y)**2)**0.5
+                    for unconnected_idx in unconnected:
+                        unconnected_loc = self.locations[unconnected_idx]
+                        
+                        distance = ((connected_loc.x - unconnected_loc.x)**2 + 
+                                   (connected_loc.y - unconnected_loc.y)**2)**0.5
+                        
+                        if distance < best_distance:
+                            best_distance = distance
+                            best_connection = (connected_idx, unconnected_idx)
+                
+                if best_connection:
+                    idx1, idx2 = best_connection
                     
-                    if distance < best_distance:
-                        best_distance = distance
-                        best_connection = (connected_idx, unconnected_idx)
+                    # Add connection
+                    self.locations[idx1].connected_locations.append(idx2)
+                    self.locations[idx2].connected_locations.append(idx1)
+                    logger.debug(f"Connected locations {idx1} and {idx2}")
+                    
+                    # Update sets
+                    connected.add(idx2)
+                    unconnected.remove(idx2)
+                else:
+                    logger.debug("No more connections possible")
+                    break
             
-            if best_connection:
-                idx1, idx2 = best_connection
-                
-                # Add connection
-                self.locations[idx1].connected_locations.append(idx2)
-                self.locations[idx2].connected_locations.append(idx1)
-                
-                # Update sets
-                connected.add(idx2)
-                unconnected.remove(idx2)
-            else:
-                break
-        
-        # Add a few more connections to create loops (about 10% more connections)
-        extra_connections = max(1, len(self.locations) // 10)
-        
-        for _ in range(extra_connections):
-            # Choose two random locations
-            idx1 = random.randint(0, len(self.locations) - 1)
-            idx2 = random.randint(0, len(self.locations) - 1)
+            # Add a few more connections to create loops (about 10% more connections)
+            extra_connections = max(1, len(self.locations) // 10)
+            logger.debug(f"Adding {extra_connections} extra connections")
             
-            # Make sure they're different and not already connected
-            if (idx1 != idx2 and
-                idx2 not in self.locations[idx1].connected_locations):
+            for i in range(extra_connections):
+                # Choose two random locations
+                idx1 = random.randint(0, len(self.locations) - 1)
+                idx2 = random.randint(0, len(self.locations) - 1)
                 
-                # Add connection
-                self.locations[idx1].connected_locations.append(idx2)
-                self.locations[idx2].connected_locations.append(idx1)
+                # Make sure they're different and not already connected
+                if (idx1 != idx2 and
+                    idx2 not in self.locations[idx1].connected_locations):
+                    
+                    # Add connection
+                    self.locations[idx1].connected_locations.append(idx2)
+                    self.locations[idx2].connected_locations.append(idx1)
+                    logger.debug(f"Added extra connection between {idx1} and {idx2}")
+            
+            logger.debug("Location connections complete")
+        except Exception as e:
+            logger.error(f"Error connecting locations: {e}", exc_info=True)
+            raise
     
     def to_dict(self):
         """Convert world to dictionary for serialization."""
