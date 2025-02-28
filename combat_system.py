@@ -1597,6 +1597,47 @@ class Combat:
         """
         return self.turn_manager.winners
     
+    def is_player_turn(self):
+        """
+        Check if it's a player entity's turn.
+        
+        Returns:
+            Boolean indicating if it's a player's turn
+        """
+        current_entity = self.turn_manager.get_current_entity()
+        if not current_entity:
+            return False
+        return current_entity.team == 0
+    
+    def get_current_entity(self):
+        """
+        Get the entity whose turn it is currently.
+        
+        Returns:
+            Current entity or None
+        """
+        return self.turn_manager.get_current_entity()
+    
+    def get_player_entities(self):
+        """
+        Get all player entities.
+        
+        Returns:
+            List of player entities
+        """
+        return [e for e in self.turn_manager.entities 
+                if e.team == 0 and not e.is_dead]
+    
+    def get_enemy_entities(self):
+        """
+        Get all enemy entities.
+        
+        Returns:
+            List of enemy entities
+        """
+        return [e for e in self.turn_manager.entities 
+                if e.team == 1 and not e.is_dead]
+    
     def get_rewards(self):
         """
         Get combat rewards.
