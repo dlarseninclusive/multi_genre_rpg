@@ -2,9 +2,10 @@ import pygame
 import logging
 import random
 import math
+import numpy as np
 from enum import Enum
 from game_state import GameState
-from world_generator import WorldGenerator, TerrainType, LocationType
+from world_generator import WorldGenerator, TerrainType, LocationType, Location
 
 logger = logging.getLogger("world_exploration")
 
