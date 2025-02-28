@@ -119,6 +119,21 @@ class Game:
                 self.render()
         except Exception as e:
             logger.error(f"Exception in main game loop: {e}", exc_info=True)
+            
+            # Handle specific errors
+            if "noise" in str(e).lower():
+                logger.error("This may be related to the noise library. Make sure you've installed it with: pip install noise")
+            elif "numpy" in str(e).lower():
+                logger.error("This may be related to NumPy. Make sure you've installed it with: pip install numpy")
+                
+            # Display error to user
+            if self.screen:
+                font = pygame.font.SysFont(None, 24)
+                text = font.render(f"Error: {str(e)}", True, (255, 0, 0))
+                self.screen.fill((0, 0, 0))
+                self.screen.blit(text, (10, 10))
+                pygame.display.flip()
+                pygame.time.wait(5000)  # Show error for 5 seconds
         finally:
             self._cleanup()
     
