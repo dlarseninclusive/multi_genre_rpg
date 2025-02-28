@@ -1011,3 +1011,627 @@ class ItemFactory:
             return Material.from_dict(data)
         else:
             return Item.from_dict(data)
+class Inventory:
+    """Inventory system for storing and managing items."""
+    
+    def __init__(self, max_weight=50, max_slots=20):
+        """
+        Initialize an inventory.
+        
+        Args:
+            max_weight: Maximum weight the inventory can hold
+            max_slots: Maximum number of item slots
+        """
+        self.items = []
+        self.max_weight = max_weight
+        self.max_slots = max_slots
+        logger.debug(f"Created inventory with {max_slots} slots and {max_weight} max weight")
+    
+    @property
+    def current_weight(self):
+        """Calculate the total weight of all items in the inventory."""
+        return sum(item.weight for item in self.items)
+    
+    @property
+    def free_slots(self):
+        """Calculate the number of free slots in the inventory."""
+        return self.max_slots - len(self.items)
+    
+    def add_item(self, item):
+        """
+        Add an item to the inventory.
+        
+        Args:
+            item: Item to add
+            
+        Returns:
+            Boolean indicating if the item was added successfully
+        """
+        # Check if inventory is full
+        if len(self.items) >= self.max_slots:
+            logger.warning("Cannot add item: inventory slots full")
+            return False
+        
+        # Check if adding the item would exceed weight limit
+        if self.current_weight + item.weight > self.max_weight:
+            logger.warning("Cannot add item: would exceed weight limit")
+            return False
+        
+        # Add the item
+        self.items.append(item)
+        logger.debug(f"Added {item.name} to inventory")
+        return True
+    
+    def add_items(self, items):
+        """
+        Add multiple items to the inventory.
+        
+        Args:
+            items: List of items to add
+            
+        Returns:
+            List of items that couldn't be added
+        """
+        not_added = []
+        for item in items:
+            if not self.add_item(item):
+                not_added.append(item)
+        
+        return not_added
+    
+    def remove_item(self, item_index):
+        """
+        Remove an item by index.
+        
+        Args:
+            item_index: Index of the item to remove
+            
+        Returns:
+            The removed item or None if index is invalid
+        """
+        if 0 <= item_index < len(self.items):
+            item = self.items.pop(item_index)
+            logger.debug(f"Removed {item.name} from inventory")
+            return item
+        
+        logger.warning(f"Invalid item index: {item_index}")
+        return None
+    
+    def remove_item_by_name(self, item_name, count=1):
+        """
+        Remove items by name.
+        
+        Args:
+            item_name: Name of the items to remove
+            count: Number of items to remove
+            
+        Returns:
+            List of removed items
+        """
+        removed = []
+        remaining = count
+        
+        # Create a copy of the list to avoid modification during iteration
+        items_copy = self.items.copy()
+        
+        for i, item in enumerate(items_copy):
+            if item.name == item_name and remaining > 0:
+                # Find the index in the original list
+                original_index = self.items.index(item)
+                removed.append(self.remove_item(original_index))
+                remaining -= 1
+                
+            if remaining == 0:
+                break
+        
+        return removed
+    
+    def get_item(self, item_index):
+        """
+        Get an item by index without removing it.
+        
+        Args:
+            item_index: Index of the item
+            
+        Returns:
+            Item or None if index is invalid
+        """
+        if 0 <= item_index < len(self.items):
+            return self.items[item_index]
+        
+        logger.warning(f"Invalid item index: {item_index}")
+        return None
+    
+    def get_items_by_type(self, item_type):
+        """
+        Get all items of a specific type.
+        
+        Args:
+            item_type: ItemType enum value
+            
+        Returns:
+            List of items of the specified type
+        """
+        return [item for item in self.items if item.item_type == item_type]
+    
+    def get_items_by_slot(self, slot):
+        """
+        Get all items that can be equipped in a specific slot.
+        
+        Args:
+            slot: Equipment slot name
+            
+        Returns:
+            List of items that can be equipped in the slot
+        """
+        return [item for item in self.items if slot in getattr(item, 'valid_slots', [])]
+    
+    def sort(self, key='name'):
+        """
+        Sort inventory items.
+        
+        Args:
+            key: Attribute to sort by ('name', 'value', 'weight', 'rarity', 'type')
+        """
+        if key == 'name':
+            self.items.sort(key=lambda item: item.name)
+        elif key == 'value':
+            self.items.sort(key=lambda item: item.value, reverse=True)
+        elif key == 'weight':
+            self.items.sort(key=lambda item: item.weight)
+        elif key == 'rarity':
+            self.items.sort(key=lambda item: item.rarity.value, reverse=True)
+        elif key == 'type':
+            self.items.sort(key=lambda item: item.item_type.value)
+        else:
+            logger.warning(f"Unknown sort key: {key}")
+    
+    def use_item(self, item_index, character):
+        """
+        Use an item and remove it from inventory if consumed.
+        
+        Args:
+            item_index: Index of the item to use
+            character: Character using the item
+            
+        Returns:
+            Boolean indicating if the item was used successfully
+        """
+        item = self.get_item(item_index)
+        if not item:
+            return False
+        
+        # Try to use the item
+        if item.use(character):
+            # If the item is consumable, remove it
+            if getattr(item, 'consumable', False):
+                self.remove_item(item_index)
+                logger.debug(f"Consumed {item.name}")
+            return True
+        
+        return False
+    
+    def get_total_value(self):
+        """Calculate the total value of all items in the inventory."""
+        return sum(item.value for item in self.items)
+    
+    def to_dict(self):
+        """Convert inventory to dictionary for serialization."""
+        return {
+            'items': [item.to_dict() for item in self.items],
+            'max_weight': self.max_weight,
+            'max_slots': self.max_slots
+        }
+    
+    @classmethod
+    def from_dict(cls, data, item_factory):
+        """
+        Create inventory from dictionary.
+        
+        Args:
+            data: Dictionary from to_dict
+            item_factory: ItemFactory instance for creating items
+            
+        Returns:
+            Inventory instance
+        """
+        inventory = cls(data['max_weight'], data['max_slots'])
+        
+        for item_data in data['items']:
+            item = item_factory.create_item_from_dict(item_data)
+            inventory.add_item(item)
+        
+        return inventory
+
+
+class Equipment:
+    """Character equipment manager."""
+    
+    def __init__(self):
+        """Initialize equipment slots."""
+        self.slots = {
+            'head': None,
+            'chest': None,
+            'legs': None,
+            'feet': None,
+            'main_hand': None,
+            'off_hand': None,
+            'accessory': None
+        }
+        logger.debug("Created equipment manager")
+    
+    def equip(self, item, slot=None):
+        """
+        Equip an item in the appropriate slot.
+        
+        Args:
+            item: Item to equip
+            slot: Specific slot to use (if None, uses first valid slot)
+            
+        Returns:
+            Tuple of (success, previous_item)
+            - success: Boolean indicating if equipping was successful
+            - previous_item: Item that was previously equipped (if any)
+        """
+        # Check if the item has valid equipment slots
+        valid_slots = getattr(item, 'valid_slots', [])
+        if not valid_slots:
+            logger.warning(f"{item.name} cannot be equipped")
+            return False, None
+        
+        # If no slot specified, use the first valid one
+        if slot is None:
+            for possible_slot in valid_slots:
+                if possible_slot in self.slots:
+                    slot = possible_slot
+                    break
+        
+        # Check if the specified slot is valid for this item
+        if slot not in valid_slots:
+            logger.warning(f"{item.name} cannot be equipped in {slot} slot")
+            return False, None
+        
+        # If equipping a two-handed weapon, check off-hand
+        if slot == 'main_hand' and 'off_hand' not in valid_slots and self.slots['off_hand'] is not None:
+            logger.warning(f"Cannot equip two-handed weapon while off-hand is occupied")
+            return False, None
+        
+        # If equipping to off-hand, check if main hand has a two-handed weapon
+        if slot == 'off_hand' and self.slots['main_hand'] is not None:
+            main_hand_item = self.slots['main_hand']
+            if 'off_hand' not in getattr(main_hand_item, 'valid_slots', []):
+                logger.warning(f"Cannot equip to off-hand while wielding a two-handed weapon")
+                return False, None
+        
+        # Store the previously equipped item
+        previous_item = self.slots[slot]
+        
+        # Equip the new item
+        self.slots[slot] = item
+        logger.debug(f"Equipped {item.name} in {slot} slot")
+        
+        return True, previous_item
+    
+    def unequip(self, slot):
+        """
+        Unequip an item from a slot.
+        
+        Args:
+            slot: Slot to unequip from
+            
+        Returns:
+            The unequipped item or None if slot was empty
+        """
+        if slot not in self.slots:
+            logger.warning(f"Invalid equipment slot: {slot}")
+            return None
+        
+        item = self.slots[slot]
+        self.slots[slot] = None
+        
+        if item:
+            logger.debug(f"Unequipped {item.name} from {slot} slot")
+        
+        return item
+    
+    def get_stat_bonuses(self):
+        """
+        Calculate total stat bonuses from all equipped items.
+        
+        Returns:
+            Dictionary of stat name to bonus value
+        """
+        bonuses = {}
+        
+        for slot, item in self.slots.items():
+            if item is None:
+                continue
+            
+            stat_bonuses = getattr(item, 'stat_bonuses', {})
+            for stat, value in stat_bonuses.items():
+                bonuses[stat] = bonuses.get(stat, 0) + value
+        
+        return bonuses
+    
+    def get_total_defense(self):
+        """
+        Calculate total defense from all equipped armor.
+        
+        Returns:
+            Total defense value
+        """
+        total_defense = 0
+        
+        for slot, item in self.slots.items():
+            if item is None or not hasattr(item, 'defense'):
+                continue
+            
+            total_defense += item.defense
+        
+        return total_defense
+    
+    def to_dict(self):
+        """Convert equipment to dictionary for serialization."""
+        return {
+            'slots': {
+                slot: (item.to_dict() if item else None)
+                for slot, item in self.slots.items()
+            }
+        }
+    
+    @classmethod
+    def from_dict(cls, data, item_factory):
+        """
+        Create equipment from dictionary.
+        
+        Args:
+            data: Dictionary from to_dict
+            item_factory: ItemFactory instance for creating items
+            
+        Returns:
+            Equipment instance
+        """
+        equipment = cls()
+        
+        for slot, item_data in data['slots'].items():
+            if item_data:
+                item = item_factory.create_item_from_dict(item_data)
+                equipment.slots[slot] = item
+        
+        return equipment
+
+
+class LootTable:
+    """Defines loot drops for enemies, chests, etc."""
+    
+    def __init__(self, name):
+        """
+        Initialize a loot table.
+        
+        Args:
+            name: Name of the loot table
+        """
+        self.name = name
+        self.entries = []  # List of (item, weight) tuples
+        self.guaranteed = []  # List of items that always drop
+        logger.debug(f"Created loot table: {name}")
+    
+    def add_entry(self, item_generator, weight):
+        """
+        Add an entry to the loot table.
+        
+        Args:
+            item_generator: Function that generates an item (takes level parameter)
+            weight: Relative weight for random selection
+        """
+        self.entries.append((item_generator, weight))
+    
+    def add_guaranteed(self, item_generator):
+        """
+        Add a guaranteed item to the loot table.
+        
+        Args:
+            item_generator: Function that generates an item (takes level parameter)
+        """
+        self.guaranteed.append(item_generator)
+    
+    def generate_loot(self, level, rolls=1, luck_modifier=0):
+        """
+        Generate loot from the table.
+        
+        Args:
+            level: Level of the loot
+            rolls: Number of random items to generate
+            luck_modifier: Modifier to luck (higher means better loot)
+            
+        Returns:
+            List of generated items
+        """
+        if not self.entries and not self.guaranteed:
+            return []
+        
+        loot = []
+        
+        # Add guaranteed items
+        for generator in self.guaranteed:
+            loot.append(generator(level))
+        
+        # Roll for random items
+        if self.entries:
+            generators, weights = zip(*self.entries)
+            
+            for _ in range(rolls):
+                # Apply luck modifier (increase weight of better items)
+                if luck_modifier != 0:
+                    adjusted_weights = list(weights)
+                    for i in range(len(adjusted_weights)):
+                        # Adjust weights based on index (higher index = better item)
+                        adjusted_weights[i] += luck_modifier * i
+                    
+                    # Ensure no negative weights
+                    adjusted_weights = [max(0.1, w) for w in adjusted_weights]
+                else:
+                    adjusted_weights = weights
+                
+                # Select a random generator
+                selected = random.choices(generators, weights=adjusted_weights, k=1)[0]
+                
+                # Generate the item
+                loot.append(selected(level))
+        
+        return loot
+    
+    def to_dict(self):
+        """Not implemented - would require serializing functions."""
+        logger.warning("LootTable serialization not implemented")
+        return {'name': self.name}
+
+
+class ItemDatabase:
+    """Central database of all items in the game."""
+    
+    def __init__(self):
+        """Initialize the item database."""
+        self.items = {}  # Dictionary of item_id to item
+        self.loot_tables = {}  # Dictionary of table_id to LootTable
+        self.factory = ItemFactory()
+        logger.debug("Created item database")
+    
+    def register_item(self, item_id, item):
+        """
+        Register an item in the database.
+        
+        Args:
+            item_id: Unique identifier for the item
+            item: Item instance
+        """
+        self.items[item_id] = item
+        logger.debug(f"Registered item {item_id}: {item.name}")
+    
+    def get_item(self, item_id):
+        """
+        Get an item by ID.
+        
+        Args:
+            item_id: Unique identifier for the item
+            
+        Returns:
+            Item instance or None if not found
+        """
+        return self.items.get(item_id)
+    
+    def register_loot_table(self, table_id, loot_table):
+        """
+        Register a loot table in the database.
+        
+        Args:
+            table_id: Unique identifier for the loot table
+            loot_table: LootTable instance
+        """
+        self.loot_tables[table_id] = loot_table
+        logger.debug(f"Registered loot table {table_id}: {loot_table.name}")
+    
+    def get_loot_table(self, table_id):
+        """
+        Get a loot table by ID.
+        
+        Args:
+            table_id: Unique identifier for the loot table
+            
+        Returns:
+            LootTable instance or None if not found
+        """
+        return self.loot_tables.get(table_id)
+    
+    def generate_loot(self, table_id, level, rolls=1, luck_modifier=0):
+        """
+        Generate loot from a table by ID.
+        
+        Args:
+            table_id: Unique identifier for the loot table
+            level: Level of the loot
+            rolls: Number of random items to generate
+            luck_modifier: Modifier to luck (higher means better loot)
+            
+        Returns:
+            List of generated items
+        """
+        table = self.get_loot_table(table_id)
+        if table:
+            return table.generate_loot(level, rolls, luck_modifier)
+        
+        logger.warning(f"Loot table not found: {table_id}")
+        return []
+    
+    def initialize_default_items(self):
+        """Create and register default items."""
+        # Create some generic starter items
+        starter_sword = self.factory.create_weapon("Sword", ItemRarity.COMMON, 1)
+        starter_bow = self.factory.create_weapon("Bow", ItemRarity.COMMON, 1)
+        starter_staff = self.factory.create_weapon("Staff", ItemRarity.COMMON, 1)
+        
+        starter_helmet = self.factory.create_armor("Helmet", ItemRarity.COMMON, 1)
+        starter_chestplate = self.factory.create_armor("Chestplate", ItemRarity.COMMON, 1)
+        starter_boots = self.factory.create_armor("Boots", ItemRarity.COMMON, 1)
+        
+        health_potion = self.factory.create_consumable("Health Potion", ItemRarity.COMMON, 1)
+        mana_potion = self.factory.create_consumable("Mana Potion", ItemRarity.COMMON, 1)
+        
+        # Register items
+        self.register_item("starter_sword", starter_sword)
+        self.register_item("starter_bow", starter_bow)
+        self.register_item("starter_staff", starter_staff)
+        self.register_item("starter_helmet", starter_helmet)
+        self.register_item("starter_chestplate", starter_chestplate)
+        self.register_item("starter_boots", starter_boots)
+        self.register_item("health_potion", health_potion)
+        self.register_item("mana_potion", mana_potion)
+    
+    def initialize_default_loot_tables(self):
+        """Create and register default loot tables."""
+        # Create a basic enemy loot table
+        enemy_table = LootTable("Basic Enemy Drops")
+        enemy_table.add_entry(lambda level: self.factory.create_consumable("Health Potion", ItemRarity.COMMON, level), 30)
+        enemy_table.add_entry(lambda level: self.factory.create_material("Ore"), 20)
+        enemy_table.add_entry(lambda level: self.factory.create_material("Leather"), 20)
+        enemy_table.add_entry(lambda level: self.factory.create_weapon(None, None, level), 15)
+        enemy_table.add_entry(lambda level: self.factory.create_armor(None, None, level), 15)
+        
+        # Create a chest loot table
+        chest_table = LootTable("Basic Chest Loot")
+        chest_table.add_entry(lambda level: self.factory.create_consumable("Health Potion", ItemRarity.COMMON, level), 20)
+        chest_table.add_entry(lambda level: self.factory.create_consumable("Mana Potion", ItemRarity.COMMON, level), 20)
+        chest_table.add_entry(lambda level: self.factory.create_weapon(None, None, level), 20)
+        chest_table.add_entry(lambda level: self.factory.create_armor(None, None, level), 20)
+        chest_table.add_entry(lambda level: self.factory.create_accessory(None, None, level), 20)
+        
+        # Create a boss loot table
+        boss_table = LootTable("Boss Drops")
+        boss_table.add_guaranteed(lambda level: self.factory.create_weapon(None, ItemRarity.RARE, level))
+        boss_table.add_entry(lambda level: self.factory.create_accessory(None, ItemRarity.RARE, level), 30)
+        boss_table.add_entry(lambda level: self.factory.create_armor(None, ItemRarity.RARE, level), 30)
+        boss_table.add_entry(lambda level: self.factory.create_consumable("Elixir", ItemRarity.UNCOMMON, level), 40)
+        
+        # Register loot tables
+        self.register_loot_table("enemy_basic", enemy_table)
+        self.register_loot_table("chest_basic", chest_table)
+        self.register_loot_table("boss_basic", boss_table)
+
+
+# Helper functions for testing
+def create_starter_inventory():
+    """Create a starter inventory with basic items."""
+    factory = ItemFactory()
+    inventory = Inventory()
+    
+    # Add some starter items
+    inventory.add_item(factory.create_weapon("Sword", ItemRarity.COMMON, 1))
+    inventory.add_item(factory.create_armor("Chestplate", ItemRarity.COMMON, 1))
+    inventory.add_item(factory.create_consumable("Health Potion", ItemRarity.COMMON, 1))
+    inventory.add_item(factory.create_consumable("Health Potion", ItemRarity.COMMON, 1))
+    
+    return inventory
+
+
+# Initialize the central item database
+item_db = ItemDatabase()

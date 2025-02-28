@@ -809,8 +809,605 @@ class QuestUI:
             
             y_offset += 30
         
-        # Rewards header
+# Rewards header
         y_offset += 10
         rewards_text = self.font_subtitle.render("Rewards", True, self.color_text)
         self.screen.blit(rewards_text, (x_start, y_offset))
-        y_offset += 
+        y_offset += 30
+        
+        # Display rewards
+        rewards = quest.rewards
+        
+        if rewards.xp > 0:
+            xp_text = self.font_text.render(f"XP: {rewards.xp}", True, self.color_text)
+            self.screen.blit(xp_text, (x_start, y_offset))
+            y_offset += 25
+        
+        if rewards.gold > 0:
+            gold_text = self.font_text.render(f"Gold: {rewards.gold}", True, self.color_text)
+            self.screen.blit(gold_text, (x_start, y_offset))
+            y_offset += 25
+        
+        if rewards.items:
+            items_text = self.font_text.render("Items:", True, self.color_text)
+            self.screen.blit(items_text, (x_start, y_offset))
+            y_offset += 25
+            
+            for item in rewards.items:
+                item_name = item.get("name", "Unknown Item")
+                item_text = self.font_small.render(f"- {item_name}", True, self.color_text)
+                self.screen.blit(item_text, (x_start + 20, y_offset))
+                y_offset += 20
+    
+    def _draw_wrapped_text(self, text: str, x: int, y: int, max_width: int, font: pygame.font.Font, color=(255, 255, 255)):
+        """Draw text that wraps if it exceeds the max width."""
+        words = text.split(' ')
+        lines = []
+        current_line = []
+        
+        for word in words:
+            test_line = ' '.join(current_line + [word])
+            test_width = font.size(test_line)[0]
+            
+            if test_width <= max_width:
+                current_line.append(word)
+            else:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+        
+        if current_line:
+            lines.append(' '.join(current_line))
+        
+        line_height = font.get_linesize()
+        for i, line in enumerate(lines):
+            rendered_line = font.render(line, True, color)
+            self.screen.blit(rendered_line, (x, y + i * line_height))
+    
+    def handle_event(self, event):
+        """Handle UI events."""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Handle tab clicks
+            if self.active_tab_rect.collidepoint(event.pos):
+                self.active_quests_tab_active = True
+                self.completed_quests_tab_active = False
+                self.selected_quest_id = None
+                self.quest_details_visible = False
+            
+            elif self.completed_tab_rect.collidepoint(event.pos):
+                self.active_quests_tab_active = False
+                self.completed_quests_tab_active = True
+                self.selected_quest_id = None
+                self.quest_details_visible = False
+            
+            # Handle quest list clicks
+            elif self.quest_list_rect.collidepoint(event.pos):
+                self._handle_quest_selection(event.pos[1])
+    
+    def _handle_quest_selection(self, y_pos):
+        """Handle selecting a quest from the list."""
+        y_offset = self.quest_list_rect.top + 10
+        quest_list = self.quest_manager.active_quests if self.active_quests_tab_active else self.quest_manager.completed_quests
+        
+        for quest_id in quest_list:
+            # Check if click is within this quest's row
+            if y_pos >= y_offset and y_pos < y_offset + 35:
+                self.selected_quest_id = quest_id
+                self.quest_details_visible = True
+                break
+            
+            y_offset += 35
+    
+    def handle_quest_activated(self, data):
+        """Handle quest activated event."""
+        # Update the UI when a quest is activated
+        if self.active_quests_tab_active:
+            # If we're on the active quests tab, immediately select the new quest
+            self.selected_quest_id = data.get("quest_id")
+            self.quest_details_visible = True
+    
+    def handle_quest_completed(self, data):
+        """Handle quest completed event."""
+        quest_id = data.get("quest_id")
+        
+        # If the completed quest was selected, update the UI
+        if quest_id == self.selected_quest_id and self.active_quests_tab_active:
+            # Switch to completed quests tab and keep the quest selected
+            self.active_quests_tab_active = False
+            self.completed_quests_tab_active = True
+    
+    def handle_quest_failed(self, data):
+        """Handle quest failed event."""
+        quest_id = data.get("quest_id")
+        
+        # If the failed quest was selected, hide the details
+        if quest_id == self.selected_quest_id:
+            self.selected_quest_id = None
+            self.quest_details_visible = False
+    
+    def handle_quest_updated(self, data):
+        """Handle quest updated event."""
+        # Update the UI when a quest's objectives are updated
+        pass  # The UI will automatically show the updated status on next draw
+
+
+class QuestMarker:
+    """A visual indicator for quest-related locations on the map."""
+    def __init__(self, position: Tuple[int, int], quest_id: str, marker_type: str):
+        self.position = position
+        self.quest_id = quest_id
+        self.marker_type = marker_type  # 'start', 'objective', 'complete'
+        
+        # Appearance
+        self.radius = 10
+        self.pulsing = True
+        self.pulse_speed = 0.05
+        self.pulse_min = 0.7
+        self.pulse_max = 1.3
+        self.pulse_factor = 1.0
+        self.pulse_direction = 1
+        
+        # Colors for different types
+        self.colors = {
+            'start': (255, 255, 0),       # Yellow for quest start
+            'objective': (0, 200, 255),   # Blue for objectives
+            'complete': (0, 255, 0),      # Green for completion
+            'main': (255, 200, 0),        # Gold for main quests
+            'side': (200, 200, 200)       # Silver for side quests
+        }
+    
+    def update(self, dt: float):
+        """Update the marker animation."""
+        if self.pulsing:
+            self.pulse_factor += self.pulse_direction * self.pulse_speed * dt
+            
+            if self.pulse_factor >= self.pulse_max:
+                self.pulse_factor = self.pulse_max
+                self.pulse_direction = -1
+            elif self.pulse_factor <= self.pulse_min:
+                self.pulse_factor = self.pulse_min
+                self.pulse_direction = 1
+    
+    def draw(self, surface: pygame.Surface, camera_offset: Tuple[int, int] = (0, 0)):
+        """Draw the marker on the surface."""
+        # Apply camera offset
+        x = self.position[0] - camera_offset[0]
+        y = self.position[1] - camera_offset[1]
+        
+        # Base color
+        color = self.colors.get(self.marker_type, (255, 255, 255))
+        
+        # Draw pulsing circle
+        radius = int(self.radius * self.pulse_factor)
+        
+        # Draw outer glow
+        glow_surf = pygame.Surface((radius * 2 + 4, radius * 2 + 4), pygame.SRCALPHA)
+        for i in range(3):
+            alpha = 100 - i * 30
+            pygame.draw.circle(glow_surf, (*color, alpha), (radius + 2, radius + 2), radius - i)
+        
+        surface.blit(glow_surf, (x - radius - 2, y - radius - 2))
+        
+        # Draw main circle
+        pygame.draw.circle(surface, color, (x, y), radius)
+        pygame.draw.circle(surface, (255, 255, 255), (x, y), radius, 2)
+        
+        # Draw icon based on type
+        if self.marker_type == 'start':
+            # Exclamation mark
+            pygame.draw.line(surface, (0, 0, 0), (x, y - 5), (x, y + 2), 2)
+            pygame.draw.circle(surface, (0, 0, 0), (x, y + 5), 1)
+        elif self.marker_type == 'objective':
+            # Question mark
+            pygame.draw.arc(surface, (0, 0, 0), (x - 3, y - 5, 6, 6), 0, 4.7, 2)
+            pygame.draw.circle(surface, (0, 0, 0), (x, y + 3), 1)
+        elif self.marker_type == 'complete':
+            # Checkmark
+            pygame.draw.line(surface, (0, 0, 0), (x - 3, y), (x, y + 3), 2)
+            pygame.draw.line(surface, (0, 0, 0), (x, y + 3), (x + 4, y - 4), 2)
+
+
+class QuestMarkerManager:
+    """Manages all quest markers on the map."""
+    def __init__(self, quest_manager: QuestManager):
+        self.quest_manager = quest_manager
+        self.markers: Dict[str, QuestMarker] = {}  # marker_id -> QuestMarker
+        
+        # Subscribe to events
+        quest_manager.event_bus.subscribe("quest_activated", self.handle_quest_activated)
+        quest_manager.event_bus.subscribe("quest_updated", self.handle_quest_updated)
+        quest_manager.event_bus.subscribe("quest_completed", self.handle_quest_completed)
+        quest_manager.event_bus.subscribe("quest_failed", self.handle_quest_failed)
+    
+    def add_marker(self, position: Tuple[int, int], quest_id: str, objective_id: str = None, marker_type: str = 'start'):
+        """Add a new quest marker."""
+        marker_id = f"{quest_id}:{objective_id}" if objective_id else quest_id
+        self.markers[marker_id] = QuestMarker(position, quest_id, marker_type)
+    
+    def remove_marker(self, marker_id: str):
+        """Remove a quest marker."""
+        if marker_id in self.markers:
+            del self.markers[marker_id]
+    
+    def update_markers(self, dt: float):
+        """Update all markers."""
+        for marker in self.markers.values():
+            marker.update(dt)
+    
+    def draw_markers(self, surface: pygame.Surface, camera_offset: Tuple[int, int] = (0, 0)):
+        """Draw all markers."""
+        for marker in self.markers.values():
+            marker.draw(surface, camera_offset)
+    
+    def handle_quest_activated(self, data):
+        """Handle quest activation event."""
+        quest_id = data.get("quest_id")
+        quest = data.get("quest")
+        
+        # Add marker for quest giver if available
+        # This would require a reference to the NPC's position
+        # For now, we'll just add a placeholder marker
+        self.add_marker((random.randint(100, 700), random.randint(100, 500)), quest_id, marker_type='start')
+        
+        # Add markers for initial objectives
+        for objective in quest.objectives:
+            if objective.coordinates:
+                marker_id = f"{quest_id}:{objective.id}"
+                self.add_marker(objective.coordinates, quest_id, objective.id, marker_type='objective')
+    
+    def handle_quest_updated(self, data):
+        """Handle quest update event."""
+        quest_id = data.get("quest_id")
+        quest = data.get("quest")
+        
+        # Update markers for completed objectives
+        for objective in quest.objectives:
+            if objective.is_complete() and objective.coordinates:
+                marker_id = f"{quest_id}:{objective.id}"
+                if marker_id in self.markers:
+                    self.markers[marker_id].marker_type = 'complete'
+    
+    def handle_quest_completed(self, data):
+        """Handle quest completion event."""
+        quest_id = data.get("quest_id")
+        
+        # Remove all markers for this quest
+        markers_to_remove = [marker_id for marker_id in self.markers if marker_id.startswith(f"{quest_id}:")]
+        for marker_id in markers_to_remove:
+            self.remove_marker(marker_id)
+        
+        # Add a completion marker if quest receiver is available
+        # Again, this would require NPC position data
+        self.add_marker((random.randint(100, 700), random.randint(100, 500)), quest_id, marker_type='complete')
+    
+    def handle_quest_failed(self, data):
+        """Handle quest failure event."""
+        quest_id = data.get("quest_id")
+        
+        # Remove all markers for this quest
+        markers_to_remove = [marker_id for marker_id in self.markers if marker_id.startswith(f"{quest_id}:")]
+        for marker_id in markers_to_remove:
+            self.remove_marker(marker_id)
+
+
+class QuestNotification:
+    """A notification that appears when quest status changes."""
+    def __init__(self, message: str, quest_type: QuestType = None, duration: float = 5.0):
+        self.message = message
+        self.quest_type = quest_type
+        self.duration = duration
+        self.time_remaining = duration
+        self.font = pygame.font.Font(None, 28)
+        self.position = (50, 50)  # Default position
+        self.alpha = 255  # For fade-in/out effects
+        
+        # Colors based on quest type
+        self.colors = {
+            QuestType.MAIN: (255, 215, 0),    # Gold for main quests
+            QuestType.SIDE: (100, 149, 237),  # Cornflower blue for side quests
+            QuestType.FACTION: (138, 43, 226), # Purple for faction quests
+            QuestType.WORLD: (46, 139, 87),   # Sea green for world quests
+            QuestType.DAILY: (255, 127, 80),  # Coral for daily quests
+            QuestType.SPECIAL: (255, 105, 180)  # Hot pink for special quests
+        }
+        
+        self.color = self.colors.get(quest_type, (255, 255, 255))
+    
+    def update(self, dt: float) -> bool:
+        """Update the notification. Return False when expired."""
+        self.time_remaining -= dt
+        
+        # Fade out in the last second
+        if self.time_remaining < 1.0:
+            self.alpha = int(255 * self.time_remaining)
+        
+        return self.time_remaining > 0
+    
+    def draw(self, surface: pygame.Surface):
+        """Draw the notification."""
+        # Background
+        bg_rect = pygame.Rect(self.position[0], self.position[1], 400, 70)
+        bg_surf = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+        bg_surf.fill((0, 0, 0, 180))  # Semi-transparent black
+        
+        # Border
+        border_surf = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
+        pygame.draw.rect(border_surf, (*self.color, 200), pygame.Rect(0, 0, bg_rect.width, bg_rect.height), 2)
+        
+        # Icon/indicator
+        pygame.draw.rect(border_surf, (*self.color, 200), pygame.Rect(0, 0, 10, bg_rect.height))
+        
+        # Apply alpha for fading
+        bg_surf.set_alpha(self.alpha)
+        border_surf.set_alpha(self.alpha)
+        
+        surface.blit(bg_surf, bg_rect)
+        surface.blit(border_surf, bg_rect)
+        
+        # Text with alpha
+        text_surf = self.font.render(self.message, True, self.color)
+        text_surf.set_alpha(self.alpha)
+        surface.blit(text_surf, (bg_rect.x + 20, bg_rect.y + 20))
+
+
+class QuestNotificationManager:
+    """Manages quest notifications."""
+    def __init__(self, event_bus: EventBus):
+        self.event_bus = event_bus
+        self.notifications: List[QuestNotification] = []
+        self.max_notifications = 3
+        
+        # Register event handlers
+        self.event_bus.subscribe("quest_activated", self.handle_quest_activated)
+        self.event_bus.subscribe("quest_objectives_complete", self.handle_quest_objectives_complete)
+        self.event_bus.subscribe("quest_completed", self.handle_quest_completed)
+        self.event_bus.subscribe("quest_failed", self.handle_quest_failed)
+        self.event_bus.subscribe("quest_available", self.handle_quest_available)
+    
+    def add_notification(self, message: str, quest_type: QuestType = None, duration: float = 5.0):
+        """Add a new notification."""
+        notification = QuestNotification(message, quest_type, duration)
+        
+        # Limit number of notifications
+        if len(self.notifications) >= self.max_notifications:
+            self.notifications.pop(0)  # Remove oldest
+        
+        self.notifications.append(notification)
+    
+    def update(self, dt: float):
+        """Update all notifications."""
+        # Update and remove expired notifications
+        self.notifications = [n for n in self.notifications if n.update(dt)]
+        
+        # Update positions
+        for i, notification in enumerate(self.notifications):
+            notification.position = (50, 50 + i * 80)
+    
+    def draw(self, surface: pygame.Surface):
+        """Draw all notifications."""
+        for notification in self.notifications:
+            notification.draw(surface)
+    
+    # Event handlers
+    def handle_quest_activated(self, data):
+        """Handle quest activated event."""
+        quest = data.get("quest")
+        self.add_notification(f"Quest Started: {quest.title}", quest.type, 5.0)
+    
+    def handle_quest_objectives_complete(self, data):
+        """Handle quest objectives completed event."""
+        quest = data.get("quest")
+        self.add_notification(f"Quest Objectives Complete: {quest.title}", quest.type, 5.0)
+    
+    def handle_quest_completed(self, data):
+        """Handle quest completed event."""
+        quest = data.get("quest")
+        self.add_notification(f"Quest Completed: {quest.title}", quest.type, 7.0)
+    
+    def handle_quest_failed(self, data):
+        """Handle quest failed event."""
+        quest = data.get("quest")
+        self.add_notification(f"Quest Failed: {quest.title}", quest.type, 5.0)
+    
+    def handle_quest_available(self, data):
+        """Handle new quest available event."""
+        quest = data.get("quest")
+        self.add_notification(f"New Quest Available: {quest.title}", quest.type, 5.0)
+
+
+# Example quest creation function for testing
+def create_test_quests(quest_manager: QuestManager):
+    """Create some test quests for development."""
+    # Create a simple collection quest
+    collection_objective = QuestObjective(
+        id="collect_herbs",
+        type=ObjectiveType.COLLECT,
+        description="Collect medicinal herbs",
+        target="herb_item",
+        required_amount=5
+    )
+    
+    collect_quest = Quest(
+        id="herb_collection",
+        title="Medicinal Needs",
+        description="The village healer needs medicinal herbs to treat the sick. Collect 5 herbs from the forest.",
+        type=QuestType.SIDE,
+        level=1,
+        objectives=[collection_objective],
+        rewards=QuestReward(xp=100, gold=50)
+    )
+    
+    # Create a kill quest
+    kill_objective = QuestObjective(
+        id="kill_wolves",
+        type=ObjectiveType.KILL,
+        description="Defeat the wolf pack",
+        target="wolf_enemy",
+        required_amount=3
+    )
+    
+    kill_quest = Quest(
+        id="wolf_hunt",
+        title="Wolf Problem",
+        description="Wolves have been attacking the village livestock. Defeat 3 wolves to protect the village.",
+        type=QuestType.SIDE,
+        level=2,
+        objectives=[kill_objective],
+        rewards=QuestReward(xp=150, gold=100)
+    )
+    
+    # Create a multi-objective main quest
+    talk_objective = QuestObjective(
+        id="talk_to_elder",
+        type=ObjectiveType.TALK,
+        description="Speak with Village Elder",
+        target="elder_npc"
+    )
+    
+    location_objective = QuestObjective(
+        id="find_ancient_temple",
+        type=ObjectiveType.LOCATION,
+        description="Locate the Ancient Temple",
+        target="temple_location",
+        coordinates=(500, 300)
+    )
+    
+    artifact_objective = QuestObjective(
+        id="retrieve_artifact",
+        type=ObjectiveType.COLLECT,
+        description="Retrieve the Ancient Artifact",
+        target="ancient_artifact"
+    )
+    
+    boss_objective = QuestObjective(
+        id="defeat_guardian",
+        type=ObjectiveType.BOSS,
+        description="Defeat the Temple Guardian",
+        target="temple_guardian"
+    )
+    
+    main_quest = Quest(
+        id="artifact_retrieval",
+        title="The Ancient Artifact",
+        description="The village is threatened by an ancient curse. You must retrieve an artifact from the Ancient Temple to break the curse.",
+        type=QuestType.MAIN,
+        level=5,
+        objectives=[talk_objective, location_objective, artifact_objective, boss_objective],
+        rewards=QuestReward(
+            xp=500,
+            gold=250,
+            items=[{"id": "magic_amulet", "name": "Amulet of Protection"}],
+            unlock_quests=["curse_removal"]
+        )
+    )
+    
+    # Add quests to quest manager
+    quest_manager.quests[collect_quest.id] = collect_quest
+    quest_manager.quests[kill_quest.id] = kill_quest
+    quest_manager.quests[main_quest.id] = main_quest
+
+
+# Example usage
+if __name__ == "__main__":
+    pygame.init()
+    screen = pygame.display.set_mode((1024, 768))
+    pygame.display.set_caption("Quest System Demo")
+    clock = pygame.time.Clock()
+    
+    # Create systems
+    event_bus = EventBus()
+    quest_manager = QuestManager(event_bus)
+    
+    # Create test quests
+    create_test_quests(quest_manager)
+    
+    # Create a mock player for testing
+    from dataclasses import dataclass
+    
+    @dataclass
+    class MockPlayer:
+        level: int = 5
+        gold: int = 100
+        
+        def gain_xp(self, amount):
+            print(f"Player gained {amount} XP")
+    
+    player = MockPlayer()
+    
+    # Create UI systems
+    quest_ui = QuestUI(screen, event_bus, quest_manager)
+    marker_manager = QuestMarkerManager(quest_manager)
+    notification_manager = QuestNotificationManager(event_bus)
+    
+    # Activate some quests for testing
+    quest_manager.activate_quest("herb_collection", player)
+    quest_manager.activate_quest("wolf_hunt", player)
+    
+    # Manually update some objectives for testing
+    herb_quest = quest_manager.quests["herb_collection"]
+    herb_objective = herb_quest.get_objective_by_id("collect_herbs")
+    herb_objective.update_progress(2)  # Collected 2 herbs
+    
+    # Main loop
+    running = True
+    while running:
+        dt = clock.tick(60) / 1000.0  # Delta time in seconds
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                # Test progress updates
+                elif event.key == pygame.K_h:
+                    # Update herb collection
+                    event_bus.publish("item_collected", {"item_id": "herb_item", "amount": 1})
+                elif event.key == pygame.K_w:
+                    # Update wolf kills
+                    event_bus.publish("enemy_killed", {"enemy_type": "wolf_enemy"})
+                elif event.key == pygame.K_c:
+                    # Complete selected quest
+                    if quest_ui.selected_quest_id:
+                        selected_quest = quest_manager.quests[quest_ui.selected_quest_id]
+                        for objective in selected_quest.objectives:
+                            objective.current_amount = objective.required_amount
+                        quest_manager.complete_quest(quest_ui.selected_quest_id, player)
+                elif event.key == pygame.K_n:
+                    # Activate main quest
+                    quest_manager.activate_quest("artifact_retrieval", player)
+            
+            # Handle UI events
+            quest_ui.handle_event(event)
+        
+        # Update
+        marker_manager.update_markers(dt)
+        notification_manager.update(dt)
+        
+        # Draw
+        screen.fill((20, 20, 30))
+        
+        # Draw markers (would normally be on the game world)
+        marker_manager.draw_markers(screen)
+        
+        # Draw UI
+        quest_ui.draw()
+        notification_manager.draw(screen)
+        
+        # Draw instructions
+        font = pygame.font.Font(None, 24)
+        instructions = [
+            "Controls:",
+            "H - Collect herbs",
+            "W - Kill wolves",
+            "C - Complete selected quest",
+            "N - Activate main quest",
+            "Click tabs and quests to navigate"
+        ]
+        
+        for i, instruction in enumerate(instructions):
+            text = font.render(instruction, True, (200, 200, 200))
+            screen.blit(text, (750, 50 + i * 25))
+        
+        pygame.display.flip()
+    
+    pygame.quit()

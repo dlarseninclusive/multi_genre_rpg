@@ -2119,3 +2119,1362 @@ if combat.get_winners() == 0:
 else:
     print("Game over!")
 """
+class CombatAI:
+    """AI controller for entities in combat."""
+    
+    def __init__(self, difficulty="normal"):
+        """
+        Initialize combat AI.
+        
+        Args:
+            difficulty: AI difficulty setting (easy, normal, hard)
+        """
+        self.difficulty = difficulty
+        self.memory = {}  # For tracking battle information
+    
+    def choose_action(self, entity, combat):
+        """
+        Choose an action for an entity to take.
+        
+        Args:
+            entity: Entity to choose action for
+            combat: Combat instance
+            
+        Returns:
+            Dictionary with action information
+        """
+        # Initialize entity memory if not present
+        if entity.name not in self.memory:
+            self.memory[entity.name] = {
+                'target_preference': None,
+                'heal_threshold': 0.3,  # Heal when below 30% health
+                'last_used_skills': {}
+            }
+        
+        # Skip turn if entity cannot act
+        if not entity.can_take_turn():
+            return {'action': None, 'reason': "Cannot take turn"}
+        
+        # Analyze combat state
+        state = self._analyze_combat_state(entity, combat)
+        
+        # Choose action based on difficulty and state
+        if self.difficulty == "easy":
+            return self._choose_action_easy(entity, combat, state)
+        elif self.difficulty == "hard":
+            return self._choose_action_hard(entity, combat, state)
+        else:  # normal
+            return self._choose_action_normal(entity, combat, state)
+    
+    def _analyze_combat_state(self, entity, combat):
+        """
+        Analyze the current combat state.
+        
+        Args:
+            entity: Entity to analyze for
+            combat: Combat instance
+            
+        Returns:
+            Dictionary with state information
+        """
+        # Get teams
+        allies = [e for e in combat.turn_manager.entities 
+                 if e.team == entity.team and not e.is_dead]
+        enemies = [e for e in combat.turn_manager.entities 
+                  if e.team != entity.team and not e.is_dead]
+        
+        # Check entity's health
+        health_ratio = entity.health / entity.max_health
+        low_health = health_ratio <= self.memory[entity.name]['heal_threshold']
+        
+        # Find low health allies
+        low_health_allies = [a for a in allies 
+                            if a.health / a.max_health <= self.memory[entity.name]['heal_threshold']]
+        
+        # Check for available skills
+        available_skills = [s for s in entity.skills if s.current_cooldown == 0 and s.mana_cost <= entity.mana]
+        
+        # Categorize skills
+        damage_skills = [s for s in available_skills if isinstance(s, DamageSkill)]
+        healing_skills = [s for s in available_skills if isinstance(s, HealingSkill)]
+        buff_skills = [s for s in available_skills if isinstance(s, BuffSkill)]
+        debuff_skills = [s for s in available_skills if isinstance(s, DebuffSkill)]
+        
+        # Analyze threats
+        threats = []
+        for enemy in enemies:
+            threat_level = self._calculate_threat_level(enemy)
+            threats.append((enemy, threat_level))
+        
+        # Sort threats by threat level (descending)
+        threats.sort(key=lambda x: x[1], reverse=True)
+        
+        return {
+            'allies': allies,
+            'enemies': enemies,
+            'health_ratio': health_ratio,
+            'low_health': low_health,
+            'low_health_allies': low_health_allies,
+            'available_skills': available_skills,
+            'damage_skills': damage_skills,
+            'healing_skills': healing_skills,
+            'buff_skills': buff_skills,
+            'debuff_skills': debuff_skills,
+            'threats': threats,
+            'turn_number': combat.turn_manager.turn_number
+        }
+    
+    def _calculate_threat_level(self, entity):
+        """
+        Calculate the threat level of an entity.
+        
+        Args:
+            entity: Entity to calculate threat for
+            
+        Returns:
+            Threat level score
+        """
+        # Base threat from attack power
+        threat = max(entity.physical_attack, entity.magical_attack)
+        
+        # Adjust for health ratio (lower health = lower threat)
+        health_ratio = entity.health / entity.max_health
+        threat *= health_ratio
+        
+        # Adjust for status effects
+        for effect in entity.status_effects:
+            if effect.effect_type == StatusEffect.STUNNED:
+                threat *= 0.5  # Stunned enemies are less threatening
+            elif effect.effect_type == StatusEffect.WEAKENED:
+                threat *= (1 - 0.2 * effect.potency)  # Weakened reduces threat
+            elif effect.effect_type == StatusEffect.STRENGTHENED:
+                threat *= (1 + 0.2 * effect.potency)  # Strengthened increases threat
+        
+        return threat
+    
+    def _choose_action_easy(self, entity, combat, state):
+        """
+        Choose action for easy difficulty.
+        
+        Args:
+            entity: Entity to choose action for
+            combat: Combat instance
+            state: Combat state information
+            
+        Returns:
+            Dictionary with action information
+        """
+        # Easy AI doesn't use skills effectively and makes suboptimal choices
+        
+        # Simple healing check - 50% chance to heal if low health
+        if state['low_health'] and state['healing_skills'] and random.random() < 0.5:
+            heal_skill = random.choice(state['healing_skills'])
+            targets = [entity]  # Self heal
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': targets
+            }
+        
+        # 70% chance to just attack
+        if random.random() < 0.7 and state['enemies']:
+            # Choose random enemy
+            target = random.choice(state['enemies'])
+            return {
+                'action': CombatAction.ATTACK,
+                'targets': [target]
+            }
+        
+        # 30% chance to use a random skill if available
+        if state['available_skills'] and random.random() < 0.3:
+            skill = random.choice(state['available_skills'])
+            
+            # Get targets based on skill type
+            if isinstance(skill, DamageSkill) or isinstance(skill, DebuffSkill):
+                if state['enemies']:
+                    targets = [random.choice(state['enemies'])]
+                else:
+                    targets = []
+            elif isinstance(skill, HealingSkill) or isinstance(skill, BuffSkill):
+                targets = [entity]  # Self targeting
+            else:
+                targets = []
+            
+            if targets:
+                return {
+                    'action': CombatAction.SKILL,
+                    'skill': skill,
+                    'targets': targets
+                }
+        
+        # Default to attacking random enemy
+        if state['enemies']:
+            target = random.choice(state['enemies'])
+            return {
+                'action': CombatAction.ATTACK,
+                'targets': [target]
+            }
+        
+        # No valid action found
+        return {
+            'action': CombatAction.DEFEND,
+            'targets': []
+        }
+    
+    def _choose_action_normal(self, entity, combat, state):
+        """
+        Choose action for normal difficulty.
+        
+        Args:
+            entity: Entity to choose action for
+            combat: Combat instance
+            state: Combat state information
+            
+        Returns:
+            Dictionary with action information
+        """
+        # Normal AI makes reasonable choices but not optimal
+        
+        # Heal self if health is low and healing skill is available
+        if state['low_health'] and state['healing_skills']:
+            heal_skill = state['healing_skills'][0]  # Choose first healing skill
+            targets = [entity]  # Self heal
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': targets
+            }
+        
+        # Heal ally if their health is very low and healing skill is available
+        if state['low_health_allies'] and state['healing_skills']:
+            # Find ally with lowest health
+            lowest_health_ally = min(state['low_health_allies'], 
+                                    key=lambda a: a.health / a.max_health)
+            
+            # Only heal if health ratio is below 25%
+            if lowest_health_ally.health / lowest_health_ally.max_health < 0.25:
+                heal_skill = state['healing_skills'][0]
+                return {
+                    'action': CombatAction.SKILL,
+                    'skill': heal_skill,
+                    'targets': [lowest_health_ally]
+                }
+        
+        # Use damage skill on highest threat if available
+        if state['damage_skills'] and state['threats']:
+            # 70% chance to target highest threat, 30% random
+            if random.random() < 0.7:
+                target = state['threats'][0][0]  # Highest threat
+            else:
+                target = random.choice(state['enemies'])
+            
+            # Choose random damage skill
+            skill = random.choice(state['damage_skills'])
+            return {
+                'action': CombatAction.SKILL,
+                'skill': skill,
+                'targets': [target]
+            }
+        
+        # Use debuff on highest threat if available
+        if state['debuff_skills'] and state['threats']:
+            target = state['threats'][0][0]  # Highest threat
+            skill = random.choice(state['debuff_skills'])
+            
+            return {
+                'action': CombatAction.SKILL,
+                'skill': skill,
+                'targets': [target]
+            }
+        
+        # Use buff on self if available
+        if state['buff_skills']:
+            skill = random.choice(state['buff_skills'])
+            return {
+                'action': CombatAction.SKILL,
+                'skill': skill,
+                'targets': [entity]
+            }
+        
+        # Default to attacking highest threat
+        if state['threats']:
+            target = state['threats'][0][0]  # Highest threat
+            return {
+                'action': CombatAction.ATTACK,
+                'targets': [target]
+            }
+        
+        # No valid action found
+        return {
+            'action': CombatAction.DEFEND,
+            'targets': []
+        }
+    
+    def _choose_action_hard(self, entity, combat, state):
+        """
+        Choose action for hard difficulty.
+        
+        Args:
+            entity: Entity to choose action for
+            combat: Combat instance
+            state: Combat state information
+            
+        Returns:
+            Dictionary with action information
+        """
+        # Hard AI makes optimal choices and uses advanced tactics
+        
+        # Emergency healing - prioritize healing when health is very low
+        if entity.health / entity.max_health < 0.2 and state['healing_skills']:
+            heal_skill = max(state['healing_skills'], 
+                            key=lambda s: s.power)  # Choose most powerful heal
+            targets = [entity]
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': targets
+            }
+        
+        # Check if any ally is critically low and heal them
+        critical_allies = [a for a in state['allies'] 
+                          if a.health / a.max_health < 0.15]
+        
+        if critical_allies and state['healing_skills']:
+            lowest_health_ally = min(critical_allies, 
+                                    key=lambda a: a.health / a.max_health)
+            heal_skill = max(state['healing_skills'], 
+                            key=lambda s: s.power)
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': [lowest_health_ally]
+            }
+        
+        # Apply buffs early in the fight
+        if state['turn_number'] <= 2 and state['buff_skills']:
+            # Choose buff that hasn't been applied yet
+            for buff_skill in state['buff_skills']:
+                # Check if buff is already applied
+                buff_type = buff_skill.effect_type
+                already_applied = False
+                
+                for effect in entity.status_effects:
+                    if effect.effect_type == buff_type:
+                        already_applied = True
+                        break
+                
+                if not already_applied:
+                    return {
+                        'action': CombatAction.SKILL,
+                        'skill': buff_skill,
+                        'targets': [entity]
+                    }
+        
+        # Apply debuffs to high threats without debuffs
+        if state['debuff_skills'] and state['threats']:
+            for enemy, _ in state['threats']:
+                # Check existing debuffs
+                enemy_debuffs = [effect.effect_type for effect in enemy.status_effects]
+                
+                # Find debuff that isn't already applied
+                for debuff_skill in state['debuff_skills']:
+                    if debuff_skill.effect_type not in enemy_debuffs:
+                        return {
+                            'action': CombatAction.SKILL,
+                            'skill': debuff_skill,
+                            'targets': [enemy]
+                        }
+        
+        # Use most powerful damage skill on highest threat
+        if state['damage_skills'] and state['threats']:
+            target = state['threats'][0][0]  # Highest threat
+            
+            # Select best damage skill based on target weaknesses
+            best_skill = None
+            best_damage = 0
+            
+            for skill in state['damage_skills']:
+                estimated_damage = self._estimate_skill_damage(skill, entity, target)
+                if estimated_damage > best_damage:
+                    best_damage = estimated_damage
+                    best_skill = skill
+            
+            if best_skill:
+                return {
+                    'action': CombatAction.SKILL,
+                    'skill': best_skill,
+                    'targets': [target]
+                }
+        
+        # Regular healing if health is below threshold
+        if state['low_health'] and state['healing_skills']:
+            heal_skill = max(state['healing_skills'], 
+                            key=lambda s: s.power)
+            targets = [entity]
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': targets
+            }
+        
+        # Heal allies if needed
+        if state['low_health_allies'] and state['healing_skills']:
+            lowest_health_ally = min(state['low_health_allies'], 
+                                    key=lambda a: a.health / a.max_health)
+            heal_skill = max(state['healing_skills'], 
+                            key=lambda s: s.power)
+            return {
+                'action': CombatAction.SKILL,
+                'skill': heal_skill,
+                'targets': [lowest_health_ally]
+            }
+        
+        # Defend if low health and no healing available
+        if entity.health / entity.max_health < 0.3 and not state['healing_skills']:
+            return {
+                'action': CombatAction.DEFEND,
+                'targets': []
+            }
+        
+        # Default to attacking highest threat
+        if state['threats']:
+            target = state['threats'][0][0]
+            return {
+                'action': CombatAction.ATTACK,
+                'targets': [target]
+            }
+        
+        # No valid action found
+        return {
+            'action': CombatAction.DEFEND,
+            'targets': []
+        }
+    
+    def _estimate_skill_damage(self, skill, user, target):
+        """
+        Estimate the damage a skill would do to a target.
+        
+        Args:
+            skill: Skill to estimate
+            user: Entity using the skill
+            target: Target entity
+            
+        Returns:
+            Estimated damage value
+        """
+        if not isinstance(skill, DamageSkill):
+            return 0
+        
+        # Base damage calculation
+        if skill.damage_type == DamageType.PHYSICAL:
+            base_damage = user.physical_attack
+        else:
+            base_damage = user.magical_attack
+        
+        # Apply skill power
+        damage = base_damage * (skill.power / 100) * (1 + (skill.level - 1) * 0.1)
+        
+        # Apply target resistance
+        resistance = target.get_resistance(skill.damage_type)
+        damage *= (1 - resistance / 100)
+        
+        # Apply defense
+        if skill.damage_type == DamageType.PHYSICAL:
+            damage = max(1, damage - target.physical_defense * 0.5)
+        elif skill.damage_type in [DamageType.MAGICAL, DamageType.FIRE, 
+                                  DamageType.ICE, DamageType.LIGHTNING]:
+            damage = max(1, damage - target.magical_defense * 0.5)
+        
+        return damage
+
+class CombatLogManager:
+    """Manages and formats combat logs for display."""
+    
+    def __init__(self, max_log_entries=100):
+        """
+        Initialize combat log manager.
+        
+        Args:
+            max_log_entries: Maximum number of log entries to keep
+        """
+        self.logs = []
+        self.max_log_entries = max_log_entries
+    
+    def add_log(self, message, entry_type="info", entity=None):
+        """
+        Add a log entry.
+        
+        Args:
+            message: Log message
+            entry_type: Type of log (info, attack, skill, item, effect, heal, damage)
+            entity: Related entity (optional)
+        """
+        entry = {
+            'message': message,
+            'type': entry_type,
+            'entity': entity.name if entity else None,
+            'timestamp': datetime.datetime.now().strftime("%H:%M:%S")
+        }
+        
+        self.logs.append(entry)
+        
+        # Trim logs if needed
+        if len(self.logs) > self.max_log_entries:
+            self.logs = self.logs[-self.max_log_entries:]
+    
+    def log_combat_start(self, combat):
+        """
+        Log the start of combat.
+        
+        Args:
+            combat: Combat instance
+        """
+        entities = combat.turn_manager.entities
+        player_entities = [e for e in entities if e.team == 0]
+        enemy_entities = [e for e in entities if e.team == 1]
+        
+        player_names = ", ".join([e.name for e in player_entities])
+        enemy_names = ", ".join([e.name for e in enemy_entities])
+        
+        message = f"Combat started! {player_names} vs {enemy_names}"
+        self.add_log(message, "info")
+    
+    def log_turn_start(self, entity, turn_number):
+        """
+        Log the start of an entity's turn.
+        
+        Args:
+            entity: Entity starting turn
+            turn_number: Current turn number
+        """
+        message = f"Turn {turn_number}: {entity.name}'s turn"
+        self.add_log(message, "info", entity)
+    
+    def log_attack(self, attacker, target, damage, critical=False, missed=False):
+        """
+        Log an attack action.
+        
+        Args:
+            attacker: Attacking entity
+            target: Target entity
+            damage: Damage dealt
+            critical: Whether the attack was critical
+            missed: Whether the attack missed
+        """
+        if missed:
+            message = f"{attacker.name} attacked {target.name} but missed!"
+            self.add_log(message, "attack", attacker)
+        else:
+            crit_text = " (CRITICAL HIT!)" if critical else ""
+            message = f"{attacker.name} attacked {target.name} for {damage} damage{crit_text}!"
+            self.add_log(message, "attack", attacker)
+    
+    def log_skill_use(self, user, skill, targets, results):
+        """
+        Log a skill use action.
+        
+        Args:
+            user: Entity using the skill
+            skill: Skill used
+            targets: List of target entities
+            results: Skill results
+        """
+        target_names = ", ".join([t.name for t in targets])
+        
+        # Generic skill message
+        message = f"{user.name} used {skill.name} on {target_names}!"
+        self.add_log(message, "skill", user)
+        
+        # Log specific results based on skill type
+        if isinstance(skill, DamageSkill):
+            for i, target in enumerate(targets):
+                result = results['targets'][i]
+                damage = result['damage']
+                critical = result['critical']
+                
+                crit_text = " (CRITICAL!)" if critical else ""
+                damage_msg = f"{skill.name} dealt {damage} damage to {target.name}{crit_text}!"
+                self.add_log(damage_msg, "damage")
+                
+        elif isinstance(skill, HealingSkill):
+            for i, target in enumerate(targets):
+                result = results['targets'][i]
+                healing = result['healing']
+                
+                heal_msg = f"{skill.name} healed {target.name} for {healing} HP!"
+                self.add_log(heal_msg, "heal")
+                
+        elif isinstance(skill, BuffSkill) or isinstance(skill, DebuffSkill):
+            for i, target in enumerate(targets):
+                result = results['targets'][i]
+                effect = result['effect']
+                duration = result['duration']
+                applied = result['applied']
+                
+                if applied:
+                    effect_msg = f"{effect} applied to {target.name} for {duration} turns!"
+                    self.add_log(effect_msg, "effect")
+                else:
+                    if isinstance(skill, DebuffSkill) and 'hit' in result and not result['hit']:
+                        resist_msg = f"{target.name} resisted {effect}!"
+                        self.add_log(resist_msg, "effect")
+                    else:
+                        refresh_msg = f"{effect} refreshed on {target.name}!"
+                        self.add_log(refresh_msg, "effect")
+    
+    def log_item_use(self, user, item, targets, results):
+        """
+        Log an item use action.
+        
+        Args:
+            user: Entity using the item
+            item: Item used
+            targets: List of target entities
+            results: Item results
+        """
+        target_names = ", ".join([t.name for t in targets])
+        
+        message = f"{user.name} used {item.name} on {target_names}!"
+        self.add_log(message, "item", user)
+        
+        # Log specific results based on item type
+        if isinstance(item, HealingItem):
+            for i, target in enumerate(targets):
+                result = results['targets'][i]
+                healing = result['healing']
+                
+                heal_msg = f"{item.name} healed {target.name} for {healing} HP!"
+                self.add_log(heal_msg, "heal")
+    
+    def log_defend(self, entity):
+        """
+        Log a defend action.
+        
+        Args:
+            entity: Entity defending
+        """
+        message = f"{entity.name} is defending!"
+        self.add_log(message, "info", entity)
+    
+    def log_flee(self, entity, success):
+        """
+        Log a flee action.
+        
+        Args:
+            entity: Entity attempting to flee
+            success: Whether the flee attempt was successful
+        """
+        if success:
+            message = f"{entity.name} successfully fled from combat!"
+        else:
+            message = f"{entity.name} tried to flee but failed!"
+        
+        self.add_log(message, "info", entity)
+    
+    def log_status_effect(self, entity, effect_type, damage=None):
+        """
+        Log a status effect application or effect.
+        
+        Args:
+            entity: Affected entity
+            effect_type: Type of status effect
+            damage: Damage dealt by the effect (if applicable)
+        """
+        if damage:
+            message = f"{entity.name} took {damage} damage from {effect_type.name}!"
+            self.add_log(message, "damage", entity)
+        else:
+            message = f"{effect_type.name} affecting {entity.name}!"
+            self.add_log(message, "effect", entity)
+    
+    def log_status_effect_expire(self, entity, effect_type):
+        """
+        Log a status effect expiration.
+        
+        Args:
+            entity: Affected entity
+            effect_type: Type of status effect
+        """
+        message = f"{effect_type.name} expired on {entity.name}!"
+        self.add_log(message, "effect", entity)
+    
+    def log_death(self, entity):
+        """
+        Log an entity's death.
+        
+        Args:
+            entity: Entity that died
+        """
+        message = f"{entity.name} has been defeated!"
+        self.add_log(message, "info", entity)
+    
+    def log_combat_end(self, winners_team):
+        """
+        Log the end of combat.
+        
+        Args:
+            winners_team: Team identifier of winners
+        """
+        if winners_team == 0:
+            message = "Victory! The players have won the battle!"
+        elif winners_team == 1:
+            message = "Defeat! The enemies have won the battle!"
+        else:
+            message = "The battle has ended in a draw!"
+        
+        self.add_log(message, "info")
+    
+    def log_rewards(self, rewards):
+        """
+        Log combat rewards.
+        
+        Args:
+            rewards: Dictionary with reward information
+        """
+        message = f"Gained {rewards['experience']} XP and {rewards['gold']} gold!"
+        self.add_log(message, "info")
+        
+        if rewards['items']:
+            item_names = ", ".join([i for i in rewards['items']])
+            item_msg = f"Found items: {item_names}"
+            self.add_log(item_msg, "info")
+    
+    def get_logs(self, count=None, types=None):
+        """
+        Get filtered logs.
+        
+        Args:
+            count: Number of logs to return (None for all)
+            types: List of log types to include (None for all)
+            
+        Returns:
+            List of log entries
+        """
+        filtered_logs = self.logs
+        
+        if types:
+            filtered_logs = [log for log in filtered_logs if log['type'] in types]
+        
+        if count:
+            filtered_logs = filtered_logs[-count:]
+        
+        return filtered_logs
+    
+    def get_formatted_logs(self, count=None, types=None, include_timestamp=True):
+        """
+        Get formatted logs as strings.
+        
+        Args:
+            count: Number of logs to return (None for all)
+            types: List of log types to include (None for all)
+            include_timestamp: Whether to include timestamps
+            
+        Returns:
+            List of formatted log strings
+        """
+        logs = self.get_logs(count, types)
+        
+        formatted = []
+        for log in logs:
+            if include_timestamp:
+                formatted.append(f"[{log['timestamp']}] {log['message']}")
+            else:
+                formatted.append(log['message'])
+        
+        return formatted
+    
+    def clear_logs(self):
+        """Clear all logs."""
+        self.logs = []
+
+import datetime
+import json
+import random
+import math
+from enum import Enum
+
+class PlayerCharacter(CombatEntity):
+    """Player character entity with RPG stats and progression."""
+    
+    def __init__(self, name, character_class="warrior", level=1):
+        """
+        Initialize a player character.
+        
+        Args:
+            name: Character name
+            character_class: Character class (warrior, mage, rogue, etc.)
+            level: Starting level
+        """
+        super().__init__(name, level, team=0)
+        self.character_class = character_class
+        self.experience = 0
+        self.experience_next_level = 100  # XP needed for next level
+        self.gold = 0
+        self.inventory = []
+        self.equipment = {
+            'weapon': None,
+            'armor': None,
+            'helmet': None,
+            'accessory': None
+        }
+        
+        # Set base stats according to class
+        self._initialize_class_stats(character_class)
+        
+        # Apply level-ups
+        for _ in range(level - 1):
+            self._level_up_stats()
+        
+        # Add class-specific skills
+        self._initialize_class_skills(character_class)
+        
+        # Update derived stats
+        self._update_derived_stats()
+    
+    def add_experience(self, amount):
+        """
+        Add experience points and handle level ups.
+        
+        Args:
+            amount: Amount of experience to add
+            
+        Returns:
+            Dict with level up information if leveled up
+        """
+        self.experience += amount
+        
+        level_ups = 0
+        level_up_stats = []
+        
+        # Check for level ups
+        while self.experience >= self.experience_next_level:
+            level_ups += 1
+            self.level += 1
+            
+            # Record current stats before level up
+            old_stats = {
+                'max_health': self.max_health,
+                'max_mana': self.max_mana,
+                'strength': self.strength,
+                'intelligence': self.intelligence,
+                'dexterity': self.dexterity,
+                'constitution': self.constitution,
+                'speed': self.speed
+            }
+            
+            # Apply level up stat increases
+            stats_increased = self._level_up_stats()
+            
+            # Calculate new stats
+            self._update_derived_stats()
+            
+            # Record stat increases
+            stat_increases = {
+                'level': self.level,
+                'max_health': self.max_health - old_stats['max_health'],
+                'max_mana': self.max_mana - old_stats['max_mana'],
+                'stats_increased': stats_increased
+            }
+            
+            level_up_stats.append(stat_increases)
+            
+            # Set new XP threshold (increases with each level)
+            self.experience_next_level = int(self.experience_next_level * 1.5)
+        
+        if level_ups > 0:
+            # Fully heal on level up
+            self.health = self.max_health
+            self.mana = self.max_mana
+            
+            return {
+                'level_ups': level_ups,
+                'new_level': self.level,
+                'stat_increases': level_up_stats,
+                'next_level_xp': self.experience_next_level
+            }
+        
+        return None
+    
+    def _level_up_stats(self):
+        """
+        Increase stats based on character class when leveling up.
+        
+        Returns:
+            List of stats that were increased
+        """
+        stats_increased = []
+        
+        # Base stat increases
+        self.max_health += 10
+        self.max_mana += 5
+        stats_increased.append('max_health')
+        stats_increased.append('max_mana')
+        
+        # Class-specific stat increases
+        if self.character_class == "warrior":
+            self.strength += 2
+            self.constitution += 1
+            if random.random() < 0.5:
+                self.dexterity += 1
+                stats_increased.append('dexterity')
+            stats_increased.append('strength')
+            stats_increased.append('constitution')
+            
+        elif self.character_class == "mage":
+            self.intelligence += 2
+            self.max_mana += 5  # Extra mana for mages
+            if random.random() < 0.5:
+                self.dexterity += 1
+                stats_increased.append('dexterity')
+            stats_increased.append('intelligence')
+            stats_increased.append('max_mana')
+            
+        elif self.character_class == "rogue":
+            self.dexterity += 2
+            self.strength += 1
+            if random.random() < 0.5:
+                self.intelligence += 1
+                stats_increased.append('intelligence')
+            stats_increased.append('dexterity')
+            stats_increased.append('strength')
+            
+        elif self.character_class == "cleric":
+            self.intelligence += 1
+            self.constitution += 1
+            self.max_mana += 3  # Extra mana for clerics
+            stats_increased.append('intelligence')
+            stats_increased.append('constitution')
+            stats_increased.append('max_mana')
+            
+        else:  # balanced
+            # Distribute points randomly
+            stats = ['strength', 'intelligence', 'dexterity', 'constitution', 'speed']
+            for _ in range(3):
+                stat = random.choice(stats)
+                if stat == 'strength':
+                    self.strength += 1
+                elif stat == 'intelligence':
+                    self.intelligence += 1
+                elif stat == 'dexterity':
+                    self.dexterity += 1
+                elif stat == 'constitution':
+                    self.constitution += 1
+                elif stat == 'speed':
+                    self.speed += 1
+                
+                if stat not in stats_increased:
+                    stats_increased.append(stat)
+        
+        return stats_increased
+    
+    def add_item_to_inventory(self, item):
+        """
+        Add an item to the character's inventory.
+        
+        Args:
+            item: Item to add
+            
+        Returns:
+            Boolean indicating success
+        """
+        self.inventory.append(item)
+        return True
+    
+    def remove_item_from_inventory(self, item):
+        """
+        Remove an item from the character's inventory.
+        
+        Args:
+            item: Item to remove
+            
+        Returns:
+            Boolean indicating success
+        """
+        if item in self.inventory:
+            self.inventory.remove(item)
+            return True
+        return False
+    
+    def equip_item(self, item):
+        """
+        Equip an item and apply its stat bonuses.
+        
+        Args:
+            item: Item to equip
+            
+        Returns:
+            Previously equipped item or None
+        """
+        if item not in self.inventory:
+            return None
+        
+        slot = item.slot
+        previously_equipped = self.equipment[slot]
+        
+        # Unequip previous item
+        if previously_equipped:
+            self._apply_item_stats(previously_equipped, remove=True)
+            self.inventory.append(previously_equipped)
+        
+        # Equip new item
+        self.equipment[slot] = item
+        self._apply_item_stats(item)
+        self.inventory.remove(item)
+        
+        # Update derived stats
+        self._update_derived_stats()
+        
+        return previously_equipped
+    
+    def unequip_item(self, slot):
+        """
+        Unequip an item from a slot and remove its stat bonuses.
+        
+        Args:
+            slot: Equipment slot
+            
+        Returns:
+            Unequipped item or None
+        """
+        if slot not in self.equipment or not self.equipment[slot]:
+            return None
+        
+        item = self.equipment[slot]
+        
+        # Remove stat bonuses
+        self._apply_item_stats(item, remove=True)
+        
+        # Unequip
+        self.equipment[slot] = None
+        
+        # Add to inventory
+        self.inventory.append(item)
+        
+        # Update derived stats
+        self._update_derived_stats()
+        
+        return item
+    
+    def _apply_item_stats(self, item, remove=False):
+        """
+        Apply or remove an item's stat bonuses.
+        
+        Args:
+            item: Item to apply stats for
+            remove: Whether to remove (True) or add (False) stats
+        """
+        multiplier = -1 if remove else 1
+        
+        for stat, value in item.stat_bonuses.items():
+            if stat == 'strength':
+                self.strength += value * multiplier
+            elif stat == 'intelligence':
+                self.intelligence += value * multiplier
+            elif stat == 'dexterity':
+                self.dexterity += value * multiplier
+            elif stat == 'constitution':
+                self.constitution += value * multiplier
+            elif stat == 'speed':
+                self.speed += value * multiplier
+            elif stat == 'physical_attack':
+                self.physical_attack += value * multiplier
+            elif stat == 'magical_attack':
+                self.magical_attack += value * multiplier
+            elif stat == 'physical_defense':
+                self.physical_defense += value * multiplier
+            elif stat == 'magical_defense':
+                self.magical_defense += value * multiplier
+    
+    def rest(self):
+        """
+        Rest to recover health and mana.
+        
+        Returns:
+            Dict with recovery information
+        """
+        old_health = self.health
+        old_mana = self.mana
+        
+        # Fully restore health and mana
+        self.health = self.max_health
+        self.mana = self.max_mana
+        
+        # Clear status effects
+        self.status_effects = []
+        
+        return {
+            'health_restored': self.health - old_health,
+            'mana_restored': self.mana - old_mana
+        }
+    
+    def use_item_from_inventory(self, item_index, targets=None):
+        """
+        Use an item from inventory.
+        
+        Args:
+            item_index: Index of item in inventory
+            targets: Target entities (default: self)
+            
+        Returns:
+            Item use result or None if invalid
+        """
+        if item_index < 0 or item_index >= len(self.inventory):
+            return None
+        
+        item = self.inventory[item_index]
+        
+        # Set default target to self if not specified
+        if targets is None:
+            targets = [self]
+        
+        # Use the item
+        result = item.use(self, targets)
+        
+        # Remove if consumable
+        if item.consumable and result['success']:
+            self.inventory.pop(item_index)
+        
+        return result
+    
+    def to_dict(self):
+        """Convert to dictionary for serialization."""
+        data = super().to_dict()
+        data.update({
+            'character_class': self.character_class,
+            'experience': self.experience,
+            'experience_next_level': self.experience_next_level,
+            'gold': self.gold,
+            'inventory': [item.to_dict() for item in self.inventory],
+            'equipment': {
+                k: v.to_dict() if v else None for k, v in self.equipment.items()
+            }
+        })
+        return data
+    
+    @classmethod
+    def from_dict(cls, data):
+        """Create from dictionary."""
+        character = cls(
+            data['name'],
+            data['character_class'],
+            data['level']
+        )
+        
+        character.experience = data['experience']
+        character.experience_next_level = data['experience_next_level']
+        character.gold = data['gold']
+        
+        # Base entity properties
+        character.max_health = data['max_health']
+        character.health = data['health']
+        character.max_mana = data['max_mana']
+        character.mana = data['mana']
+        character.strength = data['strength']
+        character.intelligence = data['intelligence']
+        character.dexterity = data['dexterity']
+        character.constitution = data['constitution']
+        character.speed = data['speed']
+        character.resistances = {DamageType(k): v for k, v in data['resistances'].items()}
+        character.status_effects = [StatusEffectInstance.from_dict(e) for e in data['status_effects']]
+        character.is_dead = data['is_dead']
+        
+        # Equipment and inventory would need to be loaded separately
+        
+        return character
+    
+    def _initialize_class_stats(self, character_class):
+        """
+        Initialize base stats according to character class.
+        
+        Args:
+            character_class: Character class string
+        """
+        if character_class == "warrior":
+            self.strength = 14
+            self.intelligence = 8
+            self.dexterity = 10
+            self.constitution = 12
+            self.speed = 9
+            
+        elif character_class == "mage":
+            self.strength = 7
+            self.intelligence = 15
+            self.dexterity = 9
+            self.constitution = 8
+            self.speed = 10
+            
+        elif character_class == "rogue":
+            self.strength = 10
+            self.intelligence = 10
+            self.dexterity = 15
+            self.constitution = 8
+            self.speed = 12
+            
+        elif character_class == "cleric":
+            self.strength = 9
+            self.intelligence = 12
+            self.dexterity = 8
+            self.constitution = 10
+            self.speed = 8
+            
+        else:  # balanced
+            self.strength = 10
+            self.intelligence = 10
+            self.dexterity = 10
+            self.constitution = 10
+            self.speed = 10
+    
+    def _initialize_class_skills(self, character_class):
+        """
+        Initialize skills according to character class.
+        
+        Args:
+            character_class: Character class string
+        """
+        if character_class == "warrior":
+            # Warrior skills
+            self.skills.append(DamageSkill(
+                "Power Strike", 
+                "A powerful strike that deals 150% physical damage.",
+                DamageType.PHYSICAL, 
+                150, 
+                10, 
+                2
+            ))
+            
+            self.skills.append(BuffSkill(
+                "Battle Stance", 
+                "Increases strength for 3 turns.",
+                StatusEffect.STRENGTHENED, 
+                3, 
+                1.5, 
+                15, 
+                3
+            ))
+            
+            self.skills.append(DamageSkill(
+                "Cleave", 
+                "Attacks all enemies for 120% physical damage.",
+                DamageType.PHYSICAL, 
+                120, 
+                20, 
+                4
+            ))
+            
+        elif character_class == "mage":
+            # Mage skills
+            self.skills.append(DamageSkill(
+                "Fireball", 
+                "Launches a ball of fire dealing 170% fire damage.",
+                DamageType.FIRE, 
+                170, 
+                15, 
+                2
+            ))
+            
+            self.skills.append(DamageSkill(
+                "Ice Spike", 
+                "Launches a spike of ice dealing 150% ice damage with a chance to slow.",
+                DamageType.ICE, 
+                150, 
+                12, 
+                2
+            ))
+            
+            self.skills.append(DebuffSkill(
+                "Weaken", 
+                "Weakens an enemy, reducing their damage for 3 turns.",
+                StatusEffect.WEAKENED, 
+                3, 
+                1.5, 
+                18, 
+                3
+            ))
+            
+        elif character_class == "rogue":
+            # Rogue skills
+            self.skills.append(DamageSkill(
+                "Backstab", 
+                "A precise strike that deals 200% physical damage with high critical chance.",
+                DamageType.PHYSICAL, 
+                200, 
+                12, 
+                2
+            ))
+            
+            self.skills.append(BuffSkill(
+                "Evasive Stance", 
+                "Increases evasion for 3 turns.",
+                StatusEffect.HASTED, 
+                3, 
+                1.5, 
+                15, 
+                3
+            ))
+            
+            self.skills.append(DamageSkill(
+                "Poison Strike", 
+                "Attacks with a poisoned weapon dealing 120% physical damage and applying poison.",
+                DamageType.POISON, 
+                120, 
+                18, 
+                3
+            ))
+            
+        elif character_class == "cleric":
+            # Cleric skills
+            self.skills.append(HealingSkill(
+                "Heal", 
+                "Heals a target for 200% healing power.",
+                200, 
+                15, 
+                2
+            ))
+            
+            self.skills.append(BuffSkill(
+                "Divine Protection", 
+                "Grants protection to ally for 3 turns.",
+                StatusEffect.PROTECTED, 
+                3, 
+                1.5, 
+                18, 
+                3
+            ))
+            
+            self.skills.append(DamageSkill(
+                "Holy Smite", 
+                "Smites an enemy with holy power dealing 150% magical damage.",
+                DamageType.MAGICAL, 
+                150, 
+                20, 
+                3
+            ))
+            
+        else:  # balanced
+            # Balanced class skills
+            self.skills.append(DamageSkill(
+                "Focused Strike", 
+                "A balanced attack dealing 140% physical damage.",
+                DamageType.PHYSICAL, 
+                140, 
+                10, 
+                2
+            ))
+            
+            self.skills.append(HealingSkill(
+                "First Aid", 
+                "Heals a target for 150% healing power.",
+                150, 
+                12, 
+                3
+            ))
+            
+            self.skills.append(BuffSkill(
+                "Focus", 
+                "Increases critical chance for 3 turns.",
+                StatusEffect.STRENGTHENED, 
+                3, 
+                1.2, 
+                15, 
+                3
+            ))
