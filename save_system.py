@@ -391,7 +391,7 @@ def create_backup(self, slot):
             logger.error(f"Error creating backup of save slot {slot}: {e}")
             return False
     
-    def restore_backup(self, slot):
+        def restore_backup(self, slot):
         """
         Restore a save from its backup.
         
