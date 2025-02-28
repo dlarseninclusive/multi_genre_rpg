@@ -359,7 +359,7 @@ class SaveSystem:
         except Exception as e:
             logger.error(f"Error importing save to slot {slot}: {e}")
             return False
-def create_backup(self, slot):
+    def create_backup(self, slot):
         """
         Create a backup of a save file.
         
@@ -391,7 +391,7 @@ def create_backup(self, slot):
             logger.error(f"Error creating backup of save slot {slot}: {e}")
             return False
 
-def restore_backup(self, slot):
+    def restore_backup(self, slot):
         """
         Restore a save from its backup.
         
@@ -423,7 +423,7 @@ def restore_backup(self, slot):
             logger.error(f"Error restoring backup for save slot {slot}: {e}")
             return False
     
-       def save_screenshot(self, slot, surface):
+    def save_screenshot(self, slot, surface):
         """
         Save a screenshot with the save file.
         
