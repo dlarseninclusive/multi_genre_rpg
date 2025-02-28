@@ -1,7 +1,7 @@
 import logging
 import random
 from enum import Enum, auto
-from combat_system import Combat, CombatEntity, DamageType, StatusEffect
+from combat_system import Combat, CombatEntity, DamageType, StatusEffect, CombatAction
 from combat_system import DamageSkill, HealingSkill, BuffSkill, DebuffSkill
 from combat_system import MonsterGenerator, PlayerCharacter
 from combat_ai import CombatAI, BossAI
