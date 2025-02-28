@@ -50,6 +50,10 @@ class Game:
         self.event_bus = EventBus()
         self.save_system = SaveSystem()
         
+        # Add notification system
+        from notification_system import NotificationManager
+        self.notification_manager = NotificationManager(self.event_bus)
+        
         # Create state manager and register game states
         self.state_manager = StateManager(self.screen, self.event_bus)
         self._register_game_states()
@@ -85,10 +89,12 @@ class Game:
     def update(self, dt):
         """Update game state."""
         self.state_manager.update(dt)
+        self.notification_manager.update(dt)
     
     def render(self):
         """Render the current game state."""
         self.state_manager.render()
+        self.notification_manager.render(self.screen)
         pygame.display.flip()
     
     def run(self):
