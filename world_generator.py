@@ -1,5 +1,5 @@
 import random
-import noise
+import math
 import numpy as np
 import logging
 from enum import Enum
@@ -134,8 +134,11 @@ class WorldGenerator:
         logger.info("Starting world generation")
         
         try:
-            self._generate_terrain()
-            logger.info("Terrain generation completed")
+            terrain_success = self._generate_terrain()
+            if terrain_success:
+                logger.info("Terrain generation completed")
+            else:
+                logger.warning("Using fallback terrain")
             
             self._generate_rivers()
             logger.info("River generation completed")
@@ -154,76 +157,133 @@ class WorldGenerator:
             }
         except Exception as e:
             logger.error(f"Error during world generation: {e}", exc_info=True)
-            raise  # Re-raise to be caught by the main loop
+            
+            # Create an emergency world
+            emergency_terrain = np.zeros((self.height, self.width), dtype=int) + TerrainType.PLAINS.value
+            
+            # Add a single town location in the center
+            center_x, center_y = self.width // 2, self.height // 2
+            emergency_town = Location(
+                center_x, center_y,
+                LocationType.TOWN,
+                "Emergency Town",
+                "A basic town created for emergency fallback.",
+                difficulty=1
+            )
+            emergency_town.discovered = True
+            emergency_town.visited = True
+            
+            return {
+                'terrain': emergency_terrain,
+                'locations': [emergency_town],
+                'rivers': [],
+                'seed': self.seed,
+                'width': self.width,
+                'height': self.height
+            }
     
     def _generate_terrain(self):
-        """Generate the base terrain using noise functions."""
-        logger.info("Generating terrain - starting")
+        """Generate the base terrain using a simplified algorithm."""
+        logger.info("Generating terrain using simplified algorithm")
         
         try:
-            # Log the terrain parameters
-            logger.debug(f"Terrain parameters: width={self.width}, height={self.height}, seed={self.seed}")
-            
-            # Parameters for noise generation
-            scale = 100.0
-            octaves = 4  # Reduced from 6 to improve performance
-            persistence = 0.5
-            lacunarity = 2.0
-            logger.debug(f"Noise parameters: scale={scale}, octaves={octaves}, persistence={persistence}, lacunarity={lacunarity}")
-            
-            # Initialize terrain array with zeros
-            logger.debug("Initializing terrain array")
+            # Create a new terrain array
             self.terrain = np.zeros((self.height, self.width), dtype=int)
-            logger.debug(f"Terrain array shape: {self.terrain.shape}")
             
-            # Process rows in chunks to provide progress updates
-            chunk_size = max(1, self.height // 10)  # Report progress after each 10%
-            for y_chunk in range(0, self.height, chunk_size):
-                chunk_end = min(y_chunk + chunk_size, self.height)
-                logger.debug(f"Processing terrain rows {y_chunk} to {chunk_end-1}")
+            # Set a random seed for reproducibility
+            random.seed(self.seed)
+            
+            # Generate simple terrain with patterns instead of noise
+            # Start with all plains
+            for y in range(self.height):
+                for x in range(self.width):
+                    self.terrain[y][x] = TerrainType.PLAINS.value
+            
+            # Add some water bodies (circular or blob shapes)
+            num_water_bodies = random.randint(3, 8)
+            for _ in range(num_water_bodies):
+                center_x = random.randint(0, self.width - 1)
+                center_y = random.randint(0, self.height - 1)
+                radius = random.randint(5, 15)
                 
-                for y in range(y_chunk, chunk_end):
-                    for x in range(self.width):
-                        try:
-                            # Generate base noise value
-                            nx = x / self.width - 0.5
-                            ny = y / self.height - 0.5
-                            
-                            # Elevation noise - simpler calculation
-                            elevation = noise.pnoise2(
-                                nx * scale,
-                                ny * scale,
-                                octaves=octaves,
-                                persistence=persistence,
-                                lacunarity=lacunarity,
-                                base=self.seed
-                            )
-                            
-                            # Simpler terrain assignment - just based on elevation
-                            if elevation < -0.2:
-                                self.terrain[y][x] = TerrainType.WATER.value
-                            elif elevation < -0.15:
-                                self.terrain[y][x] = TerrainType.BEACH.value
-                            elif elevation > 0.3:
-                                self.terrain[y][x] = TerrainType.MOUNTAINS.value
-                            elif random.random() > 0.5:  # Simplified approach instead of moisture
+                # Create circular water body
+                for y in range(max(0, center_y - radius), min(self.height, center_y + radius)):
+                    for x in range(max(0, center_x - radius), min(self.width, center_x + radius)):
+                        # Check if point is in circle
+                        if ((x - center_x) ** 2 + (y - center_y) ** 2) <= radius ** 2:
+                            self.terrain[y][x] = TerrainType.WATER.value
+            
+            # Add some beaches around water
+            for y in range(self.height):
+                for x in range(self.width):
+                    if self.terrain[y][x] != TerrainType.WATER.value:
+                        # Check neighbors
+                        for dy in [-1, 0, 1]:
+                            for dx in [-1, 0, 1]:
+                                nx, ny = x + dx, y + dy
+                                if (0 <= nx < self.width and 0 <= ny < self.height and 
+                                    self.terrain[ny][nx] == TerrainType.WATER.value):
+                                    self.terrain[y][x] = TerrainType.BEACH.value
+                                    break
+            
+            # Add some forest clusters
+            num_forest_clusters = random.randint(5, 15)
+            for _ in range(num_forest_clusters):
+                center_x = random.randint(0, self.width - 1)
+                center_y = random.randint(0, self.height - 1)
+                radius = random.randint(3, 10)
+                
+                for y in range(max(0, center_y - radius), min(self.height, center_y + radius)):
+                    for x in range(max(0, center_x - radius), min(self.width, center_x + radius)):
+                        # Only replace plains with forest
+                        if self.terrain[y][x] == TerrainType.PLAINS.value:
+                            # Add some randomness to the shape
+                            if random.random() < 0.7 and ((x - center_x) ** 2 + (y - center_y) ** 2) <= radius ** 2:
                                 self.terrain[y][x] = TerrainType.FOREST.value
-                            else:
-                                self.terrain[y][x] = TerrainType.PLAINS.value
-                        except Exception as e:
-                            # If an error occurs for a specific tile, default to plains
-                            self.terrain[y][x] = TerrainType.PLAINS.value
-                            logger.error(f"Error at position ({x}, {y}): {e}")
-                
-                # Log progress after each chunk
-                logger.debug(f"Completed {chunk_end}/{self.height} rows of terrain generation ({int(chunk_end/self.height*100)}%)")
             
-            logger.info("Terrain generation complete")
+            # Add some mountain ranges
+            num_mountain_ranges = random.randint(3, 7)
+            for _ in range(num_mountain_ranges):
+                # Start point
+                x, y = random.randint(0, self.width - 1), random.randint(0, self.height - 1)
+                length = random.randint(5, 15)
+                
+                # Direction
+                angle = random.uniform(0, 2 * math.pi)
+                dx, dy = math.cos(angle), math.sin(angle)
+                
+                # Create mountain range
+                for i in range(length):
+                    # Calculate position
+                    mx = int(x + i * dx)
+                    my = int(y + i * dy)
+                    
+                    # Check bounds
+                    if 0 <= mx < self.width and 0 <= my < self.height:
+                        # Make mountains and surrounding area
+                        self.terrain[my][mx] = TerrainType.MOUNTAINS.value
+                        
+                        # Add surrounding mountains with lower probability
+                        for sy in range(my - 2, my + 3):
+                            for sx in range(mx - 2, mx + 3):
+                                if (0 <= sx < self.width and 0 <= sy < self.height and 
+                                    self.terrain[sy][sx] != TerrainType.MOUNTAINS.value and
+                                    self.terrain[sy][sx] != TerrainType.WATER.value):
+                                    # Higher probability closer to the center
+                                    dist = abs(sx - mx) + abs(sy - my)
+                                    prob = 0.8 if dist <= 1 else 0.3
+                                    if random.random() < prob:
+                                        self.terrain[sy][sx] = TerrainType.MOUNTAINS.value
+            
+            logger.info("Terrain generation completed")
+            return True
             
         except Exception as e:
             logger.error(f"Error generating terrain: {e}", exc_info=True)
-            # Create a simple random terrain as fallback
-            self._generate_simple_terrain()
+            # Create a basic fallback terrain (all plains)
+            self.terrain = np.zeros((self.height, self.width), dtype=int) + TerrainType.PLAINS.value
+            logger.info("Created basic fallback terrain (all plains)")
+            return False
     
     def _generate_simple_terrain(self):
         """Generate a simple random terrain as fallback."""
