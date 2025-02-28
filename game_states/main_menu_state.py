@@ -1,6 +1,8 @@
 import pygame
 import logging
 import os
+import math
+import random
 from game_state import GameState
 from save_system import SaveSystem
 from settings import Settings
@@ -61,6 +63,24 @@ class MainMenuState(GameState):
         self.title_offset = 0
         self.animate_title = True
         
+        # Animated title properties
+        self.title_text = "Multi-Genre RPG"
+        self.title_letters = []
+        self.title_colors = [
+            (255, 82, 82), (255, 64, 129), (224, 64, 251), (124, 77, 255),
+            (83, 109, 254), (68, 138, 255), (64, 196, 255), (24, 255, 255),
+            (100, 255, 218), (105, 240, 174), (178, 255, 89), (238, 255, 65),
+            (255, 255, 0), (255, 215, 64), (255, 171, 64), (255, 110, 64)
+        ]
+        self.title_animation_time = 0
+        self.title_bounce_speed = 0.15
+        self.title_bounce_height = 15
+        self.show_animated_title = True
+        
+        # Particles for title screen
+        self.particles = []
+        self._initialize_particles()
+        
         logger.info("MainMenuState initialized")
     
     def enter(self, data=None):
@@ -80,6 +100,9 @@ class MainMenuState(GameState):
             self.font_large = pygame.font.SysFont(None, 48)
             self.font_medium = pygame.font.SysFont(None, 36)
             self.font_small = pygame.font.SysFont(None, 24)
+            
+        # Initialize title letters for animation
+        self._initialize_title_letters()
         
         # Set up buttons
         self._setup_buttons()
@@ -102,6 +125,14 @@ class MainMenuState(GameState):
         """Handle pygame events."""
         if not self.active:
             return
+            
+        # If showing animated title, any key transitions to main menu
+        if self.show_animated_title:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                    self.show_animated_title = False
+                    return True
+            return False
         
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Handle button clicks
@@ -142,6 +173,23 @@ class MainMenuState(GameState):
         # Update title animation
         if self.animate_title:
             self.title_offset = 5 * math.sin(pygame.time.get_ticks() / 500)
+            
+        # Update animated title
+        if self.show_animated_title:
+            self.title_animation_time += dt
+            
+            # Update letter positions and colors
+            for i, letter in enumerate(self.title_letters):
+                # Different phase for each letter for wave effect
+                phase = i * 0.3
+                letter['y_offset'] = math.sin((self.title_animation_time * self.title_bounce_speed) + phase) * self.title_bounce_height
+                
+                # Cycle through colors
+                color_index = (i + int(self.title_animation_time * 2)) % len(self.title_colors)
+                letter['color'] = self.title_colors[color_index]
+            
+            # Update particles
+            self._update_particles(dt)
     
     def render(self, screen):
         """Render the game state."""
@@ -150,6 +198,11 @@ class MainMenuState(GameState):
         
         # Fill background
         screen.fill(self.colors['background'])
+        
+        # Render animated title screen if active
+        if self.show_animated_title:
+            self._render_animated_title(screen)
+            return
         
         # Render current menu
         if self.current_menu == "main":
@@ -812,6 +865,138 @@ class MainMenuState(GameState):
         pygame.quit()
         import sys
         sys.exit()
+
+    def _initialize_title_letters(self):
+        """Initialize the animated title letters."""
+        self.title_letters = []
+        for i, letter in enumerate(self.title_text):
+            self.title_letters.append({
+                'letter': letter,
+                'y_offset': 0,
+                'color': self.title_colors[i % len(self.title_colors)],
+                'size': 72 if letter != ' ' else 24
+            })
+    
+    def _initialize_particles(self):
+        """Initialize particles for the animated title screen."""
+        self.particles = []
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        
+        for _ in range(100):
+            self.particles.append({
+                'x': random.random() * screen_width,
+                'y': random.random() * screen_height,
+                'size': random.random() * 5 + 2,
+                'speed_x': (random.random() - 0.5) * 30,
+                'speed_y': (random.random() - 0.5) * 30,
+                'color': self.title_colors[random.randint(0, len(self.title_colors) - 1)],
+                'opacity': random.random() * 0.5 + 0.2
+            })
+    
+    def _update_particles(self, dt):
+        """Update particle positions."""
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        
+        for particle in self.particles:
+            # Update particle position
+            particle['x'] += particle['speed_x'] * dt
+            particle['y'] += particle['speed_y'] * dt
+            
+            # Bounce off edges
+            if particle['x'] < 0 or particle['x'] > screen_width:
+                particle['speed_x'] *= -1
+            if particle['y'] < 0 or particle['y'] > screen_height:
+                particle['speed_y'] *= -1
+            
+            # Ensure within bounds
+            particle['x'] = max(0, min(screen_width, particle['x']))
+            particle['y'] = max(0, min(screen_height, particle['y']))
+    
+    def _render_animated_title(self, screen):
+        """Render the animated title screen."""
+        screen_width, screen_height = screen.get_size()
+        
+        # Render particles
+        for particle in self.particles:
+            # Create a surface with per-pixel alpha
+            particle_surface = pygame.Surface((particle['size'], particle['size']), pygame.SRCALPHA)
+            
+            # Draw the particle with its color and opacity
+            color_with_alpha = (*particle['color'], int(255 * particle['opacity']))
+            pygame.draw.circle(
+                particle_surface, 
+                color_with_alpha, 
+                (particle['size'] // 2, particle['size'] // 2), 
+                particle['size'] // 2
+            )
+            
+            # Blit the particle to the screen
+            screen.blit(
+                particle_surface, 
+                (particle['x'] - particle['size'] // 2, particle['y'] - particle['size'] // 2)
+            )
+        
+        # Calculate total width of title
+        total_width = 0
+        for letter in self.title_letters:
+            if letter['letter'] == ' ':
+                total_width += 20  # Space width
+            else:
+                letter_surface = self.font_title.render(letter['letter'], True, letter['color'])
+                total_width += letter_surface.get_width()
+        
+        # Render title letters
+        x_pos = (screen_width - total_width) // 2
+        y_pos = screen_height // 3
+        
+        for letter in self.title_letters:
+            if letter['letter'] == ' ':
+                x_pos += 20  # Space width
+                continue
+                
+            letter_surface = self.font_title.render(letter['letter'], True, letter['color'])
+            
+            # Add glow effect
+            glow_surface = pygame.Surface((letter_surface.get_width() + 10, letter_surface.get_height() + 10), pygame.SRCALPHA)
+            glow_color = (*letter['color'], 100)  # Semi-transparent for glow
+            
+            # Draw multiple circles for glow effect
+            for i in range(5, 0, -1):
+                glow_alpha = 20 * (6 - i)  # Fade out as radius increases
+                glow_color_with_alpha = (*letter['color'], glow_alpha)
+                pygame.draw.circle(
+                    glow_surface,
+                    glow_color_with_alpha,
+                    (glow_surface.get_width() // 2, glow_surface.get_height() // 2),
+                    i * 2
+                )
+            
+            # Blit the letter onto the glow
+            glow_surface.blit(
+                letter_surface,
+                (5, 5)  # Center the letter on the glow surface
+            )
+            
+            # Blit the combined surface to the screen with y offset
+            screen.blit(
+                glow_surface,
+                (x_pos - 5, y_pos - 5 + letter['y_offset'])
+            )
+            
+            x_pos += letter_surface.get_width()
+        
+        # Render "Press Enter to Start" text
+        press_enter_text = self.font_medium.render("Press Enter to Start", True, (255, 255, 255))
+        press_enter_rect = press_enter_text.get_rect(center=(screen_width // 2, screen_height * 2 // 3))
+        
+        # Add pulsing effect
+        pulse = 0.7 + 0.3 * math.sin(self.title_animation_time * 2)
+        press_enter_color = (255, 255, 255, int(255 * pulse))
+        
+        press_enter_surface = self.font_medium.render("Press Enter to Start", True, (255, 255, 255))
+        press_enter_surface.set_alpha(int(255 * pulse))
+        
+        screen.blit(press_enter_surface, press_enter_rect)
 
 # Import here to avoid circular import
 import math
