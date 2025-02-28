@@ -1,8 +1,9 @@
 import logging
+import random
 from enum import Enum, auto
 from combat_system import Combat, CombatEntity, DamageType, StatusEffect
 from combat_system import DamageSkill, HealingSkill, BuffSkill, DebuffSkill
-from combat_system import MonsterGenerator
+from combat_system import MonsterGenerator, PlayerCharacter
 from combat_ai import CombatAI, BossAI
 from event_bus import EventBus
 from character import Character
@@ -23,6 +24,324 @@ class CombatResult(Enum):
     DEFEAT = auto()      # Players lost
     FLEE = auto()        # Players fled
     DRAW = auto()        # Combat ended in draw (rare)
+
+class CombatManager:
+    """
+    Integrates the combat system with the game state.
+    Handles combat initialization, updates, and results.
+    """
+    
+    def __init__(self, event_bus, settings):
+        """Initialize the combat manager."""
+        self.event_bus = event_bus
+        self.settings = settings
+        self.active_combat = None
+        self.combat_log = None
+        self.monster_generator = MonsterGenerator()
+        self.combat_ai = CombatAI()
+        
+        # Subscribe to events
+        self.event_bus.subscribe("combat_action", self._handle_combat_action)
+        logger.info("CombatManager initialized")
+    
+    def start_combat(self, player_character, enemies=None, location=None):
+        """
+        Start a new combat encounter.
+        
+        Args:
+            player_character: Player character
+            enemies: List of enemy entities (optional)
+            location: Optional location data
+            
+        Returns:
+            Combat instance
+        """
+        # Create combat instance
+        combat = Combat()
+        
+        # Convert player character to combat entity if needed
+        if not isinstance(player_character, CombatEntity):
+            player_entity = self._convert_to_combat_entity(player_character)
+        else:
+            player_entity = player_character
+        
+        # Generate enemies if not provided
+        if not enemies:
+            player_level = player_entity.level
+            enemies = self.monster_generator.generate_encounter(
+                player_level, "normal", "neutral"
+            )
+        
+        # Initialize combat
+        combat.initialize_from_entity_lists([player_entity], enemies)
+        
+        # Store active combat
+        self.active_combat = combat
+        
+        # Start combat
+        combat.start()
+        
+        # Log combat start
+        logger.info(f"Started combat with {len(enemies)} enemies")
+        
+        return combat
+    
+    def end_combat(self, result="defeat"):
+        """
+        End the current combat encounter.
+        
+        Args:
+            result: Result of combat ("victory", "defeat", "flee")
+        """
+        if not self.active_combat:
+            return
+        
+        # Get rewards
+        rewards = {}
+        if result == "victory":
+            rewards = self.active_combat.get_rewards()
+        
+        # Publish combat ended event
+        self.event_bus.publish("combat_ended", {
+            "result": result,
+            "rewards": rewards
+        })
+        
+        # Clear active combat
+        self.active_combat = None
+        
+        logger.info(f"Combat ended with result: {result}")
+    
+    def update(self, dt):
+        """
+        Update combat state.
+        
+        Args:
+            dt: Time delta in seconds
+        """
+        if not self.active_combat:
+            return
+        
+        # Check if combat is over
+        if self.active_combat.is_over():
+            winners = self.active_combat.get_winners()
+            result = "victory" if winners == 0 else "defeat"
+            self.end_combat(result)
+            return
+        
+        # Get current entity
+        current_entity = self.active_combat.turn_manager.get_current_entity()
+        
+        # Skip if no current entity
+        if not current_entity:
+            return
+        
+        # Process AI turns for enemies
+        if current_entity.team != 0:  # Not player team
+            self._process_enemy_turn(current_entity)
+    
+    def _process_enemy_turn(self, enemy):
+        """
+        Process an enemy's turn using AI.
+        
+        Args:
+            enemy: Enemy entity
+        """
+        # Skip if enemy can't take a turn
+        if not enemy.can_take_turn():
+            self.active_combat.end_turn()
+            return
+        
+        # Use AI to choose action
+        action = self.combat_ai.choose_action(enemy, self.active_combat)
+        
+        # Process action
+        if action['action'] == CombatAction.ATTACK:
+            # Attack
+            if 'targets' in action and action['targets']:
+                result = enemy.attack(action['targets'][0])
+                
+                # Publish attack result
+                self.event_bus.publish("enemy_attack", {
+                    "enemy": enemy,
+                    "target": action['targets'][0],
+                    "result": result
+                })
+        
+        elif action['action'] == CombatAction.SKILL:
+            # Use skill
+            if 'skill' in action and 'targets' in action:
+                result = enemy.use_skill(action['skill'], action['targets'])
+                
+                # Publish skill result
+                self.event_bus.publish("enemy_skill", {
+                    "enemy": enemy,
+                    "skill": action['skill'],
+                    "targets": action['targets'],
+                    "result": result
+                })
+        
+        elif action['action'] == CombatAction.DEFEND:
+            # Defend
+            enemy.defend()
+            
+            # Publish defend action
+            self.event_bus.publish("enemy_defend", {
+                "enemy": enemy
+            })
+        
+        # End enemy turn
+        self.active_combat.end_turn()
+    
+    def _handle_combat_action(self, data):
+        """
+        Handle combat_action event from UI.
+        
+        Args:
+            data: Event data with action details
+        """
+        if not self.active_combat:
+            return
+        
+        # Get current entity
+        entity = self.active_combat.turn_manager.get_current_entity()
+        
+        # Skip if not player's turn
+        if not entity or entity.team != 0:
+            return
+        
+        action_type = data.get("type")
+        
+        if action_type == "attack":
+            self._handle_attack_action(entity, data)
+        elif action_type == "skill":
+            self._handle_skill_action(entity, data)
+        elif action_type == "item":
+            self._handle_item_action(entity, data)
+        elif action_type == "defend":
+            self._handle_defend_action(entity)
+        elif action_type == "flee":
+            self._handle_flee_action(entity)
+    
+    def _handle_attack_action(self, entity, data):
+        """Handle attack action."""
+        # Get target
+        target_index = data.get("target", 0)
+        targets = self.active_combat.turn_manager.get_targets(entity, "enemy")
+        
+        if 0 <= target_index < len(targets):
+            # Execute attack
+            result = entity.attack(targets[target_index])
+            
+            # Publish attack result
+            self.event_bus.publish("attack_result", {
+                "attacker": entity,
+                "target": targets[target_index],
+                "result": result
+            })
+            
+            # End turn
+            self.active_combat.end_turn()
+    
+    def _handle_skill_action(self, entity, data):
+        """Handle skill action."""
+        # Get skill and targets
+        skill_index = data.get("skill_index", 0)
+        target_indices = data.get("targets", [0])
+        
+        if skill_index < len(entity.skills):
+            skill = entity.skills[skill_index]
+            
+            # Get appropriate targets based on skill type
+            if skill.target_type == "enemy":
+                all_targets = self.active_combat.turn_manager.get_targets(entity, "enemy")
+            elif skill.target_type == "ally":
+                all_targets = self.active_combat.turn_manager.get_targets(entity, "ally")
+            elif skill.target_type == "self":
+                all_targets = [entity]
+            else:
+                all_targets = []
+            
+            # Filter valid targets
+            targets = []
+            for idx in target_indices:
+                if 0 <= idx < len(all_targets):
+                    targets.append(all_targets[idx])
+            
+            if targets:
+                # Use skill
+                result = entity.use_skill(skill, targets)
+                
+                # Publish skill result
+                self.event_bus.publish("skill_result", {
+                    "user": entity,
+                    "skill": skill,
+                    "targets": targets,
+                    "result": result
+                })
+                
+                # End turn
+                self.active_combat.end_turn()
+    
+    def _handle_item_action(self, entity, data):
+        """Handle item action."""
+        # This would require inventory integration
+        # For now, just end the turn
+        self.active_combat.end_turn()
+    
+    def _handle_defend_action(self, entity):
+        """Handle defend action."""
+        # Execute defend
+        entity.defend()
+        
+        # Publish defend result
+        self.event_bus.publish("defend_result", {
+            "entity": entity
+        })
+        
+        # End turn
+        self.active_combat.end_turn()
+    
+    def _handle_flee_action(self, entity):
+        """Handle flee action."""
+        # Attempt to flee
+        result = entity.flee(self.active_combat)
+        
+        if result['success']:
+            # Successfully fled
+            self.end_combat("flee")
+        else:
+            # Failed to flee
+            self.event_bus.publish("flee_result", {
+                "success": False,
+                "message": result['message']
+            })
+            
+            # End turn
+            self.active_combat.end_turn()
+    
+    def _convert_to_combat_entity(self, character):
+        """
+        Convert a character to a combat entity.
+        
+        Args:
+            character: Character to convert
+            
+        Returns:
+            CombatEntity instance
+        """
+        # If already a combat entity, return as is
+        if isinstance(character, CombatEntity):
+            return character
+        
+        # Create a basic player character
+        player = PlayerCharacter(
+            name=getattr(character, "name", "Player"),
+            character_class=getattr(character, "character_class", "warrior"),
+            level=getattr(character, "level", 1)
+        )
+        
+        return player
 
 class CombatIntegration:
     """
