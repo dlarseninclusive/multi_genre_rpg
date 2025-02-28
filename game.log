@@ -1,0 +1,30 @@
+2025-02-28 00:09:54,262 - settings - INFO - Settings file not found: settings.json
+2025-02-28 00:09:54,262 - settings - INFO - Settings initialized
+2025-02-28 00:09:54,321 - event_bus - INFO - EventBus initialized
+2025-02-28 00:09:54,325 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-02-28 00:09:54,326 - state_manager - INFO - StateManager initialized
+2025-02-28 00:09:54,326 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-02-28 00:09:54,326 - main_menu - INFO - MainMenuState initialized
+2025-02-28 00:09:54,326 - state_manager - INFO - Registered state: main_menu
+2025-02-28 00:09:54,327 - world_exploration - INFO - WorldExplorationState initialized
+2025-02-28 00:09:54,327 - state_manager - INFO - Registered state: world_exploration
+2025-02-28 00:09:54,327 - investigation - INFO - InvestigationState initialized
+2025-02-28 00:09:54,328 - state_manager - INFO - Registered state: investigation
+2025-02-28 00:09:54,328 - dungeon - INFO - DungeonState initialized
+2025-02-28 00:09:54,328 - state_manager - INFO - Registered state: dungeon
+2025-02-28 00:09:54,328 - base_building - INFO - BaseBuildingState initialized
+2025-02-28 00:09:54,328 - state_manager - INFO - Registered state: base_building
+2025-02-28 00:09:54,328 - state_manager - INFO - Changing state to: main_menu
+2025-02-28 00:09:54,329 - MainMenuState - INFO - Entered state: MainMenuState
+2025-02-28 00:09:54,341 - main_menu - INFO - Entered main menu state
+2025-02-28 00:09:54,341 - main - INFO - Game initialized successfully
+2025-02-28 00:09:54,341 - main - INFO - Starting game loop
+2025-02-28 00:10:14,272 - main_menu - INFO - Starting new game
+2025-02-28 00:10:14,272 - state_manager - INFO - Changing state to: world_exploration
+2025-02-28 00:10:14,272 - MainMenuState - INFO - Exited state: MainMenuState
+2025-02-28 00:10:14,272 - main_menu - INFO - Exited main menu state
+2025-02-28 00:10:14,272 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-02-28 00:10:14,278 - world_exploration - INFO - Generating new world
+2025-02-28 00:10:14,278 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 742682
+2025-02-28 00:10:14,278 - world_generator - INFO - Starting world generation
+2025-02-28 00:10:14,278 - world_generator - INFO - Generating terrain
