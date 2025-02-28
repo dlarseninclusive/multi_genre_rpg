@@ -192,6 +192,11 @@ class WorldExplorationState(GameState):
             # Interact key
             elif event.key == pygame.K_e or event.key == pygame.K_RETURN:
                 self._interact_with_location()
+                
+            # Press 'C' to enter combat (for testing)
+            elif event.key == pygame.K_c:
+                logger.info("Entering combat mode (test)")
+                self.change_state("combat")
         
         elif event.type == pygame.KEYUP:
             # Stop movement
@@ -397,26 +402,39 @@ class WorldExplorationState(GameState):
         
         logger.info(f"Interacting with location: {self.current_location.name}")
         
-        # Handle different location types
-        if self.current_location.location_type == LocationType.TOWN:
-            # Transition to town state
-            self.push_state("town", {
-                "location": self.current_location
-            })
-        
-        elif self.current_location.location_type == LocationType.DUNGEON:
-            # Transition to dungeon state
-            self.change_state("dungeon", {
-                "location": self.current_location
-            })
-        
-        elif self.current_location.location_type == LocationType.SPECIAL_SITE:
-            # Handle special site interaction - for now just show notification
-            self.event_bus.publish("show_notification", {
-                "title": "Special Site",
-                "message": f"{self.current_location.description}",
-                "duration": 3.0
-            })
+        try:
+            # Handle different location types
+            if self.current_location.location_type == LocationType.TOWN:
+                # For now, just show a notification
+                self.event_bus.publish("show_notification", {
+                    "title": "Entering Town",
+                    "message": f"Welcome to {self.current_location.name}!",
+                    "duration": 3.0
+                })
+                
+                # Eventually will transition to town state:
+                self.push_state("town", {"location": self.current_location})
+                
+            elif self.current_location.location_type == LocationType.DUNGEON:
+                # Show notification
+                self.event_bus.publish("show_notification", {
+                    "title": "Entering Dungeon",
+                    "message": f"Entering {self.current_location.name}. Prepare for battle!",
+                    "duration": 3.0
+                })
+                
+                # Start combat instead of dungeon for now
+                self.change_state("combat", {"location": self.current_location})
+                
+            elif self.current_location.location_type == LocationType.SPECIAL_SITE:
+                # Handle special site interaction
+                self.event_bus.publish("show_notification", {
+                    "title": "Special Site",
+                    "message": f"{self.current_location.description}",
+                    "duration": 3.0
+                })
+        except Exception as e:
+            logger.error(f"Error interacting with location: {e}", exc_info=True)
     
     def _update_time_and_weather(self, dt):
         """Update time of day and weather."""

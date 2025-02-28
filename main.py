@@ -9,6 +9,7 @@ from game_states.world_exploration_state import WorldExplorationState
 from game_states.investigation_state import InvestigationState
 from game_states.dungeon_state import DungeonState
 from game_states.base_building_state import BaseBuildingState
+from game_states.combat_state import CombatGameState
 from event_bus import EventBus
 from settings import Settings
 from save_system import SaveSystem
@@ -76,6 +77,7 @@ class Game:
         self.state_manager.register_state("investigation", InvestigationState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("dungeon", DungeonState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("base_building", BaseBuildingState(self.state_manager, self.event_bus, self.settings))
+        self.state_manager.register_state("combat", CombatGameState(self.state_manager, self.event_bus, self.settings))
     
     def handle_events(self):
         """Process all game events."""
