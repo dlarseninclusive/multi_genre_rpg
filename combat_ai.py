@@ -2,6 +2,7 @@ import random
 import math
 import logging
 from combat_system import Combat, CombatEntity, PlayerCharacter, StatusEffect, DamageType
+from combat_system import DamageSkill, HealingSkill, BuffSkill, DebuffSkill
 
 logger = logging.getLogger("combat_integration")
 

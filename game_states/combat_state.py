@@ -316,7 +316,7 @@ class CombatGameState(GameState):
     def _render_turn_indicator(self, screen, entity, is_player_turn):
         """Render indicator for whose turn it is."""
         font = pygame.font.SysFont(None, 28)
-        turn_text = font.render(f"{'Your' if is_player_turn else entity.name + ''s'} Turn", True, (255, 255, 0))
+        turn_text = font.render(f"{'Your' if is_player_turn else entity.name + '\'s'} Turn", True, (255, 255, 0))
         
         screen.blit(turn_text, (screen.get_width() // 2 - turn_text.get_width() // 2, 225))
     
