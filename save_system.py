@@ -423,7 +423,7 @@ def restore_backup(self, slot):
             logger.error(f"Error restoring backup for save slot {slot}: {e}")
             return False
     
-    def save_screenshot(self, slot, surface):
+       def save_screenshot(self, slot, surface):
         """
         Save a screenshot with the save file.
         
