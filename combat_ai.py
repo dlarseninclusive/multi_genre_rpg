@@ -1,10 +1,390 @@
 import random
 import math
 import logging
-from combat_system import CombatEntity, DamageSkill, HealingSkill, BuffSkill, DebuffSkill
-from combat_system import StatusEffect, DamageType
+from combat_system import Combat, CombatEntity, PlayerCharacter, StatusEffect, DamageType
 
-logger = logging.getLogger("combat_ai")
+logger = logging.getLogger("combat_integration")
+
+class CombatManager:
+    """
+    Integrates the combat system with the game state.
+    Handles combat initialization, updates, and results.
+    """
+    
+    def __init__(self, event_bus, settings):
+        self.event_bus = event_bus
+        self.settings = settings
+        self.active_combat = None
+        self.turn_in_progress = False
+        
+        # Subscribe to events
+        self.event_bus.subscribe("combat_action", self._handle_combat_action)
+        logger.info("CombatManager initialized")
+    
+    def start_combat(self, player_character, enemies, location=None):
+        """
+        Start a new combat encounter.
+        
+        Args:
+            player_character: Player character (from character system)
+            enemies: List of enemy entities
+            location: Optional location data
+        
+        Returns:
+            New Combat instance
+        """
+        try:
+            # Convert player character to combat entity
+            player_combat_entity = self._convert_character_to_combat_entity(player_character)
+            
+            # Create combat instance
+            self.active_combat = Combat()
+            self.active_combat.initialize_combat(
+                player_entities=[player_combat_entity],
+                enemy_entities=enemies
+            )
+            
+            logger.info(f"Started combat with {len(enemies)} enemies")
+            
+            # Publish combat started event
+            self.event_bus.publish("combat_started", {
+                "combat": self.active_combat,
+                "player": player_combat_entity,
+                "enemies": enemies
+            })
+            
+            return self.active_combat
+            
+        except Exception as e:
+            logger.error(f"Error starting combat: {e}", exc_info=True)
+            return None
+    
+    def end_combat(self, result="defeat"):
+        """
+        End the current combat encounter.
+        
+        Args:
+            result: Result of combat ("victory", "defeat", "flee")
+        """
+        if not self.active_combat:
+            return
+            
+        try:
+            # Calculate rewards if victorious
+            rewards = {}
+            if result == "victory":
+                rewards = self._calculate_rewards()
+            
+            # Publish combat ended event
+            self.event_bus.publish("combat_ended", {
+                "result": result,
+                "rewards": rewards
+            })
+            
+            # Clear active combat
+            self.active_combat = None
+            self.turn_in_progress = False
+            
+            logger.info(f"Combat ended with result: {result}")
+            
+        except Exception as e:
+            logger.error(f"Error ending combat: {e}", exc_info=True)
+    
+    def update(self, dt):
+        """
+        Update combat state.
+        
+        Args:
+            dt: Time delta in seconds
+        """
+        if not self.active_combat:
+            return
+            
+        try:
+            # Check for combat completion
+            if self.active_combat.is_combat_over():
+                result = "victory" if self.active_combat.is_player_victorious() else "defeat"
+                self.end_combat(result)
+                return
+                
+            # Process AI turns if it's enemy turn
+            if (not self.turn_in_progress and 
+                self.active_combat.current_turn and 
+                not self.active_combat.is_player_turn()):
+                
+                self._process_enemy_turn()
+                
+        except Exception as e:
+            logger.error(f"Error updating combat: {e}", exc_info=True)
+    
+    def _handle_combat_action(self, data):
+        """
+        Handle combat_action event.
+        
+        Args:
+            data: Event data with action type and parameters
+        """
+        if not self.active_combat or not self.active_combat.is_player_turn():
+            return
+            
+        try:
+            action_type = data.get("type")
+            
+            if action_type == "attack":
+                self._handle_attack_action(data)
+            elif action_type == "skill":
+                self._handle_skill_action(data)
+            elif action_type == "item":
+                self._handle_item_action(data)
+            elif action_type == "defend":
+                self._handle_defend_action()
+            elif action_type == "flee":
+                self._handle_flee_action()
+                
+        except Exception as e:
+            logger.error(f"Error handling combat action: {e}", exc_info=True)
+    
+    def _convert_character_to_combat_entity(self, character):
+        """
+        Convert a Character to a combat entity.
+        
+        Args:
+            character: Character instance from character system
+            
+        Returns:
+            PlayerCharacter instance for combat
+        """
+        if not character:
+            # Create a default character if none provided
+            logger.warning("No character provided, creating default")
+            return PlayerCharacter(
+                name="Hero",
+                character_class="warrior",
+                level=1
+            )
+            
+        # Check if character is already a dict (from save data)
+        if isinstance(character, dict):
+            name = character.get("name", "Hero")
+            character_class = character.get("class", "warrior")
+            level = character.get("level", 1)
+            
+            # Create player combat entity
+            player_entity = PlayerCharacter(
+                name=name,
+                character_class=character_class,
+                level=level
+            )
+            
+            return player_entity
+        
+        # If it's a Character object
+        try:
+            # Create player combat entity
+            player_entity = PlayerCharacter(
+                name=character.name,
+                character_class=getattr(character, "character_class", "warrior"),
+                level=getattr(character, "level", 1)
+            )
+            
+            return player_entity
+        except Exception as e:
+            logger.error(f"Error converting character to combat entity: {e}", exc_info=True)
+            return PlayerCharacter(
+                name="Hero",
+                character_class="warrior",
+                level=1
+            )
+    
+    def _process_enemy_turn(self):
+        """Process enemy turn using AI."""
+        if not self.active_combat:
+            return
+            
+        # Mark turn in progress to prevent multiple calls
+        self.turn_in_progress = True
+        
+        try:
+            enemy = self.active_combat.get_current_entity()
+            if not enemy:
+                self.active_combat.next_turn()
+                self.turn_in_progress = False
+                return
+                
+            # Simple AI for enemy actions
+            import random
+            
+            # Get player entities as targets
+            player_entities = self.active_combat.get_player_entities()
+            if not player_entities:
+                self.active_combat.next_turn()
+                self.turn_in_progress = False
+                return
+                
+            # Choose a random player target
+            target = random.choice(player_entities)
+            
+            # 70% chance to attack, 30% chance to defend
+            if random.random() < 0.7:
+                # Attack
+                damage = enemy.attack(target)
+                
+                # Publish enemy action event
+                self.event_bus.publish("enemy_action", {
+                    "type": "attack",
+                    "enemy": enemy,
+                    "target": target,
+                    "damage": damage
+                })
+            else:
+                # Defend
+                enemy.defend()
+                
+                # Publish enemy action event
+                self.event_bus.publish("enemy_action", {
+                    "type": "defend",
+                    "enemy": enemy
+                })
+            
+            # End turn after small delay
+            # In a real implementation, you might use a timer here
+            self.active_combat.next_turn()
+            
+        except Exception as e:
+            logger.error(f"Error processing enemy turn: {e}", exc_info=True)
+            
+        finally:
+            # End turn in progress
+            self.turn_in_progress = False
+    
+    def _handle_attack_action(self, data):
+        """Handle basic attack action."""
+        if not self.active_combat:
+            return
+            
+        target_index = data.get("target", 0)
+        targets = self.active_combat.get_enemy_entities()
+        
+        if 0 <= target_index < len(targets):
+            player = self.active_combat.get_current_entity()
+            target = targets[target_index]
+            
+            # Process attack
+            damage = player.attack(target)
+            
+            # Publish attack result
+            self.event_bus.publish("attack_result", {
+                "attacker": player,
+                "target": target,
+                "damage": damage
+            })
+            
+            # End turn
+            self.active_combat.next_turn()
+    
+    def _handle_skill_action(self, data):
+        """Handle skill usage action."""
+        if not self.active_combat:
+            return
+            
+        skill_index = data.get("skill", 0)
+        target_indices = data.get("targets", [0])
+        
+        player = self.active_combat.get_current_entity()
+        
+        # Get skill and targets
+        if hasattr(player, "skills") and player.skills and 0 <= skill_index < len(player.skills):
+            skill = player.skills[skill_index]
+            
+            all_targets = self.active_combat.get_enemy_entities()
+            targets = [all_targets[i] for i in target_indices if 0 <= i < len(all_targets)]
+            
+            if targets:
+                # Use skill
+                result = player.use_skill(skill, targets)
+                
+                # Publish skill result
+                self.event_bus.publish("skill_result", {
+                    "user": player,
+                    "skill": skill,
+                    "targets": targets,
+                    "result": result
+                })
+                
+                # End turn
+                self.active_combat.next_turn()
+    
+    def _handle_item_action(self, data):
+        """Handle item usage action."""
+        # Placeholder for item handling
+        self.active_combat.next_turn()
+    
+    def _handle_defend_action(self):
+        """Handle defend action."""
+        if not self.active_combat:
+            return
+            
+        player = self.active_combat.get_current_entity()
+        
+        # Apply defend effect
+        player.defend()
+        
+        # Publish defend action
+        self.event_bus.publish("defend_action", {
+            "entity": player
+        })
+        
+        # End turn
+        self.active_combat.next_turn()
+    
+    def _handle_flee_action(self):
+        """Handle flee action."""
+        if not self.active_combat:
+            return
+            
+        # Calculate flee success chance
+        import random
+        success = random.random() < 0.5  # 50% chance to flee
+        
+        if success:
+            # Successfully fled
+            self.event_bus.publish("flee_result", {
+                "success": True
+            })
+            
+            # End combat with flee result
+            self.end_combat("flee")
+        else:
+            # Failed to flee
+            self.event_bus.publish("flee_result", {
+                "success": False
+            })
+            
+            # End turn
+            self.active_combat.next_turn()
+    
+    def _calculate_rewards(self):
+        """Calculate rewards for winning combat."""
+        if not self.active_combat:
+            return {}
+            
+        # Simple reward calculation
+        enemy_count = len(self.active_combat.get_enemy_entities())
+        
+        # Experience
+        total_xp = enemy_count * 50
+        
+        # Gold
+        total_gold = enemy_count * 25
+        
+        # Items (placeholder)
+        items = []
+        
+        return {
+            "experience": total_xp,
+            "gold": total_gold,
+            "items": items
+        }
 
 class CombatAI:
     """AI controller for combat entities"""
