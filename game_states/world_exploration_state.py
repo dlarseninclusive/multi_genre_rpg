@@ -280,16 +280,60 @@ class WorldExplorationState(GameState):
         """Generate a new world."""
         logger.info("Generating new world")
         
-        # Create world generator
-        generator = WorldGenerator(self.world_width, self.world_height)
-        
-        # Generate world
-        self.world = generator.generate()
-        
-        # Store in persistent data
-        self.state_manager.set_persistent_data("world", self.world)
-        
-        logger.info(f"World generated with {len(self.world['locations'])} locations")
+        try:
+            # Create world generator
+            generator = WorldGenerator(self.world_width, self.world_height)
+            
+            # Generate world
+            self.world = generator.generate()
+            
+            # Store in persistent data
+            self.state_manager.set_persistent_data("world", self.world)
+            
+            logger.info(f"World generated with {len(self.world['locations'])} locations")
+        except Exception as e:
+            logger.error(f"Error generating world: {e}", exc_info=True)
+            
+            # Create a minimal emergency world
+            logger.info("Creating minimal emergency world")
+            
+            # Create a simple terrain array (all plains)
+            terrain = np.zeros((self.world_height, self.world_width), dtype=int) + TerrainType.PLAINS.value
+            
+            # Add a single location (town) at the center
+            center_x, center_y = self.world_width // 2, self.world_height // 2
+            town = Location(
+                center_x, center_y,
+                LocationType.TOWN,
+                "Emergency Town",
+                "A safe haven in a glitched world.",
+                difficulty=1
+            )
+            town.discovered = True
+            town.visited = True
+            
+            # Create minimal world data
+            self.world = {
+                'terrain': terrain,
+                'locations': [town],
+                'rivers': [],
+                'seed': 0,
+                'width': self.world_width,
+                'height': self.world_height
+            }
+            
+            # Store in persistent data
+            self.state_manager.set_persistent_data("world", self.world)
+            
+            # Set player position to town
+            self.player_x, self.player_y = center_x, center_y
+            
+            # Show notification about the error
+            self.event_bus.publish("show_notification", {
+                "title": "World Generation Failed",
+                "message": "Created emergency world due to an error.",
+                "duration": 5.0
+            })
     
     def _move_player(self, dt):
         """Update player position based on direction and speed."""

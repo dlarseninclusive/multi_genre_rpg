@@ -158,53 +158,68 @@ class WorldGenerator:
     
     def _generate_terrain(self):
         """Generate the base terrain using noise functions."""
-        logger.info("Generating terrain")
+        logger.info("Generating terrain - starting")
         
         try:
+            # Log the terrain parameters
+            logger.debug(f"Terrain parameters: width={self.width}, height={self.height}, seed={self.seed}")
+            
             # Parameters for noise generation
             scale = 100.0
             octaves = 4  # Reduced from 6 to improve performance
             persistence = 0.5
             lacunarity = 2.0
+            logger.debug(f"Noise parameters: scale={scale}, octaves={octaves}, persistence={persistence}, lacunarity={lacunarity}")
             
-            # Initialize numpy array first
+            # Initialize terrain array with zeros
+            logger.debug("Initializing terrain array")
             self.terrain = np.zeros((self.height, self.width), dtype=int)
+            logger.debug(f"Terrain array shape: {self.terrain.shape}")
             
-            # Generate terrain with better error handling
-            for y in range(self.height):
-                for x in range(self.width):
-                    try:
-                        # Generate base noise value
-                        nx = x / self.width - 0.5
-                        ny = y / self.height - 0.5
-                        
-                        # Elevation noise - simpler calculation
-                        elevation = noise.pnoise2(
-                            nx * scale,
-                            ny * scale,
-                            octaves=octaves,
-                            persistence=persistence,
-                            lacunarity=lacunarity,
-                            base=self.seed
-                        )
-                        
-                        # Simpler terrain assignment - just based on elevation
-                        if elevation < -0.2:
-                            self.terrain[y][x] = TerrainType.WATER.value
-                        elif elevation < -0.15:
-                            self.terrain[y][x] = TerrainType.BEACH.value
-                        elif elevation > 0.3:
-                            self.terrain[y][x] = TerrainType.MOUNTAINS.value
-                        elif random.random() > 0.5:  # Simplified approach instead of moisture
-                            self.terrain[y][x] = TerrainType.FOREST.value
-                        else:
-                            self.terrain[y][x] = TerrainType.PLAINS.value
-                    except Exception as e:
-                        # If an error occurs for a specific tile, default to plains
-                        self.terrain[y][x] = TerrainType.PLAINS.value
-                        logger.error(f"Error generating terrain at ({x}, {y}): {e}")
+            # Process rows in chunks to provide progress updates
+            chunk_size = max(1, self.height // 10)  # Report progress after each 10%
+            for y_chunk in range(0, self.height, chunk_size):
+                chunk_end = min(y_chunk + chunk_size, self.height)
+                logger.debug(f"Processing terrain rows {y_chunk} to {chunk_end-1}")
                 
-            logger.debug("Terrain generation complete")
+                for y in range(y_chunk, chunk_end):
+                    for x in range(self.width):
+                        try:
+                            # Generate base noise value
+                            nx = x / self.width - 0.5
+                            ny = y / self.height - 0.5
+                            
+                            # Elevation noise - simpler calculation
+                            elevation = noise.pnoise2(
+                                nx * scale,
+                                ny * scale,
+                                octaves=octaves,
+                                persistence=persistence,
+                                lacunarity=lacunarity,
+                                base=self.seed
+                            )
+                            
+                            # Simpler terrain assignment - just based on elevation
+                            if elevation < -0.2:
+                                self.terrain[y][x] = TerrainType.WATER.value
+                            elif elevation < -0.15:
+                                self.terrain[y][x] = TerrainType.BEACH.value
+                            elif elevation > 0.3:
+                                self.terrain[y][x] = TerrainType.MOUNTAINS.value
+                            elif random.random() > 0.5:  # Simplified approach instead of moisture
+                                self.terrain[y][x] = TerrainType.FOREST.value
+                            else:
+                                self.terrain[y][x] = TerrainType.PLAINS.value
+                        except Exception as e:
+                            # If an error occurs for a specific tile, default to plains
+                            self.terrain[y][x] = TerrainType.PLAINS.value
+                            logger.error(f"Error at position ({x}, {y}): {e}")
+                
+                # Log progress after each chunk
+                logger.debug(f"Completed {chunk_end}/{self.height} rows of terrain generation ({int(chunk_end/self.height*100)}%)")
+            
+            logger.info("Terrain generation complete")
+            
         except Exception as e:
             logger.error(f"Error generating terrain: {e}", exc_info=True)
             # Create a simple random terrain as fallback
@@ -213,17 +228,27 @@ class WorldGenerator:
     def _generate_simple_terrain(self):
         """Generate a simple random terrain as fallback."""
         logger.info("Generating simple fallback terrain")
-        self.terrain = np.zeros((self.height, self.width), dtype=int)
-        
-        # Simple terrain generation
-        for y in range(self.height):
-            for x in range(self.width):
-                terrain_type = random.choices(
-                    [t.value for t in TerrainType],
-                    weights=[0.2, 0.1, 0.4, 0.2, 0.1],  # Weights for each terrain type
-                    k=1
-                )[0]
-                self.terrain[y][x] = terrain_type
+        try:
+            self.terrain = np.zeros((self.height, self.width), dtype=int)
+            
+            # Simple terrain generation
+            for y in range(self.height):
+                for x in range(self.width):
+                    # 60% plains, 20% forest, 10% mountains, 10% water
+                    terrain_type = random.choices(
+                        [TerrainType.PLAINS.value, TerrainType.FOREST.value, 
+                         TerrainType.MOUNTAINS.value, TerrainType.WATER.value],
+                        weights=[0.6, 0.2, 0.1, 0.1],
+                        k=1
+                    )[0]
+                    self.terrain[y][x] = terrain_type
+            
+            logger.info("Simple terrain generation completed successfully")
+        except Exception as e:
+            logger.error(f"Error in simple terrain generation: {e}", exc_info=True)
+            # Last resort: all plains
+            self.terrain = np.zeros((self.height, self.width), dtype=int) + TerrainType.PLAINS.value
+            logger.info("Created all-plains terrain as last resort")
     
     def _generate_rivers(self):
         """Generate rivers flowing from mountains to water."""

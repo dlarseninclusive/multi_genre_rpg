@@ -17,7 +17,7 @@ from save_system import SaveSystem
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,  # Change from INFO to DEBUG for more detailed logs
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("game.log"),
@@ -121,9 +121,11 @@ class Game:
             logger.error(f"Exception in main game loop: {e}", exc_info=True)
             
             # Handle specific errors
-            if "noise" in str(e).lower():
-                logger.error("This may be related to the noise library. Make sure you've installed it with: pip install noise")
-            elif "numpy" in str(e).lower():
+            error_message = str(e)
+            if "noise" in error_message.lower() or "module" in error_message.lower():
+                logger.error("This might be a dependency issue. Make sure to install the required packages:")
+                logger.error("pip install noise numpy")
+            elif "numpy" in error_message.lower():
                 logger.error("This may be related to NumPy. Make sure you've installed it with: pip install numpy")
                 
             # Display error to user
