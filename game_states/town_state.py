@@ -2436,6 +2436,35 @@ class TownState(GameState):
         tile_y = mouse_y // self.tile_size
         return (tile_x, tile_y)
     
+    def _start_conversation(self, npc):
+        """
+        Start a conversation with an NPC.
+        
+        Args:
+            npc: Npc instance
+        """
+        logger.info(f"Starting conversation with {npc.name}")
+        
+        # Show dialog
+        self.show_dialog = True
+        self.dialog_index = 0
+        
+        # Store current NPC
+        self.nearby_npc = npc
+        
+        # Get dialog lines
+        if hasattr(npc, 'dialog') and npc.dialog:
+            self.current_dialog = npc.dialog
+        else:
+            self.current_dialog = [f"Hello, I'm {npc.name}!"]
+        
+        # Publish notification
+        self.event_bus.publish("show_notification", {
+            "title": npc.name,
+            "message": f"Talking to {npc.name}",
+            "duration": 1.5
+        })
+    
     def _draw_dialog(self, screen):
         """Draw dialog box."""
         # Dialog box background
