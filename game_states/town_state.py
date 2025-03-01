@@ -2092,6 +2092,11 @@ class TownState(GameState):
         
         # Get player character
         self.player_character = self.state_manager.get_persistent_data("player_character")
+        # Store player appearance information for use in world map
+        if self.player_character and hasattr(self.player_character, "race"):
+            self.state_manager.set_persistent_data("player_appearance", {
+                "race": self.player_character.race
+            })
         
         # Subscribe to events
         self.event_bus.subscribe("building_interaction", self._handle_building_interaction)
@@ -2254,14 +2259,8 @@ class TownState(GameState):
         for npc in self.town.npcs:
             self._draw_npc(screen, npc)
         
-        # Draw player
-        player_rect = pygame.Rect(
-            self.player_town_position[0] * self.tile_size,
-            self.player_town_position[1] * self.tile_size,
-            self.tile_size,
-            self.tile_size
-        )
-        pygame.draw.rect(screen, (0, 0, 255), player_rect)  # Blue rectangle for player
+        # Draw player using pixel art asset
+        self._render_player(screen)
         
         # Draw UI
         self._draw_ui(screen)
@@ -2269,6 +2268,22 @@ class TownState(GameState):
         # Draw dialog if active
         if self.show_dialog:
             self._draw_dialog(screen)
+    
+    def _render_player(self, screen):
+        """Render the player character with pixel art style similar to NPCs."""
+        # Convert world position to screen coordinates
+        screen_x, screen_y = self._world_to_screen(self.player_town_position)
+        
+        # Create player asset if it doesn't exist yet
+        if not hasattr(self, 'player_asset') or not self.player_asset:
+            self.player_asset = self._create_player_asset(self.tile_size)
+        
+        asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
+        screen.blit(self.player_asset, asset_rect)
+        
+        # Add a highlight circle when player is moving
+        if self.player_moving:
+            pygame.draw.circle(screen, (255, 255, 255, 128), (int(screen_x), int(screen_y)), 20, 1)
     
     def _draw_town_grid(self, screen):
         """Draw the town grid with pixel art tiles."""
