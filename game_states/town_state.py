@@ -2436,6 +2436,27 @@ class TownState(GameState):
         tile_y = mouse_y // self.tile_size
         return (tile_x, tile_y)
     
+    def _show_building_info(self, building):
+        """
+        Show information about a building.
+        
+        Args:
+            building: Building instance
+        """
+        # Store current building
+        self.current_building = building
+        
+        # Show building information
+        self.event_bus.publish("show_notification", {
+            "title": building.name,
+            "message": f"{building.description}",
+            "duration": 2.0
+        })
+        
+        # If it's a special building type, handle its interaction
+        if hasattr(building, 'type'):
+            self._handle_building_interaction({"building": building})
+    
     def _start_conversation(self, npc):
         """
         Start a conversation with an NPC.
