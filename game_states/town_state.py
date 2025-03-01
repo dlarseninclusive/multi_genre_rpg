@@ -2001,6 +2001,10 @@ class TownState(GameState):
         # Player data
         self.player_town_position = (10, 10)
         self.player_character = None
+        self.player_speed = 5  # pixels per second
+        self.player_direction = (0, 0)
+        self.player_moving = False
+        self.target_position = None
         
         # UI elements
         self.font = None
@@ -2206,6 +2210,8 @@ class TownState(GameState):
         if self.event_timer >= self.event_check_interval:
             self.event_timer = 0
             self._check_for_town_events()
+        if hasattr(self, 'player_moving') and self.player_moving and not hasattr(self, 'player_speed'):
+            self.player_speed = 5  # Default speed if not set
         
         # Update player movement (target-based)
         if hasattr(self, 'player_moving') and self.player_moving:
