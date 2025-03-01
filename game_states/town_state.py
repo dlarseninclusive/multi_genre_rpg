@@ -2271,11 +2271,13 @@ class TownState(GameState):
     
     def _render_player(self, screen):
         """Render the player character with pixel art style similar to NPCs."""
-        # Convert world position to screen coordinates
-        screen_x, screen_y = self._world_to_screen(self.player_town_position)
-        
+        # For the tile-based town, directly convert to screen coordinates
+        screen_x = self.player_town_position[0] * self.tile_size + self.tile_size // 2
+        screen_y = self.player_town_position[1] * self.tile_size + self.tile_size // 2
+
         # Create player asset if it doesn't exist yet
         if not hasattr(self, 'player_asset') or not self.player_asset:
+            # Use the player asset creation method that already exists
             self.player_asset = self._create_player_asset(self.tile_size)
         
         asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
