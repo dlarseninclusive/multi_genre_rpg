@@ -2537,8 +2537,8 @@ class TownState(GameState):
                     new_x = npc.position[0] - npc_dx
                     new_y = npc.position[1] - npc_dy
                     
-                    new_x = max(0, min(self.town.size[0], new_x))
-                    new_y = max(0, min(self.town.size[1], new_y))
+                    new_x = max(0, min(self.town.width, new_x))
+                    new_y = max(0, min(self.town.height, new_y))
                     
                     npc.position = (new_x, new_y)
                     logger.debug(f"NPC {npc.name} noticed the player")
