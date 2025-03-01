@@ -2157,7 +2157,7 @@ class TownState(GameState):
                 # Check if the new position is valid
                 if self._is_valid_position(new_pos):
                     self.player_town_position = tuple(new_pos)
-                    self._check_building_proximity()
+                    self._check_nearby_entities()
                     return True
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -2490,22 +2490,73 @@ class TownState(GameState):
         
         return True
     
-    def _check_building_proximity(self):
-        """Check if player is near a building or NPC."""
+    def _check_nearby_entities(self):
+        """Check for and highlight nearby buildings and NPCs."""
+        prev_nearby_building = self.nearby_building
+        prev_nearby_npc = self.nearby_npc
+        
         self.nearby_building = None
         self.nearby_npc = None
         
-        # Check buildings
+        # Check for nearby buildings
         for building in self.town.buildings:
-            if self._is_adjacent_to(self.player_town_position, building.position, building.size):
+            building_rect = building.get_rect()
+            
+            # Calculate distance to building center
+            building_center = (
+                building_rect.centerx,
+                building_rect.centery
+            )
+            
+            dx = building_center[0] - self.player_pos[0]
+            dy = building_center[1] - self.player_pos[1]
+            distance = math.sqrt(dx*dx + dy*dy)
+            
+            # Check if close enough to interact
+            if distance < 100:
                 self.nearby_building = building
                 break
         
-        # Check NPCs
+        # Check for nearby NPCs
         for npc in self.town.npcs:
-            if self._is_adjacent_to(self.player_town_position, npc.position, (1, 1)):
+            dx = npc.position[0] - self.player_pos[0]
+            dy = npc.position[1] - self.player_pos[1]
+            distance = math.sqrt(dx*dx + dy*dy)
+            
+            # Check if close enough to interact
+            if distance < 50:
                 self.nearby_npc = npc
+                
+                # Make NPC "react" by turning toward player if this is a new interaction
+                if npc != prev_nearby_npc:
+                    move_amount = 3
+                    total_dist = max(1, abs(dx) + abs(dy))
+                    npc_dx = (dx / total_dist) * move_amount
+                    npc_dy = (dy / total_dist) * move_amount
+                    
+                    new_x = npc.position[0] - npc_dx
+                    new_y = npc.position[1] - npc_dy
+                    
+                    new_x = max(0, min(self.town.size[0], new_x))
+                    new_y = max(0, min(self.town.size[1], new_y))
+                    
+                    npc.position = (new_x, new_y)
+                    logger.debug(f"NPC {npc.name} noticed the player")
                 break
+        
+        if self.nearby_building and self.nearby_building != prev_nearby_building:
+            self.event_bus.publish("show_notification", {
+                "title": self.nearby_building.name,
+                "message": f"Press ENTER to interact with {self.nearby_building.name}",
+                "duration": 2.0
+            })
+        
+        if self.nearby_npc and self.nearby_npc != prev_nearby_npc:
+            self.event_bus.publish("show_notification", {
+                "title": self.nearby_npc.name,
+                "message": f"Press ENTER to talk to {self.nearby_npc.name}",
+                "duration": 2.0
+            })
     
     def _is_adjacent_to(self, pos1, pos2, size):
         """Check if pos1 is adjacent to the rectangle at pos2 with given size."""
