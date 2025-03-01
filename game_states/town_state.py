@@ -2278,8 +2278,8 @@ class TownState(GameState):
                     self.tile_map[y][center_x] = 'path'
         
         # Draw tiles
-        for y in range(self.town.height):
-            for x in range(self.town.width):
+        for y in range(min(self.town.height, len(self.tile_map))):
+            for x in range(min(self.town.width, len(self.tile_map[y]))):
                 tile_type = self.tile_map[y][x]
                 tile_image = self.tile_assets.get(tile_type, self.tile_assets['grass'])
                 
