@@ -2268,13 +2268,14 @@ class TownState(GameState):
                 self.tile_map.append(row)
             
             # Ensure paths to town center
-            center_x, center_y = self.town.width // 2, self.town.height // 2
+            center_x, center_y = min(self.town.width // 2, len(self.tile_map[0]) - 1), min(self.town.height // 2, len(self.tile_map) - 1)
             # Horizontal path
-            for x in range(self.town.width):
+            for x in range(min(self.town.width, len(self.tile_map[center_y]))):
                 self.tile_map[center_y][x] = 'path'
             # Vertical path
-            for y in range(self.town.height):
-                self.tile_map[y][center_x] = 'path'
+            for y in range(min(self.town.height, len(self.tile_map))):
+                if center_x < len(self.tile_map[y]):
+                    self.tile_map[y][center_x] = 'path'
         
         # Draw tiles
         for y in range(self.town.height):
