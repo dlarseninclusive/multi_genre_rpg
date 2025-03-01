@@ -1,0 +1,30 @@
+{
+    "screen_width": 1366,
+    "screen_height": 768,
+    "fullscreen": false,
+    "vsync": true,
+    "fps": 60,
+    "sound_enabled": true,
+    "music_enabled": true,
+    "sound_volume": 0.7,
+    "music_volume": 0.5,
+    "difficulty": "normal",
+    "tutorial_enabled": true,
+    "auto_save": true,
+    "auto_save_interval": 10,
+    "controls": {
+        "move_up": "UP",
+        "move_down": "DOWN",
+        "move_left": "LEFT",
+        "move_right": "RIGHT",
+        "interact": "E",
+        "inventory": "I",
+        "map": "M",
+        "pause": "ESCAPE",
+        "attack": "SPACE",
+        "special": "Q"
+    },
+    "particle_effects": true,
+    "dynamic_lighting": true,
+    "show_fps": false
+}
