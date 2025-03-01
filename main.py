@@ -81,6 +81,7 @@ class Game:
         self.state_manager.register_state("investigation", InvestigationState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("dungeon", DungeonState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("base_building", BaseBuildingState(self.state_manager, self.event_bus, self.settings))
+        self.state_manager.register_state("town", TownState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("combat", CombatGameState(self.state_manager, self.event_bus, self.settings))
         self.state_manager.register_state("pause_menu", PauseMenuState(self.state_manager, self.event_bus, self.settings))
     

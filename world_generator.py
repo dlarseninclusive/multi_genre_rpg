@@ -525,14 +525,25 @@ class WorldGenerator:
                 if not town_names:  # Replenish if we run out
                     town_names = [f"New {name}" for name in town_names]
                 
+                # Set difficulty based on distance from center
+                center_x, center_y = self.width // 2, self.height // 2
+                distance = ((x - center_x)**2 + (y - center_y)**2)**0.5
+                max_distance = ((self.width // 2)**2 + (self.height // 2)**2)**0.5
+                difficulty = max(1, min(10, int(distance / max_distance * 8) + 1))
+                
                 # Create town location
                 town = Location(
                     x, y,
                     LocationType.TOWN,
                     name,
-                    f"{name} is a small settlement known for its {random.choice(['trade', 'fishing', 'farming', 'crafting'])}.",
-                    difficulty=1  # Towns are safe
+                    f"{name} is a settlement known for its {random.choice(['trade', 'fishing', 'farming', 'crafting'])}.",
+                    difficulty=difficulty
                 )
+                
+                # Make the first town discovered and safe
+                if i == 0:
+                    town.discovered = True
+                    town.difficulty = 1
                 
                 # Add to locations
                 self.locations.append(town)

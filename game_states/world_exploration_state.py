@@ -484,18 +484,17 @@ class WorldExplorationState(GameState):
         try:
             # Handle different location types
             if self.current_location.location_type == LocationType.TOWN:
-                # For now, just show a notification
+                # Enter town state
                 self.event_bus.publish("show_notification", {
                     "title": "Entering Town",
                     "message": f"Welcome to {self.current_location.name}!",
                     "duration": 3.0
                 })
                 
-                # Show notification instead of pushing to town state
-                self.event_bus.publish("show_notification", {
-                    "title": "Town Visit",
-                    "message": f"You're exploring {self.current_location.name}. Town feature coming soon!",
-                    "duration": 3.0
+                # Change to town state with location data
+                self.change_state("town", {
+                    "location": self.current_location,
+                    "return_position": (self.player_x, self.player_y)
                 })
                 
             elif self.current_location.location_type == LocationType.DUNGEON:

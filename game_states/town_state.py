@@ -2122,6 +2122,9 @@ class TownState(GameState):
         if self.event_timer >= self.event_check_interval:
             self.event_timer = 0
             self._check_for_town_events()
+            
+        # Check for nearby buildings and NPCs
+        self._check_building_proximity()
     
     def render(self, screen):
         """Render town state."""
@@ -2404,6 +2407,13 @@ class TownState(GameState):
                 "player_position": self.player_town_position
             })
             return
+        
+        # Check for exit (if at the bottom edge of town)
+        if self.player_town_position[1] >= self.town.height - 1:
+            # Return to world map
+            self.change_state("world_exploration", {
+                "return_position": self.return_position
+            })
     
     def _handle_building_interaction(self, data):
         """Handle interaction with a building."""
@@ -2417,6 +2427,20 @@ class TownState(GameState):
             "message": building.description,
             "duration": 2.0
         })
+        
+        # Handle special buildings
+        if building.type == "shop":
+            # Open shop interface
+            self.push_state("shop", {
+                "shop_id": building.shop_id if hasattr(building, "shop_id") else None,
+                "shop_name": building.name
+            })
+        elif building.type == "inn":
+            # Open inn interface (or just rest for now)
+            self._rest_at_inn(building)
+        elif building.type == "tavern":
+            # Open tavern interface (or just show dialog for now)
+            self._visit_tavern(building)
         
         # Handle special buildings
         if building.type == "shop":
@@ -2478,6 +2502,13 @@ class TownState(GameState):
                 if player_character and hasattr(player_character, "level"):
                     player_level = player_character.level
                 
+                # Show notification before combat
+                self.event_bus.publish("show_notification", {
+                    "title": "Danger!",
+                    "message": f"You've been ambushed by a {enemy_type} in {self.town_name}!",
+                    "duration": 2.0
+                })
+                
                 # Start combat
                 self.change_state("combat", {
                     "enemies": [{"type": enemy_type, "level": max(1, player_level)}],
@@ -2504,14 +2535,17 @@ class TownState(GameState):
         """Generate a procedural town."""
         # Get town info from world
         town_info = None
-        world_generator = self.state_manager.get_persistent_data("world_generator")
+        world_data = self.state_manager.get_persistent_data("world")
         
-        if world_generator and hasattr(world_generator, "get_locations"):
-            locations = world_generator.get_locations()
-            for location in locations:
-                if location.get('id') == town_id:
-                    town_info = location
-                    break
+        if world_data and "locations" in world_data:
+            for location in world_data["locations"]:
+                if isinstance(location, Location) and location.location_type == LocationType.TOWN:
+                    if town_id == f"town_{location.name.lower().replace(' ', '_')}":
+                        town_info = {
+                            'name': location.name,
+                            'difficulty': location.difficulty
+                        }
+                        break
         
         town_size_map = {
             'small': (15, 15),
@@ -2519,8 +2553,17 @@ class TownState(GameState):
             'large': (25, 25)
         }
         
-        # Default size if not found
-        size = 'medium' if not town_info else town_info.get('size', 'medium')
+        # Determine size based on difficulty
+        if town_info and 'difficulty' in town_info:
+            if town_info['difficulty'] <= 3:
+                size = 'small'
+            elif town_info['difficulty'] <= 7:
+                size = 'medium'
+            else:
+                size = 'large'
+        else:
+            size = 'medium'
+            
         width, height = town_size_map.get(size, (20, 20))
         
         # Create town
@@ -2530,6 +2573,10 @@ class TownState(GameState):
             width=width,
             height=height
         )
+        
+        # Set danger level based on difficulty
+        if town_info and 'difficulty' in town_info:
+            town.danger_level = max(0, min(5, town_info['difficulty'] // 2))
         
         # Add buildings based on size
         if size == 'small':
@@ -2541,6 +2588,15 @@ class TownState(GameState):
         else:  # large
             num_buildings = random.randint(12, 18)
             num_npcs = random.randint(10, 15)
+            
+        # Set enemy types based on location
+        if town_info and 'difficulty' in town_info:
+            if town_info['difficulty'] <= 3:
+                town.enemy_types = ["thief", "drunk", "troublemaker"]
+            elif town_info['difficulty'] <= 7:
+                town.enemy_types = ["bandit", "thug", "mercenary"]
+            else:
+                town.enemy_types = ["assassin", "cultist", "criminal"]
         
         # Always include essential buildings
         essential_buildings = [
@@ -2648,3 +2704,50 @@ class TownState(GameState):
             attempts += 1
         
         return False
+    def _rest_at_inn(self, building):
+        """Rest at an inn to recover health."""
+        # Get player character
+        character = self.state_manager.get_persistent_data("player_character")
+        
+        if character and hasattr(character, "health") and hasattr(character, "max_health"):
+            # Deduct gold (if we have an economy system)
+            room_price = getattr(building, "room_price", 10)
+            if hasattr(character, "gold") and character.gold >= room_price:
+                character.gold -= room_price
+                
+                # Heal to full
+                old_health = character.health
+                character.health = character.max_health
+                
+                # Update dialog
+                self.event_bus.publish("show_notification", {
+                    "title": f"{building.name}",
+                    "message": f"You rest at the inn and recover {character.health - old_health} health.",
+                    "duration": 3.0
+                })
+                
+                # Update character
+                self.state_manager.set_persistent_data("player_character", character)
+            else:
+                self.event_bus.publish("show_notification", {
+                    "title": f"{building.name}",
+                    "message": f"You don't have enough gold to rest here. (Costs {room_price} gold)",
+                    "duration": 3.0
+                })
+        else:
+            self.event_bus.publish("show_notification", {
+                "title": f"{building.name}",
+                "message": "You rest for a while and feel refreshed.",
+                "duration": 3.0
+            })
+    
+    def _visit_tavern(self, building):
+        """Visit a tavern for information and drinks."""
+        # Show tavern dialog
+        self.event_bus.publish("show_notification", {
+            "title": f"{building.name}",
+            "message": "The tavern is bustling with activity. You hear rumors about nearby adventures.",
+            "duration": 3.0
+        })
+        
+        # TODO: Add proper tavern interface with rumors, drinks, etc.
