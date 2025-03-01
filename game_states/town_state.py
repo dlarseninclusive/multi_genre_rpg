@@ -1156,6 +1156,21 @@ class TownState(GameState):
             (x, y) screen position
         """
         return (world_pos[0] - self.camera_x, world_pos[1] - self.camera_y)
+
+    def _screen_to_world(self, screen_pos):
+        """
+        Convert screen coordinates to world coordinates.
+        
+        Args:
+            screen_pos: (x, y) screen position
+            
+        Returns:
+            (x, y) world position
+        """
+        mouse_x, mouse_y = screen_pos
+        tile_x = mouse_x // self.tile_size
+        tile_y = mouse_y // self.tile_size
+        return (tile_x, tile_y)
     
     def _handle_interaction(self):
         """Handle player interaction with nearby objects."""
