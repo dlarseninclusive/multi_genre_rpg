@@ -2030,8 +2030,16 @@ class TownState(GameState):
         self.font_small = pygame.font.SysFont(None, 18)
         
         if data:
-            self.town_id = data.get("town_id", "town_1")
-            self.town_name = data.get("town_name", "Default Town")
+            # Check if location data is provided
+            location = data.get("location")
+            if location:
+                self.town_id = f"town_{location.name.lower().replace(' ', '_')}"
+                self.town_name = location.name
+                logger.info(f"Entering town from location: {location.name}")
+            else:
+                self.town_id = data.get("town_id", "town_1")
+                self.town_name = data.get("town_name", "Default Town")
+                
             self.return_position = data.get("return_position", (0, 0))
             
             # Load town data or generate if not exists
