@@ -2260,7 +2260,7 @@ class TownState(GameState):
                         tile = random.choices(tile_types, weights=weights)[0]
                         
                         # Make paths more continuous
-                        if (x > 0 and row[x-1] == 'path') or (y > 0 and self.tile_map[y-1][x] == 'path'):
+                        if (x > 0 and x-1 < len(row) and row[x-1] == 'path') or (y > 0 and x < len(self.tile_map[y-1]) and self.tile_map[y-1][x] == 'path'):
                             if random.random() < 0.7:
                                 tile = 'path'
                 
