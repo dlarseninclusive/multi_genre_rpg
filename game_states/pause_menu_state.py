@@ -27,19 +27,76 @@ class PauseMenuState(GameState):
         """Set up the state when entered."""
         super().enter(data)
         
-        # Initialize font
-        pygame.font.init()
-        self.font = pygame.font.SysFont(None, 36)
+        # Get screen dimensions
+        screen_width, screen_height = pygame.display.get_surface().get_size()
         
-        # Set up buttons
-        self.buttons = [
-            {"text": "Resume", "action": self._resume_game},
-            {"text": "Save Game", "action": self._save_game},
-            {"text": "Main Menu", "action": self._return_to_main_menu},
-            {"text": "Quit Game", "action": self._quit_game}
-        ]
+        # Initialize UI manager if not already done
+        if not hasattr(self, 'ui_manager'):
+            from ui_system import UIManager
+            self.ui_manager = UIManager(pygame.display.get_surface())
         
-        self.selected_button = 0
+        # Create pause menu UI
+        menu_width = 300
+        menu_height = 400
+        menu_x = (screen_width - menu_width) // 2
+        menu_y = (screen_height - menu_height) // 2
+        
+        # Create background panel
+        self.menu_panel = self.ui_manager.create_panel(
+            pygame.Rect(menu_x, menu_y, menu_width, menu_height)
+        )
+        
+        # Add title
+        self.ui_manager.create_label(
+            pygame.Rect(0, 20, menu_width, 40),
+            "Game Paused",
+            self.menu_panel
+        )
+        
+        # Add buttons
+        button_width = 200
+        button_height = 40
+        button_x = (menu_width - button_width) // 2
+        
+        # Resume button
+        self.resume_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 100, button_width, button_height),
+            "Resume Game",
+            self._resume_game,
+            self.menu_panel
+        )
+        
+        # Save button
+        self.save_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 160, button_width, button_height),
+            "Save Game",
+            self._save_game,
+            self.menu_panel
+        )
+        
+        # Settings button
+        self.settings_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 220, button_width, button_height),
+            "Settings",
+            self._open_settings,
+            self.menu_panel
+        )
+        
+        # Main menu button
+        self.main_menu_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 280, button_width, button_height),
+            "Return to Main Menu",
+            self._return_to_main_menu,
+            self.menu_panel
+        )
+        
+        # Quit button
+        self.quit_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 340, button_width, button_height),
+            "Quit Game",
+            self._quit_game,
+            self.menu_panel
+        )
         
         logger.info("Entered pause menu")
     
@@ -50,10 +107,15 @@ class PauseMenuState(GameState):
     
     def handle_event(self, event):
         """Handle pygame events."""
+        # Let the UI manager handle the event first
+        if self.ui_manager.handle_event(event):
+            return True
+            
+        # Original keyboard controls can remain
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 # Return to game
-                self._resume_game()
+                self._resume_game(None)
                 return True
             
             # Navigate menu
@@ -76,41 +138,29 @@ class PauseMenuState(GameState):
     def update(self, dt):
         """Update state."""
         super().update(dt)
+        self.ui_manager.update(dt)
     
     def render(self, screen):
         """Render the pause menu."""
-        # Create semi-transparent overlay
-        overlay = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 180))  # Semi-transparent black
+        # Draw previous state in background
+        if len(self.state_manager.state_stack) > 1:
+            prev_state = self.state_manager.state_stack[-2]
+            prev_state.render(screen)
+        
+        # Darken the screen a bit
+        overlay = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 128))  # Semi-transparent black
         screen.blit(overlay, (0, 0))
         
-        # Draw title
-        title_surface = self.font.render("Game Paused", True, (255, 255, 255))
-        title_rect = title_surface.get_rect(center=(screen.get_width() // 2, 100))
-        screen.blit(title_surface, title_rect)
-        
-        # Draw buttons
-        button_y = 200
-        for i, button in enumerate(self.buttons):
-            # Highlight selected button
-            color = (255, 255, 0) if i == self.selected_button else (255, 255, 255)
-            
-            # Create button text
-            button_surface = self.font.render(button["text"], True, color)
-            button_rect = button_surface.get_rect(center=(screen.get_width() // 2, button_y))
-            
-            # Draw button
-            screen.blit(button_surface, button_rect)
-            
-            # Move to next position
-            button_y += 50
+        # Render UI
+        self.ui_manager.render()
     
-    def _resume_game(self):
+    def _resume_game(self, button):
         """Resume the game."""
         logger.info("Resuming game")
         self.pop_state()
     
-    def _save_game(self):
+    def _save_game(self, button):
         """Save the current game."""
         try:
             # Get persistent data for saving
@@ -162,12 +212,21 @@ class PauseMenuState(GameState):
                 "duration": 3.0
             })
     
-    def _return_to_main_menu(self):
+    def _open_settings(self, button):
+        """Open settings menu."""
+        # TODO: Implement settings menu
+        self.event_bus.publish("show_notification", {
+            "title": "Not Implemented",
+            "message": "Settings menu not yet implemented.",
+            "duration": 2.0
+        })
+        
+    def _return_to_main_menu(self, button):
         """Return to the main menu."""
         logger.info("Returning to main menu")
         self.change_state("main_menu")
     
-    def _quit_game(self):
+    def _quit_game(self, button):
         """Quit the game."""
         logger.info("Quitting game")
         pygame.event.post(pygame.event.Event(pygame.QUIT))

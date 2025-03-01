@@ -59,6 +59,9 @@ class WorldExplorationState(GameState):
         self.player_y = 0
         self.player_moving = False
         self.player_direction = (0, 0)
+        self.target_x = None
+        self.target_y = None
+        self.move_speed = 3.0  # Tiles per second (adjust as needed)
         
         # Time and weather
         self.time_of_day = TimeOfDay.NOON
@@ -273,11 +276,11 @@ class WorldExplorationState(GameState):
                     self._interact_with_location()
                     return True
                 else:
-                    # If clicking on walkable terrain, move there
+                    # If clicking on walkable terrain, set it as target
                     if self._is_position_walkable(world_x, world_y):
-                        self.player_x = world_x
-                        self.player_y = world_y
-                        self._center_camera_on_player()
+                        self.target_x = world_x
+                        self.target_y = world_y
+                        self.player_moving = True
                         return True
     
     def update(self, dt):
@@ -393,28 +396,68 @@ class WorldExplorationState(GameState):
     
     def _move_player(self, dt):
         """Update player position based on direction and speed."""
-        # Calculate new position
-        dx, dy = self.player_direction
-        
-        # Normalize diagonal movement
-        if dx != 0 and dy != 0:
-            dx *= 0.7071  # 1/sqrt(2)
-            dy *= 0.7071
-        
-        new_x = self.player_x + dx * self.camera_speed * dt / self.tile_size
-        new_y = self.player_y + dy * self.camera_speed * dt / self.tile_size
-        
-        # Ensure new position is within world bounds
-        new_x = max(0, min(self.world_width - 1, new_x))
-        new_y = max(0, min(self.world_height - 1, new_y))
-        
-        # Check if new position is walkable
-        if self._is_position_walkable(new_x, new_y):
-            self.player_x = new_x
-            self.player_y = new_y
+        # If we have a target to move to
+        if self.target_x is not None and self.target_y is not None:
+            # Calculate direction to target
+            dx = self.target_x - self.player_x
+            dy = self.target_y - self.player_y
+            distance = math.sqrt(dx*dx + dy*dy)
+            
+            # If close enough to target, snap to it and stop
+            if distance < 0.1:  # Close enough threshold
+                self.player_x = self.target_x
+                self.player_y = self.target_y
+                self.target_x = None
+                self.target_y = None
+                self.player_moving = False
+            else:
+                # Normalize direction
+                dx /= distance
+                dy /= distance
+                
+                # Move towards target
+                move_distance = self.move_speed * dt
+                # Don't overshoot target
+                move_distance = min(move_distance, distance)
+                
+                new_x = self.player_x + dx * move_distance
+                new_y = self.player_y + dy * move_distance
+                
+                # Check if new position is walkable
+                if self._is_position_walkable(new_x, new_y):
+                    self.player_x = new_x
+                    self.player_y = new_y
+                else:
+                    # Hit an obstacle, stop moving
+                    self.target_x = None
+                    self.target_y = None
+                    self.player_moving = False
             
             # Update camera to follow player
             self._center_camera_on_player()
+        else:
+            # Original keyboard movement code
+            dx, dy = self.player_direction
+            
+            # Normalize diagonal movement
+            if dx != 0 and dy != 0:
+                dx *= 0.7071  # 1/sqrt(2)
+                dy *= 0.7071
+            
+            new_x = self.player_x + dx * self.camera_speed * dt / self.tile_size
+            new_y = self.player_y + dy * self.camera_speed * dt / self.tile_size
+            
+            # Ensure new position is within world bounds
+            new_x = max(0, min(self.world_width - 1, new_x))
+            new_y = max(0, min(self.world_height - 1, new_y))
+            
+            # Check if new position is walkable
+            if self._is_position_walkable(new_x, new_y):
+                self.player_x = new_x
+                self.player_y = new_y
+                
+                # Update camera to follow player
+                self._center_camera_on_player()
     
     def _is_position_walkable(self, x, y):
         """Check if a position is walkable."""
