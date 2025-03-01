@@ -1754,18 +1754,17 @@ class TownState(GameState):
             pygame.draw.circle(screen, (0, 0, 0), (int(screen_x), int(screen_y)), 10, 1)
     
     def _render_player(self, screen):
-        """
-        Render the player character.
-        
-        Args:
-            screen: Pygame surface to render to
-        """
-        # Convert world position to screen position
+        """Render the player character with pixel art style similar to NPCs."""
+        # Convert world position to screen coordinates
         screen_x, screen_y = self._world_to_screen(self.player_pos)
         
-        # Draw player
-        pygame.draw.circle(screen, self.colors['player'], (int(screen_x), int(screen_y)), 15)
-        pygame.draw.circle(screen, (0, 0, 0), (int(screen_x), int(screen_y)), 15, 2)
+        # Use the player asset if available
+        if hasattr(self, 'player_asset') and self.player_asset:
+            asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
+            screen.blit(self.player_asset, asset_rect)
+        else:
+            pygame.draw.circle(screen, self.colors['player'], (int(screen_x), int(screen_y)), 15)
+            pygame.draw.circle(screen, (0, 0, 0), (int(screen_x), int(screen_y)), 15, 2)
 import pygame
 import logging
 import random
@@ -3094,15 +3093,40 @@ class TownState(GameState):
         
         return surface
 
-    def _create_player_asset(self, tile_size):
-        """Create a player asset with pixel art style."""
+    def _create_player_asset(self, tile_size, race=None):
+        """Create a player asset with customizable colors based on race."""
         # Create surface
         surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
         
-        # Player colors
-        body_color = (0, 100, 200)
-        head_color = (240, 200, 160)
-        detail_color = (200, 200, 0)
+        # Default colors
+        body_color = (0, 100, 200)       # Default blue
+        head_color = (240, 200, 160)       # Default skin tone
+        detail_color = (200, 200, 0)       # Default yellow
+        
+        # Customize based on race if provided
+        if race:
+            if race.lower() == "elf":
+                head_color = (230, 220, 180)
+                body_color = (20, 130, 80)
+                detail_color = (200, 220, 130)
+            elif race.lower() == "dwarf":
+                head_color = (220, 170, 140)
+                body_color = (120, 70, 30)
+                detail_color = (150, 100, 50)
+            elif race.lower() == "orc":
+                head_color = (100, 170, 100)
+                body_color = (80, 80, 80)
+                detail_color = (150, 30, 30)
+        
+        # Override with persistent appearance if available
+        character = self.state_manager.get_persistent_data("player_character")
+        if character and hasattr(character, "appearance"):
+            if hasattr(character.appearance, "body_color"):
+                body_color = character.appearance.body_color
+            if hasattr(character.appearance, "skin_color"):
+                head_color = character.appearance.skin_color
+            if hasattr(character.appearance, "detail_color"):
+                detail_color = character.appearance.detail_color
         
         # Draw body
         body_width = tile_size // 2
@@ -3117,9 +3141,9 @@ class TownState(GameState):
         head_y = body_y - head_size
         pygame.draw.rect(surface, head_color, (head_x, head_y, head_size, head_size))
         
-        # Draw details
+        # Draw details (belt/collar)
         detail_size = max(2, tile_size // 8)
-        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))  # Belt
+        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))
         
         # Draw eyes
         eye_size = max(1, tile_size // 10)
