@@ -193,6 +193,9 @@ class WorldExplorationState(GameState):
         if day_counter is not None:
             self.day_counter = day_counter
         
+        # Create player graphic matching town style
+        self.player_graphic = self._create_player_graphic()
+        
         logger.info(f"Entered world exploration at position ({self.player_x}, {self.player_y})")
     
     def exit(self):
@@ -885,14 +888,18 @@ class WorldExplorationState(GameState):
         screen.blit(snow_surface, (0, 0))
     
     def _render_player(self, screen):
-        """Render player character."""
+        """Render player character on the world map."""
         # Calculate screen position
         screen_x = int(self.player_x * self.tile_size - self.camera_x + self.tile_size // 2)
         screen_y = int(self.player_y * self.tile_size - self.camera_y + self.tile_size // 2)
         
-        # Draw player marker
-        pygame.draw.circle(screen, self.player_color, (screen_x, screen_y), self.tile_size // 2)
-        pygame.draw.circle(screen, (0, 0, 0), (screen_x, screen_y), self.tile_size // 2, 2)
+        # Use the created player graphic if available
+        if hasattr(self, 'player_graphic') and self.player_graphic:
+            player_rect = self.player_graphic.get_rect(center=(screen_x, screen_y))
+            screen.blit(self.player_graphic, player_rect)
+        else:
+            # Fallback to simple rectangle if graphic not available
+            pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(screen_x-5, screen_y-5, 10, 10))
     
     def _render_minimap(self, screen):
         """Render mini-map in corner of screen."""
@@ -1054,3 +1061,41 @@ class WorldExplorationState(GameState):
     def _handle_exit_location(self, _):
         """Handle exit_location event from other states."""
         logger.info("Exited location from external state")
+    def _create_player_graphic(self):
+        """Create a player graphic matching the town's pixel art style."""
+        tile_size = 32  # Adjust if your world map uses a different size
+        surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+        body_color = (0, 100, 200)       # Default blue
+        head_color = (240, 200, 160)      # Default skin tone
+        detail_color = (200, 200, 0)      # Default yellow
+        character = self.state_manager.get_persistent_data("player_character")
+        if character and hasattr(character, "race"):
+            race = character.race
+            if race.lower() == "elf":
+                head_color = (230, 220, 180)
+                body_color = (20, 130, 80)
+                detail_color = (200, 220, 130)
+            elif race.lower() == "dwarf":
+                head_color = (220, 170, 140)
+                body_color = (120, 70, 30)
+                detail_color = (150, 100, 50)
+            elif race.lower() == "orc":
+                head_color = (100, 170, 100)
+                body_color = (80, 80, 80)
+                detail_color = (150, 30, 30)
+        body_width = tile_size // 2
+        body_height = tile_size // 2
+        body_x = (tile_size - body_width) // 2
+        body_y = tile_size - body_height - 2
+        pygame.draw.rect(surface, body_color, (body_x, body_y, body_width, body_height))
+        head_size = tile_size // 3
+        head_x = (tile_size - head_size) // 2
+        head_y = body_y - head_size
+        pygame.draw.rect(surface, head_color, (head_x, head_y, head_size, head_size))
+        detail_size = max(2, tile_size // 8)
+        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))
+        eye_size = max(1, tile_size // 10)
+        eye_y = head_y + head_size // 3
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size * 3 // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        return surface

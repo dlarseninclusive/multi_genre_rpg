@@ -1122,16 +1122,6 @@ class TownState(GameState):
             self.dialog_panel
         )
     
-    def _center_camera(self):
-        """Center camera on player."""
-        screen_width, screen_height = pygame.display.get_surface().get_size()
-        
-        self.camera_x = self.player_pos[0] - screen_width // 2
-        self.camera_y = self.player_pos[1] - screen_height // 2
-        
-        # Clamp camera to town boundaries
-        self.camera_x = max(0, min(self.town.size[0] - screen_width, self.camera_x))
-        self.camera_y = max(0, min(self.town.size[1] - screen_height, self.camera_y))
     
     
     def _world_to_screen(self, world_pos):
@@ -2271,13 +2261,12 @@ class TownState(GameState):
     
     def _render_player(self, screen):
         """Render the player character with pixel art style similar to NPCs."""
-        # For the tile-based town, directly convert to screen coordinates
-        screen_x = self.player_town_position[0] * self.tile_size + self.tile_size // 2
-        screen_y = self.player_town_position[1] * self.tile_size + self.tile_size // 2
-
+        # Calculate screen position with camera offset
+        screen_x = self.player_town_position[0] * self.tile_size - self.camera_x + self.tile_size // 2
+        screen_y = self.player_town_position[1] * self.tile_size - self.camera_y + self.tile_size // 2
+        
         # Create player asset if it doesn't exist yet
         if not hasattr(self, 'player_asset') or not self.player_asset:
-            # Use the player asset creation method that already exists
             self.player_asset = self._create_player_asset(self.tile_size)
         
         asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
@@ -2345,8 +2334,8 @@ class TownState(GameState):
     def _draw_building(self, screen, building):
         """Draw a building on the screen with pixel art."""
         rect = pygame.Rect(
-            building.position[0] * self.tile_size,
-            building.position[1] * self.tile_size,
+            building.position[0] * self.tile_size - self.camera_x,
+            building.position[1] * self.tile_size - self.camera_y,
             building.size[0] * self.tile_size,
             building.size[1] * self.tile_size
         )
@@ -2374,8 +2363,8 @@ class TownState(GameState):
     def _draw_npc(self, screen, npc):
         """Draw an NPC on the screen with pixel art."""
         rect = pygame.Rect(
-            npc.position[0] * self.tile_size,
-            npc.position[1] * self.tile_size,
+            npc.position[0] * self.tile_size - self.camera_x,
+            npc.position[1] * self.tile_size - self.camera_y,
             self.tile_size,
             self.tile_size
         )
@@ -3302,3 +3291,13 @@ class TownState(GameState):
         self.change_state("world_exploration", {
             "return_position": self.return_position
         })
+    def _update_camera(self):
+        """Update camera position to follow player."""
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        target_camera_x = self.player_town_position[0] * self.tile_size - screen_width // 2
+        target_camera_y = self.player_town_position[1] * self.tile_size - screen_height // 2
+        max_camera_x = max(0, self.town.width * self.tile_size - screen_width)
+        max_camera_y = max(0, self.town.height * self.tile_size - screen_height)
+        self.camera_x = max(0, min(max_camera_x, target_camera_x))
+        self.camera_y = max(0, min(max_camera_y, target_camera_y))
+       
