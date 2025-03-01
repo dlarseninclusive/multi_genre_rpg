@@ -2163,8 +2163,11 @@ class TownState(GameState):
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
-                    # Convert screen position to world position
-                    world_pos = self._screen_to_world(event.pos)
+                    # Convert screen position to tile position directly without calling _screen_to_world
+                    mouse_x, mouse_y = event.pos
+                    tile_x = mouse_x // self.tile_size
+                    tile_y = mouse_y // self.tile_size
+                    world_pos = (tile_x, tile_y)
                 
                     # Check if clicked on a building or NPC
                     building = self.town.get_building_at(world_pos)
@@ -2417,6 +2420,21 @@ class TownState(GameState):
             screen.get_height() - 10
         ))
         screen.blit(help_text, help_rect)
+    
+    def _screen_to_world(self, screen_pos):
+        """
+        Convert screen coordinates to world coordinates.
+        
+        Args:
+            screen_pos: (x, y) screen position
+            
+        Returns:
+            (x, y) world position
+        """
+        mouse_x, mouse_y = screen_pos
+        tile_x = mouse_x // self.tile_size
+        tile_y = mouse_y // self.tile_size
+        return (tile_x, tile_y)
     
     def _draw_dialog(self, screen):
         """Draw dialog box."""
