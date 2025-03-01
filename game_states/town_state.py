@@ -2508,8 +2508,8 @@ class TownState(GameState):
                 building_rect.centery
             )
             
-            dx = building_center[0] - self.player_pos[0]
-            dy = building_center[1] - self.player_pos[1]
+            dx = building_center[0] - self.player_town_position[0]
+            dy = building_center[1] - self.player_town_position[1]
             distance = math.sqrt(dx*dx + dy*dy)
             
             # Check if close enough to interact
@@ -2519,8 +2519,8 @@ class TownState(GameState):
         
         # Check for nearby NPCs
         for npc in self.town.npcs:
-            dx = npc.position[0] - self.player_pos[0]
-            dy = npc.position[1] - self.player_pos[1]
+            dx = npc.position[0] - self.player_town_position[0]
+            dy = npc.position[1] - self.player_town_position[1]
             distance = math.sqrt(dx*dx + dy*dy)
             
             # Check if close enough to interact
