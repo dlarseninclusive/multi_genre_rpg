@@ -2227,6 +2227,9 @@ class TownState(GameState):
             new_y = max(0, min(self.town.height, new_y))
             self.player_town_position = (new_x, new_y)
         
+        # Update camera to follow player
+        self._update_camera()
+        
         # Check for nearby buildings and NPCs
         self._check_nearby_entities()
     
