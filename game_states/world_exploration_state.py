@@ -11,23 +11,31 @@ logger = logging.getLogger("world_exploration")
 
 class TimeOfDay(Enum):
     """Enum for different times of day."""
-    DAWN = 0
-    MORNING = 1
-    NOON = 2
-    AFTERNOON = 3
-    DUSK = 4
-    EVENING = 5
-    MIDNIGHT = 6
-    LATE_NIGHT = 7
+    EARLY_DAWN = 0
+    DAWN = 1
+    SUNRISE = 2
+    MORNING = 3
+    NOON = 4
+    AFTERNOON = 5
+    SUNSET = 6
+    DUSK = 7
+    EVENING = 8
+    MIDNIGHT = 9
+    LATE_NIGHT = 10
 
 class Weather(Enum):
     """Enum for different weather conditions."""
     CLEAR = 0
-    CLOUDY = 1
-    RAINY = 2
-    STORMY = 3
-    FOGGY = 4
-    SNOWY = 5
+    PARTLY_CLOUDY = 1
+    CLOUDY = 2
+    MISTY = 3
+    LIGHT_RAIN = 4
+    RAINY = 5
+    STORMY = 6
+    FOGGY = 7
+    LIGHT_SNOW = 8
+    SNOWY = 9
+    BLIZZARD = 10
 
 class WorldExplorationState(GameState):
     """
@@ -70,6 +78,8 @@ class WorldExplorationState(GameState):
         self.weather_counter = 0
         self.day_night_cycle_duration = 600  # Seconds for a full day/night cycle
         self.weather_change_chance = 0.002   # Chance per second to change weather
+        self.day_counter = 1
+        self.time_cycle_completed = False
         
         # World data
         self.world = None
@@ -178,6 +188,10 @@ class WorldExplorationState(GameState):
         weather = self.state_manager.get_persistent_data("weather")
         if weather is not None:
             self.weather = weather
+            
+        day_counter = self.state_manager.get_persistent_data("day_counter")
+        if day_counter is not None:
+            self.day_counter = day_counter
         
         logger.info(f"Entered world exploration at position ({self.player_x}, {self.player_y})")
     
@@ -192,6 +206,7 @@ class WorldExplorationState(GameState):
         # Save time and weather
         self.state_manager.set_persistent_data("time_of_day", self.time_of_day)
         self.state_manager.set_persistent_data("weather", self.weather)
+        self.state_manager.set_persistent_data("day_counter", self.day_counter)
         
         super().exit()
         logger.info("Exited world exploration")
@@ -634,6 +649,14 @@ class WorldExplorationState(GameState):
             # Reset counter
             self.time_counter = 0
             
+            # Check if we completed a full day cycle
+            if next_time_index == 0 and not self.time_cycle_completed:
+                self.day_counter += 1
+                self.time_cycle_completed = True
+                logger.info(f"Day {self.day_counter} has begun")
+            elif next_time_index > 0:
+                self.time_cycle_completed = False
+            
             logger.debug(f"Time of day changed to {self.time_of_day.name}")
         
         # Update weather counter and check for weather change
@@ -659,24 +682,32 @@ class WorldExplorationState(GameState):
         """Get sky color based on time of day and weather."""
         # Base colors for different times of day
         base_colors = {
-            TimeOfDay.DAWN: (150, 120, 150),
-            TimeOfDay.MORNING: (200, 200, 255),
-            TimeOfDay.NOON: (100, 180, 255),
+            TimeOfDay.EARLY_DAWN: (40, 40, 70),
+            TimeOfDay.DAWN: (100, 100, 150),
+            TimeOfDay.SUNRISE: (255, 170, 120),
+            TimeOfDay.MORNING: (200, 220, 255),
+            TimeOfDay.NOON: (100, 180, 255),  # Brightest at noon
             TimeOfDay.AFTERNOON: (180, 220, 255),
-            TimeOfDay.DUSK: (255, 180, 150),
+            TimeOfDay.SUNSET: (255, 170, 120),
+            TimeOfDay.DUSK: (255, 120, 100),
             TimeOfDay.EVENING: (100, 100, 180),
-            TimeOfDay.MIDNIGHT: (50, 50, 80),
-            TimeOfDay.LATE_NIGHT: (30, 30, 50)
+            TimeOfDay.MIDNIGHT: (30, 30, 60),
+            TimeOfDay.LATE_NIGHT: (20, 20, 40)
         }
         
         # Weather modifiers
         weather_modifiers = {
             Weather.CLEAR: (0, 0, 0),
-            Weather.CLOUDY: (-20, -20, -20),
+            Weather.PARTLY_CLOUDY: (-10, -10, -10),
+            Weather.CLOUDY: (-30, -30, -20),
+            Weather.MISTY: (10, -5, -10),
+            Weather.LIGHT_RAIN: (-20, -20, -10),
             Weather.RAINY: (-50, -50, -30),
             Weather.STORMY: (-80, -80, -50),
             Weather.FOGGY: (20, 0, -20),
-            Weather.SNOWY: (40, 40, 40)
+            Weather.LIGHT_SNOW: (20, 20, 30),
+            Weather.SNOWY: (40, 40, 40),
+            Weather.BLIZZARD: (60, 60, 70)
         }
         
         # Get base color for current time
@@ -721,6 +752,14 @@ class WorldExplorationState(GameState):
                 
                 # Draw tile border (grid)
                 pygame.draw.rect(screen, (0, 0, 0), (screen_x, screen_y, self.tile_size, self.tile_size), 1)
+        
+        # Add weather overlay effects
+        if self.weather in [Weather.LIGHT_RAIN, Weather.RAINY, Weather.STORMY]:
+            self._render_rain(screen)
+        elif self.weather in [Weather.FOGGY, Weather.MISTY]:
+            self._render_fog(screen)
+        elif self.weather in [Weather.LIGHT_SNOW, Weather.SNOWY, Weather.BLIZZARD]:
+            self._render_snow(screen)
     
     def _render_locations(self, screen):
         """Render discovered locations."""
@@ -766,6 +805,84 @@ class WorldExplorationState(GameState):
             # Draw river line
             if len(screen_points) > 1:
                 pygame.draw.lines(screen, (0, 100, 200), False, screen_points, 3)
+    
+    def _render_rain(self, screen):
+        """Render rain overlay."""
+        # Get screen dimensions
+        screen_width, screen_height = screen.get_size()
+        
+        # Create a semi-transparent surface for the rain
+        rain_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        
+        # Rain intensity based on weather
+        if self.weather == Weather.LIGHT_RAIN:
+            count = 100
+            color = (200, 200, 255, 100)
+        elif self.weather == Weather.RAINY:
+            count = 300
+            color = (180, 180, 230, 150)
+        else:  # STORMY
+            count = 500
+            color = (150, 150, 200, 200)
+        
+        # Draw rain drops
+        for _ in range(count):
+            x = random.randint(0, screen_width)
+            y = random.randint(0, screen_height)
+            length = random.randint(5, 15)
+            pygame.draw.line(rain_surface, color, (x, y), (x - 2, y + length), 1)
+        
+        # Blit rain surface onto screen
+        screen.blit(rain_surface, (0, 0))
+
+    def _render_fog(self, screen):
+        """Render fog overlay."""
+        # Get screen dimensions
+        screen_width, screen_height = screen.get_size()
+        
+        # Create a semi-transparent surface for the fog
+        fog_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        
+        # Fog density based on weather
+        if self.weather == Weather.MISTY:
+            alpha = 50
+        else:  # FOGGY
+            alpha = 120
+        
+        # Fill with fog color
+        fog_surface.fill((255, 255, 255, alpha))
+        
+        # Blit fog surface onto screen
+        screen.blit(fog_surface, (0, 0))
+
+    def _render_snow(self, screen):
+        """Render snow overlay."""
+        # Get screen dimensions
+        screen_width, screen_height = screen.get_size()
+        
+        # Create a semi-transparent surface for the snow
+        snow_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        
+        # Snow intensity based on weather
+        if self.weather == Weather.LIGHT_SNOW:
+            count = 100
+            size_range = (1, 2)
+        elif self.weather == Weather.SNOWY:
+            count = 300
+            size_range = (1, 3)
+        else:  # BLIZZARD
+            count = 500
+            size_range = (1, 4)
+        
+        # Draw snowflakes
+        for _ in range(count):
+            x = random.randint(0, screen_width)
+            y = random.randint(0, screen_height)
+            size = random.randint(*size_range)
+            pygame.draw.circle(snow_surface, (255, 255, 255, 200), (x, y), size)
+        
+        # Blit snow surface onto screen
+        screen.blit(snow_surface, (0, 0))
     
     def _render_player(self, screen):
         """Render player character."""
@@ -896,7 +1013,7 @@ class WorldExplorationState(GameState):
         # Create indicator at top-right
         padding = 10
         box_width = 150
-        box_height = 50
+        box_height = 70  # Increased height for day counter
         box_x = screen.get_width() - box_width - padding
         box_y = padding + 150 + padding  # Below minimap
         
@@ -904,13 +1021,17 @@ class WorldExplorationState(GameState):
         pygame.draw.rect(screen, (0, 0, 0, 150), (box_x, box_y, box_width, box_height))
         pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_width, box_height), 1)
         
+        # Draw day counter
+        day_text = self.font.render(f"Day: {self.day_counter}", True, (255, 255, 255))
+        screen.blit(day_text, (box_x + 10, box_y + 10))
+        
         # Draw time of day
         time_text = self.font.render(f"Time: {self.time_of_day.name}", True, (255, 255, 255))
-        screen.blit(time_text, (box_x + 10, box_y + 10))
+        screen.blit(time_text, (box_x + 10, box_y + 30))
         
         # Draw weather
         weather_text = self.font.render(f"Weather: {self.weather.name}", True, (255, 255, 255))
-        screen.blit(weather_text, (box_x + 10, box_y + 30))
+        screen.blit(weather_text, (box_x + 10, box_y + 50))
     
     def _handle_enter_location(self, data):
         """Handle enter_location event from other states."""

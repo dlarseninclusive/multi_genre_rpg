@@ -2019,6 +2019,13 @@ class TownState(GameState):
         self.event_timer = 0
         self.event_check_interval = 10  # seconds
         
+        # Pixel art assets (placeholders)
+        self.tile_assets = {}
+        self.building_assets = {}
+        self.npc_assets = {}
+        self.player_asset = None
+        self.town_size_multiplier = 2  # Make town larger
+        
         logger.info("TownState initialized")
     
     def enter(self, data=None):
@@ -2029,6 +2036,9 @@ class TownState(GameState):
         pygame.font.init()
         self.font = pygame.font.SysFont(None, 24)
         self.font_small = pygame.font.SysFont(None, 18)
+        
+        # Load pixel art assets
+        self._load_assets()
         
         if data:
             # Check if location data is provided
@@ -2228,27 +2238,61 @@ class TownState(GameState):
             self._draw_dialog(screen)
     
     def _draw_town_grid(self, screen):
-        """Draw the town grid."""
+        """Draw the town grid with pixel art tiles."""
         # Draw ground tiles
+        tile_types = ['grass', 'dirt', 'path', 'flower']
+        weights = [0.7, 0.15, 0.1, 0.05]  # Probability weights
+        
+        # Check if we've already generated the tile map
+        if not hasattr(self, 'tile_map') or self.tile_map is None:
+            # Create a 2D array of tile types
+            self.tile_map = []
+            for y in range(self.town.height):
+                row = []
+                for x in range(self.town.width):
+                    # Determine tile type
+                    if (x == 0 or x == self.town.width - 1 or 
+                        y == 0 or y == self.town.height - 1):
+                        # Border is always path
+                        tile = 'path'
+                    else:
+                        # Random tile based on weights
+                        tile = random.choices(tile_types, weights=weights)[0]
+                        
+                        # Make paths more continuous
+                        if (x > 0 and row[x-1] == 'path') or (y > 0 and self.tile_map[y-1][x] == 'path'):
+                            if random.random() < 0.7:
+                                tile = 'path'
+                
+                row.append(tile)
+                self.tile_map.append(row)
+            
+            # Ensure paths to town center
+            center_x, center_y = self.town.width // 2, self.town.height // 2
+            # Horizontal path
+            for x in range(self.town.width):
+                self.tile_map[center_y][x] = 'path'
+            # Vertical path
+            for y in range(self.town.height):
+                self.tile_map[y][center_x] = 'path'
+        
+        # Draw tiles
         for y in range(self.town.height):
             for x in range(self.town.width):
+                tile_type = self.tile_map[y][x]
+                tile_image = self.tile_assets.get(tile_type, self.tile_assets['grass'])
+                
                 rect = pygame.Rect(
                     x * self.tile_size,
                     y * self.tile_size,
                     self.tile_size,
                     self.tile_size
                 )
-                # Draw different colored tiles for variety
-                if (x + y) % 2 == 0:
-                    pygame.draw.rect(screen, (60, 110, 60), rect)
-                else:
-                    pygame.draw.rect(screen, (70, 120, 70), rect)
                 
-                # Draw grid lines
-                pygame.draw.rect(screen, (40, 90, 40), rect, 1)
+                screen.blit(tile_image, rect)
     
     def _draw_building(self, screen, building):
-        """Draw a building on the screen."""
+        """Draw a building on the screen with pixel art."""
         rect = pygame.Rect(
             building.position[0] * self.tile_size,
             building.position[1] * self.tile_size,
@@ -2256,33 +2300,28 @@ class TownState(GameState):
             building.size[1] * self.tile_size
         )
         
-        # Different colors for different building types
-        if building.type == "shop":
-            color = (200, 100, 100)  # Red for shops
-        elif building.type == "inn":
-            color = (100, 100, 200)  # Blue for inns
-        elif building.type == "tavern":
-            color = (200, 150, 50)   # Orange for taverns
-        elif building.type == "house":
-            color = (150, 150, 150)  # Gray for houses
-        elif building.type == "guild":
-            color = (150, 100, 200)  # Purple for guilds
-        else:
-            color = (120, 120, 120)  # Default gray
+        # Get building asset
+        building_image = self.building_assets.get(building.type, self.building_assets.get('house'))
         
-        pygame.draw.rect(screen, color, rect)
-        pygame.draw.rect(screen, (0, 0, 0), rect, 2)  # Black border
+        # Draw building
+        screen.blit(building_image, rect)
         
-        # Draw building name
+        # Draw building name above
         name_text = self.font_small.render(building.name, True, (255, 255, 255))
-        name_rect = name_text.get_rect(center=(
+        name_rect = name_text.get_rect(midbottom=(
             rect.centerx,
-            rect.centery
+            rect.top - 2
         ))
+        
+        # Draw text with shadow for better visibility
+        shadow_rect = name_rect.copy()
+        shadow_rect.move_ip(1, 1)
+        shadow_text = self.font_small.render(building.name, True, (0, 0, 0))
+        screen.blit(shadow_text, shadow_rect)
         screen.blit(name_text, name_rect)
     
     def _draw_npc(self, screen, npc):
-        """Draw an NPC on the screen."""
+        """Draw an NPC on the screen with pixel art."""
         rect = pygame.Rect(
             npc.position[0] * self.tile_size,
             npc.position[1] * self.tile_size,
@@ -2290,27 +2329,24 @@ class TownState(GameState):
             self.tile_size
         )
         
-        # Different colors for different NPC types
-        if npc.type == "merchant":
-            color = (200, 150, 50)   # Orange for merchants
-        elif npc.type == "guard":
-            color = (150, 150, 200)  # Blue for guards
-        elif npc.type == "villager":
-            color = (100, 200, 100)  # Green for villagers
-        elif npc.type == "traveler":
-            color = (200, 100, 200)  # Purple for travelers
-        else:
-            color = (150, 150, 150)  # Default gray
+        # Get NPC asset
+        npc_image = self.npc_assets.get(npc.type, self.npc_assets.get('villager'))
         
-        pygame.draw.rect(screen, color, rect)
-        pygame.draw.circle(screen, (0, 0, 0), rect.center, self.tile_size // 3)  # Head
+        # Draw NPC
+        screen.blit(npc_image, rect)
         
-        # Draw NPC name
+        # Draw NPC name above
         name_text = self.font_small.render(npc.name, True, (255, 255, 255))
         name_rect = name_text.get_rect(midbottom=(
             rect.centerx,
             rect.top - 2
         ))
+        
+        # Draw text with shadow for better visibility
+        shadow_rect = name_rect.copy()
+        shadow_rect.move_ip(1, 1)
+        shadow_text = self.font_small.render(npc.name, True, (0, 0, 0))
+        screen.blit(shadow_text, shadow_rect)
         screen.blit(name_text, name_rect)
     
     def _draw_ui(self, screen):
@@ -2610,10 +2646,11 @@ class TownState(GameState):
                         }
                         break
         
+        # Make towns larger with the multiplier
         town_size_map = {
-            'small': (15, 15),
-            'medium': (20, 20),
-            'large': (25, 25)
+            'small': (20 * self.town_size_multiplier, 20 * self.town_size_multiplier),
+            'medium': (30 * self.town_size_multiplier, 30 * self.town_size_multiplier),
+            'large': (40 * self.town_size_multiplier, 40 * self.town_size_multiplier)
         }
         
         # Determine size based on difficulty
@@ -2814,6 +2851,257 @@ class TownState(GameState):
         })
         
         # TODO: Add proper tavern interface with rumors, drinks, etc.
+    def _load_assets(self):
+        """Load pixel art assets (placeholders)."""
+        try:
+            # For now, we'll create placeholder surfaces with colors
+            # In a real implementation, you would load actual pixel art images
+            
+            # Create tile assets
+            tile_size = self.tile_size
+            self.tile_assets = {
+                'grass': self._create_grass_tile(tile_size),
+                'path': self._create_path_tile(tile_size),
+                'dirt': self._create_dirt_tile(tile_size),
+                'flower': self._create_flower_tile(tile_size)
+            }
+            
+            # Create building assets
+            for b_type in ["shop", "inn", "tavern", "house", "guild", "temple"]:
+                self.building_assets[b_type] = self._create_building_asset(b_type, tile_size)
+            
+            # Create NPC assets
+            for npc_type in ["merchant", "guard", "villager", "traveler"]:
+                self.npc_assets[npc_type] = self._create_npc_asset(npc_type, tile_size)
+            
+            # Create player asset
+            self.player_asset = self._create_player_asset(tile_size)
+            
+        except Exception as e:
+            logger.error(f"Error loading assets: {e}")
+    
+    def _create_grass_tile(self, size):
+        """Create a grass tile with pixel art style."""
+        surface = pygame.Surface((size, size))
+        base_color = (60, 120, 60)
+        
+        # Fill with base color
+        surface.fill(base_color)
+        
+        # Add pixel details
+        pixels = []
+        for _ in range(10):
+            x = random.randint(0, size-3)
+            y = random.randint(0, size-3)
+            color_var = random.randint(-10, 10)
+            color = (base_color[0] + color_var, base_color[1] + color_var, base_color[2] + color_var)
+            pixels.append((x, y, 2, 2, color))
+        
+        for px, py, w, h, color in pixels:
+            pygame.draw.rect(surface, color, (px, py, w, h))
+        
+        return surface
+
+    def _create_path_tile(self, size):
+        """Create a path tile with pixel art style."""
+        surface = pygame.Surface((size, size))
+        base_color = (150, 140, 100)
+        
+        # Fill with base color
+        surface.fill(base_color)
+        
+        # Add pixel details
+        for _ in range(15):
+            x = random.randint(0, size-2)
+            y = random.randint(0, size-2)
+            color_var = random.randint(-20, 20)
+            color = (base_color[0] + color_var, base_color[1] + color_var, base_color[2] + color_var)
+            pygame.draw.rect(surface, color, (x, y, 2, 2))
+        
+        return surface
+
+    def _create_dirt_tile(self, size):
+        """Create a dirt tile with pixel art style."""
+        surface = pygame.Surface((size, size))
+        base_color = (120, 100, 80)
+        
+        # Fill with base color
+        surface.fill(base_color)
+        
+        # Add pixel details
+        for _ in range(12):
+            x = random.randint(0, size-2)
+            y = random.randint(0, size-2)
+            color_var = random.randint(-15, 15)
+            color = (base_color[0] + color_var, base_color[1] + color_var, base_color[2] + color_var)
+            pygame.draw.rect(surface, color, (x, y, 2, 2))
+        
+        return surface
+
+    def _create_flower_tile(self, size):
+        """Create a grass tile with flowers."""
+        surface = self._create_grass_tile(size)
+        
+        # Add flowers
+        for _ in range(3):
+            x = random.randint(4, size-8)
+            y = random.randint(4, size-8)
+            color = random.choice([(255, 200, 200), (200, 200, 255), (255, 255, 200)])
+            pygame.draw.rect(surface, color, (x, y, 4, 4))
+            pygame.draw.rect(surface, (255, 255, 100), (x+1, y+1, 2, 2))
+        
+        return surface
+
+    def _create_building_asset(self, b_type, tile_size):
+        """Create a building asset with pixel art style."""
+        # Different sizes based on building type
+        if b_type == "shop":
+            w, h = 2, 2
+            color = (200, 100, 100)
+        elif b_type == "inn":
+            w, h = 3, 2
+            color = (100, 100, 200)
+        elif b_type == "tavern":
+            w, h = 2, 2
+            color = (200, 150, 50)
+        elif b_type == "house":
+            w, h = 1, 1
+            color = (150, 150, 150)
+        elif b_type == "guild":
+            w, h = 2, 2
+            color = (150, 100, 200)
+        elif b_type == "temple":
+            w, h = 2, 2
+            color = (200, 200, 250)
+        else:
+            w, h = 1, 1
+            color = (120, 120, 120)
+        
+        # Create surface
+        surface = pygame.Surface((w * tile_size, h * tile_size))
+        surface.fill(color)
+        
+        # Add roof
+        roof_color = (min(color[0] + 50, 255), min(color[1] + 30, 255), min(color[2] + 20, 255))
+        roof_height = h * tile_size // 3
+        pygame.draw.rect(surface, roof_color, (0, 0, w * tile_size, roof_height))
+        
+        # Add door
+        door_color = (80, 50, 20)
+        door_width = tile_size // 3
+        door_height = tile_size // 2
+        door_x = (w * tile_size - door_width) // 2
+        door_y = h * tile_size - door_height
+        pygame.draw.rect(surface, door_color, (door_x, door_y, door_width, door_height))
+        
+        # Add window
+        window_color = (200, 200, 255)
+        window_size = tile_size // 4
+        window_x = (w * tile_size) // 4
+        window_y = (h * tile_size) // 2
+        pygame.draw.rect(surface, window_color, (window_x, window_y, window_size, window_size))
+        pygame.draw.rect(surface, window_color, (w * tile_size - window_x - window_size, window_y, window_size, window_size))
+        
+        # Add pixel details
+        for _ in range(w * h * 10):
+            x = random.randint(0, w * tile_size - 3)
+            y = random.randint(0, h * tile_size - 3)
+            color_var = random.randint(-30, 30)
+            pixel_color = (
+                max(0, min(255, surface.get_at((x, y))[0] + color_var)),
+                max(0, min(255, surface.get_at((x, y))[1] + color_var)),
+                max(0, min(255, surface.get_at((x, y))[2] + color_var))
+            )
+            pygame.draw.rect(surface, pixel_color, (x, y, 2, 2))
+        
+        # Add outline
+        pygame.draw.rect(surface, (0, 0, 0), (0, 0, w * tile_size, h * tile_size), 1)
+        
+        return surface
+
+    def _create_npc_asset(self, npc_type, tile_size):
+        """Create an NPC asset with pixel art style."""
+        # Create surface
+        surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+        
+        # Different colors based on NPC type
+        if npc_type == "merchant":
+            body_color = (200, 150, 50)
+            head_color = (240, 200, 160)
+            detail_color = (150, 50, 50)
+        elif npc_type == "guard":
+            body_color = (100, 100, 150)
+            head_color = (240, 200, 160)
+            detail_color = (50, 50, 100)
+        elif npc_type == "villager":
+            body_color = (100, 150, 100)
+            head_color = (240, 200, 160)
+            detail_color = (50, 100, 50)
+        else:  # traveler
+            body_color = (150, 100, 150)
+            head_color = (240, 200, 160)
+            detail_color = (100, 50, 100)
+        
+        # Draw body
+        body_width = tile_size // 2
+        body_height = tile_size // 2
+        body_x = (tile_size - body_width) // 2
+        body_y = tile_size - body_height - 2
+        pygame.draw.rect(surface, body_color, (body_x, body_y, body_width, body_height))
+        
+        # Draw head
+        head_size = tile_size // 3
+        head_x = (tile_size - head_size) // 2
+        head_y = body_y - head_size
+        pygame.draw.rect(surface, head_color, (head_x, head_y, head_size, head_size))
+        
+        # Draw details
+        detail_size = max(2, tile_size // 8)
+        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))  # Belt/collar
+        
+        # Draw eyes
+        eye_size = max(1, tile_size // 10)
+        eye_y = head_y + head_size // 3
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size * 3 // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        
+        return surface
+
+    def _create_player_asset(self, tile_size):
+        """Create a player asset with pixel art style."""
+        # Create surface
+        surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+        
+        # Player colors
+        body_color = (0, 100, 200)
+        head_color = (240, 200, 160)
+        detail_color = (200, 200, 0)
+        
+        # Draw body
+        body_width = tile_size // 2
+        body_height = tile_size // 2
+        body_x = (tile_size - body_width) // 2
+        body_y = tile_size - body_height - 2
+        pygame.draw.rect(surface, body_color, (body_x, body_y, body_width, body_height))
+        
+        # Draw head
+        head_size = tile_size // 3
+        head_x = (tile_size - head_size) // 2
+        head_y = body_y - head_size
+        pygame.draw.rect(surface, head_color, (head_x, head_y, head_size, head_size))
+        
+        # Draw details
+        detail_size = max(2, tile_size // 8)
+        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))  # Belt
+        
+        # Draw eyes
+        eye_size = max(1, tile_size // 10)
+        eye_y = head_y + head_size // 3
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size * 3 // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        
+        return surface
+        
     def _exit_town(self):
         """Exit town and return to world map."""
         logger.info(f"Exiting town {self.town_name}")
