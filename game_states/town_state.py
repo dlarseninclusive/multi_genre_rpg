@@ -1172,8 +1172,8 @@ class TownState(GameState):
                 building_rect.centery
             )
             
-            dx = building_center[0] - self.player_pos[0]
-            dy = building_center[1] - self.player_pos[1]
+            dx = building_center[0] - self.player_town_position[0]
+            dy = building_center[1] - self.player_town_position[1]
             distance = math.sqrt(dx*dx + dy*dy)
             
             # Check if closer than current nearest
@@ -1189,8 +1189,8 @@ class TownState(GameState):
             npc_rect = npc.get_rect()
             
             # Calculate distance to NPC
-            dx = npc.position[0] - self.player_pos[0]
-            dy = npc.position[1] - self.player_pos[1]
+            dx = npc.position[0] - self.player_town_position[0]
+            dy = npc.position[1] - self.player_town_position[1]
             distance = math.sqrt(dx*dx + dy*dy)
             
             # Check if closer than current nearest
@@ -1756,7 +1756,7 @@ class TownState(GameState):
     def _render_player(self, screen):
         """Render the player character with pixel art style similar to NPCs."""
         # Convert world position to screen coordinates
-        screen_x, screen_y = self._world_to_screen(self.player_pos)
+        screen_x, screen_y = self._world_to_screen(self.player_town_position)
         
         # Create player asset if it doesn't exist yet
         if not hasattr(self, 'player_asset') or not self.player_asset:
