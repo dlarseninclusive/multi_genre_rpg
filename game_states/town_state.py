@@ -2119,6 +2119,63 @@ class TownState(GameState):
                     self.player_town_position = tuple(new_pos)
                     self._check_building_proximity()
                     return True
+            
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left mouse button
+                    # If showing dialog, advance dialog when clicked
+                    if self.show_dialog:
+                        self.dialog_index += 1
+                        if self.dialog_index >= len(self.current_dialog):
+                            self.show_dialog = False
+                        return True
+                    
+                    # Get tile position from mouse click
+                    mouse_x, mouse_y = event.pos
+                    tile_x = mouse_x // self.tile_size
+                    tile_y = mouse_y // self.tile_size
+                    
+                    # Check if clicked on a building
+                    building = None
+                    for b in self.town.buildings:
+                        building_rect = pygame.Rect(
+                            b.position[0] * self.tile_size,
+                            b.position[1] * self.tile_size,
+                            b.size[0] * self.tile_size,
+                            b.size[1] * self.tile_size
+                        )
+                        if building_rect.collidepoint(mouse_x, mouse_y):
+                            building = b
+                            break
+                    
+                    if building:
+                        self.nearby_building = building
+                        self._handle_building_interaction({"building": building})
+                        return True
+                    
+                    # Check if clicked on an NPC
+                    npc = None
+                    for n in self.town.npcs:
+                        npc_rect = pygame.Rect(
+                            n.position[0] * self.tile_size,
+                            n.position[1] * self.tile_size,
+                            self.tile_size,
+                            self.tile_size
+                        )
+                        if npc_rect.collidepoint(mouse_x, mouse_y):
+                            npc = n
+                            break
+                    
+                    if npc:
+                        self.nearby_npc = npc
+                        self._handle_npc_interaction({"npc": npc})
+                        return True
+                    
+                    # If nothing clicked, try to move player to that position
+                    new_pos = (tile_x, tile_y)
+                    if self._is_valid_position(new_pos):
+                        self.player_town_position = new_pos
+                        self._check_building_proximity()
+                        return True
         
         return False
     
@@ -2339,7 +2396,7 @@ class TownState(GameState):
                 screen.blit(line_text, (dialog_rect.left + 20, dialog_rect.top + 50 + i * 25))
         
         # Draw continue prompt
-        prompt_text = self.font_small.render("Press ENTER to continue...", True, (200, 200, 255))
+        prompt_text = self.font_small.render("Press ENTER or click to continue...", True, (200, 200, 255))
         prompt_rect = prompt_text.get_rect(bottomright=(
             dialog_rect.right - 20,
             dialog_rect.bottom - 10

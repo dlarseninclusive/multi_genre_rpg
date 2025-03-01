@@ -116,7 +116,12 @@ class UIElement:
         
         # Mouse position tracking for hover state
         if event.type == pygame.MOUSEMOTION:
+            old_hover = self.hover
             self.hover = self.get_absolute_rect().collidepoint(event.pos)
+            
+            # Return True if hover state changed (for UI updates)
+            if old_hover != self.hover:
+                return True
         
         # Handle mouse button events
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
@@ -145,6 +150,25 @@ class UIElement:
         """
         if not self.visible:
             return
+        
+        # Update hover state based on mouse position
+        mouse_pos = pygame.mouse.get_pos()
+        abs_rect = self.get_absolute_rect()
+        self.hover = abs_rect.collidepoint(mouse_pos)
+        
+        # Check for mouse click
+        mouse_pressed = pygame.mouse.get_pressed()[0]  # Left button
+        if self.hover and mouse_pressed and not self._was_pressed:
+            self.pressed = True
+            if self.callback:
+                try:
+                    self.callback(self)
+                except Exception as e:
+                    logger.error(f"Error in button callback: {e}")
+        elif not mouse_pressed:
+            self.pressed = False
+        
+        self._was_pressed = mouse_pressed
         
         # Update all children
         for child in self.children:
@@ -304,6 +328,7 @@ class UIButton(UIElement):
         self.pressed = False
         self.toggle = False
         self.toggled = False
+        self._was_pressed = False  # Track previous press state
     
     def handle_event(self, event):
         """

@@ -248,6 +248,37 @@ class WorldExplorationState(GameState):
             # Check if player is still moving
             if self.player_direction == (0, 0):
                 self.player_moving = False
+                
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Left mouse button
+                # Convert screen position to world position
+                mouse_x, mouse_y = event.pos
+                world_x = (mouse_x + self.camera_x) / self.tile_size
+                world_y = (mouse_y + self.camera_y) / self.tile_size
+                
+                # Check if clicking on a location
+                clicked_location = None
+                for location in self.world["locations"]:
+                    if location.discovered:
+                        dx = location.x - world_x
+                        dy = location.y - world_y
+                        distance = math.sqrt(dx*dx + dy*dy)
+                        if distance < 1.0:  # Within 1 tile
+                            clicked_location = location
+                            break
+                
+                if clicked_location:
+                    # If clicking on a location, interact with it
+                    self.current_location = clicked_location
+                    self._interact_with_location()
+                    return True
+                else:
+                    # If clicking on walkable terrain, move there
+                    if self._is_position_walkable(world_x, world_y):
+                        self.player_x = world_x
+                        self.player_y = world_y
+                        self._center_camera_on_player()
+                        return True
     
     def update(self, dt):
         """Update game state."""
