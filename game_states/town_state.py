@@ -4,6 +4,7 @@ import random
 import math
 from enum import Enum
 from game_state import GameState
+from world_generator import Location, LocationType
 from ui_system import UIManager, UIButton, UILabel, UIPanel, UIImage, UIProgressBar
 
 logger = logging.getLogger("town_state")
