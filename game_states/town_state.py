@@ -1758,13 +1758,40 @@ class TownState(GameState):
         # Convert world position to screen coordinates
         screen_x, screen_y = self._world_to_screen(self.player_pos)
         
-        # Use the player asset if available
-        if hasattr(self, 'player_asset') and self.player_asset:
-            asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
-            screen.blit(self.player_asset, asset_rect)
-        else:
-            pygame.draw.circle(screen, self.colors['player'], (int(screen_x), int(screen_y)), 15)
-            pygame.draw.circle(screen, (0, 0, 0), (int(screen_x), int(screen_y)), 15, 2)
+        # Create player asset if it doesn't exist yet
+        if not hasattr(self, 'player_asset') or not self.player_asset:
+            tile_size = 32
+            self.player_asset = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
+            # Player colors (distinctive blue theme)
+            body_color = (0, 100, 200)
+            head_color = (240, 200, 160)
+            detail_color = (200, 200, 0)
+            # Draw body similar to NPCs
+            body_width = tile_size // 2
+            body_height = tile_size // 2
+            body_x = (tile_size - body_width) // 2
+            body_y = tile_size - body_height - 2
+            pygame.draw.rect(self.player_asset, body_color, (body_x, body_y, body_width, body_height))
+            # Draw head
+            head_size = tile_size // 3
+            head_x = (tile_size - head_size) // 2
+            head_y = body_y - head_size
+            pygame.draw.rect(self.player_asset, head_color, (head_x, head_y, head_size, head_size))
+            # Draw details
+            detail_size = max(2, tile_size // 8)
+            pygame.draw.rect(self.player_asset, detail_color, (body_x, body_y, body_width, detail_size))
+            # Draw eyes
+            eye_size = max(1, tile_size // 10)
+            eye_y = head_y + head_size // 3
+            pygame.draw.rect(self.player_asset, (0, 0, 0), (head_x + head_size // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+            pygame.draw.rect(self.player_asset, (0, 0, 0), (head_x + head_size * 3 // 4 - eye_size // 2, eye_y, eye_size, eye_size))
+        
+        asset_rect = self.player_asset.get_rect(center=(int(screen_x), int(screen_y)))
+        screen.blit(self.player_asset, asset_rect)
+        
+        # Add a highlight circle when player is moving
+        if self.player_moving:
+            pygame.draw.circle(screen, (255, 255, 255, 128), (int(screen_x), int(screen_y)), 20, 1)
 import pygame
 import logging
 import random
@@ -2134,70 +2161,41 @@ class TownState(GameState):
                     return True
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Left mouse button
-                    # If showing dialog, advance dialog when clicked
-                    if self.show_dialog:
-                        self.dialog_index += 1
-                        if self.dialog_index >= len(self.current_dialog):
-                            self.show_dialog = False
-                        return True
+                if event.button == 1:  # Left click
+                    # Convert screen position to world position
+                    world_pos = self._screen_to_world(event.pos)
                 
-                    # Get tile position from mouse click
-                    mouse_x, mouse_y = event.pos
-                    tile_x = mouse_x // self.tile_size
-                    tile_y = mouse_y // self.tile_size
-                
-                    # Check if clicked on a building
-                    building = None
-                    for b in self.town.buildings:
-                        building_rect = pygame.Rect(
-                            b.position[0] * self.tile_size,
-                            b.position[1] * self.tile_size,
-                            b.size[0] * self.tile_size,
-                            b.size[1] * self.tile_size
-                        )
-                        if building_rect.collidepoint(mouse_x, mouse_y):
-                            building = b
-                            break
+                    # Check if clicked on a building or NPC
+                    building = self.town.get_building_at(world_pos)
+                    npc = self.town.get_npc_at(world_pos)
                 
                     if building:
-                        self.nearby_building = building
-                        self._handle_building_interaction({"building": building})
+                        self.current_building = building
+                        self._show_building_info(building)
                         return True
-                
-                    # Check if clicked on an NPC
-                    npc = None
-                    for n in self.town.npcs:
-                        npc_rect = pygame.Rect(
-                            n.position[0] * self.tile_size,
-                            n.position[1] * self.tile_size,
-                            self.tile_size,
-                            self.tile_size
-                        )
-                        if npc_rect.collidepoint(mouse_x, mouse_y):
-                            npc = n
-                            break
-                
-                    if npc:
-                        self.nearby_npc = npc
-                        self._handle_npc_interaction({"npc": npc})
+                    elif npc:
+                        self.current_npc = npc
+                        self._start_conversation(npc)
                         return True
-                
-                    # If nothing clicked, try to move player towards that position
-                    new_pos = (tile_x, tile_y)
-                    if self._is_valid_position(new_pos):
-                        dx = new_pos[0] - self.player_town_position[0]
-                        dy = new_pos[1] - self.player_town_position[1]
-                        dist = (dx*dx + dy*dy) ** 0.5
-                        if dist < 5:
-                            self.player_town_position = new_pos
-                        else:
-                            self.target_position = new_pos
-                            self.player_moving = True
-                            total = abs(dx) + abs(dy) if (abs(dx)+abs(dy)) != 0 else 1
-                            self.player_direction = (dx/total, dy/total)
-                        self._check_building_proximity()
-                        return True
+                    else:
+                        # Movement handling (existing code)
+                        mouse_x, mouse_y = event.pos
+                        tile_x = mouse_x // self.tile_size
+                        tile_y = mouse_y // self.tile_size
+                        new_pos = (tile_x, tile_y)
+                        if self._is_valid_position(new_pos):
+                            dx = new_pos[0] - self.player_town_position[0]
+                            dy = new_pos[1] - self.player_town_position[1]
+                            dist = (dx*dx + dy*dy) ** 0.5
+                            if dist < 5:
+                                self.player_town_position = new_pos
+                            else:
+                                self.target_position = new_pos
+                                self.player_moving = True
+                                total = abs(dx) + abs(dy) if (abs(dx)+abs(dy)) != 0 else 1
+                                self.player_direction = (dx/total, dy/total)
+                            self._check_nearby_entities()
+                            return True
         
         return False
     
@@ -2231,7 +2229,7 @@ class TownState(GameState):
             self.player_town_position = (new_x, new_y)
         
         # Check for nearby buildings and NPCs
-        self._check_building_proximity()
+        self._check_nearby_entities()
     
     def render(self, screen):
         """Render town state."""
