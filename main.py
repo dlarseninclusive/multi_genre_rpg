@@ -11,6 +11,7 @@ from game_states.dungeon_state import DungeonState
 from game_states.base_building_state import BaseBuildingState
 from game_states.combat_state import CombatGameState
 from game_states.pause_menu_state import PauseMenuState
+from game_states.town_state import TownState
 from event_bus import EventBus
 from settings import Settings
 from save_system import SaveSystem

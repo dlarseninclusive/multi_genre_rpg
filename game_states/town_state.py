@@ -2419,10 +2419,7 @@ class TownState(GameState):
         
         # Check for exit (if at the bottom edge of town)
         if self.player_town_position[1] >= self.town.height - 1:
-            # Return to world map
-            self.change_state("world_exploration", {
-                "return_position": self.return_position
-            })
+            self._exit_town()
     
     def _handle_building_interaction(self, data):
         """Handle interaction with a building."""
@@ -2760,3 +2757,11 @@ class TownState(GameState):
         })
         
         # TODO: Add proper tavern interface with rumors, drinks, etc.
+    def _exit_town(self):
+        """Exit town and return to world map."""
+        logger.info(f"Exiting town {self.town_name}")
+        
+        # Return to world exploration
+        self.change_state("world_exploration", {
+            "return_position": self.return_position
+        })

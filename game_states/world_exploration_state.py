@@ -227,6 +227,7 @@ class WorldExplorationState(GameState):
             # Interact key
             elif event.key == pygame.K_e or event.key == pygame.K_RETURN:
                 self._interact_with_location()
+                return True
                 
             # Press 'C' to enter combat (for testing)
             elif event.key == pygame.K_c:
@@ -494,6 +495,8 @@ class WorldExplorationState(GameState):
                 # Change to town state with location data
                 self.change_state("town", {
                     "location": self.current_location,
+                    "town_id": f"town_{self.current_location.name.lower().replace(' ', '_')}",
+                    "town_name": self.current_location.name,
                     "return_position": (self.player_x, self.player_y)
                 })
                 
