@@ -926,10 +926,10 @@ class TownState(GameState):
         # Get player position if available
         player_pos = self.state_manager.get_persistent_data("player_town_position")
         if player_pos:
-            self.player_pos = player_pos
+            self.player_town_position = player_pos
         else:
             # Default to center of town
-            self.player_pos = (self.town.size[0] // 2, self.town.size[1] // 2)
+            self.player_town_position = (self.town.width // 2, self.town.height // 2)
         
         # Center camera on player
         self._center_camera()
@@ -1156,10 +1156,7 @@ class TownState(GameState):
         Returns:
             (x, y) world position
         """
-        mouse_x, mouse_y = screen_pos
-        tile_x = mouse_x // self.tile_size
-        tile_y = mouse_y // self.tile_size
-        return (tile_x, tile_y)
+        return (screen_pos[0] + self.camera_x, screen_pos[1] + self.camera_y)
     
     def _handle_interaction(self):
         """Handle player interaction with nearby objects."""
