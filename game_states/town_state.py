@@ -1765,3 +1765,886 @@ class TownState(GameState):
         # Draw player
         pygame.draw.circle(screen, self.colors['player'], (int(screen_x), int(screen_y)), 15)
         pygame.draw.circle(screen, (0, 0, 0), (int(screen_x), int(screen_y)), 15, 2)
+import pygame
+import logging
+import random
+from game_state import GameState
+
+logger = logging.getLogger("town")
+
+class TownBuilding:
+    """Represents a building in a town."""
+    
+    def __init__(self, name, building_type, position, size):
+        self.name = name
+        self.type = building_type
+        self.position = position
+        self.size = size
+        self.description = f"A {building_type} called {name}"
+        
+        # Special properties based on type
+        if building_type == "shop":
+            self.shop_id = f"shop_{name.lower().replace(' ', '_')}"
+        elif building_type == "inn":
+            self.room_price = random.randint(5, 20)
+        elif building_type == "guild":
+            self.guild_type = random.choice(["adventurer", "mage", "warrior", "thief"])
+    
+    def get_rect(self):
+        """Get pygame Rect for this building."""
+        return pygame.Rect(
+            self.position[0] * 32,  # Tile size
+            self.position[1] * 32,
+            self.size[0] * 32,
+            self.size[1] * 32
+        )
+    
+    def to_dict(self):
+        """Convert to dictionary for serialization."""
+        data = {
+            'name': self.name,
+            'type': self.type,
+            'position': self.position,
+            'size': self.size,
+            'description': self.description
+        }
+        
+        # Add special properties
+        if self.type == "shop":
+            data['shop_id'] = self.shop_id
+        elif self.type == "inn":
+            data['room_price'] = self.room_price
+        elif self.type == "guild":
+            data['guild_type'] = self.guild_type
+            
+        return data
+    
+    @classmethod
+    def from_dict(cls, data):
+        """Create from dictionary."""
+        building = cls(
+            data['name'],
+            data['type'],
+            data['position'],
+            data['size']
+        )
+        
+        building.description = data.get('description', building.description)
+        
+        # Restore special properties
+        if data['type'] == "shop" and 'shop_id' in data:
+            building.shop_id = data['shop_id']
+        elif data['type'] == "inn" and 'room_price' in data:
+            building.room_price = data['room_price']
+        elif data['type'] == "guild" and 'guild_type' in data:
+            building.guild_type = data['guild_type']
+            
+        return building
+
+class Npc:
+    """Represents an NPC in a town."""
+    
+    def __init__(self, name, npc_type, position):
+        self.name = name
+        self.type = npc_type
+        self.position = position
+        self.dialog = [f"Hello, I'm {name}!"]
+        
+        # Set dialog based on type
+        if npc_type == "merchant":
+            self.dialog.append("Would you like to see my wares?")
+            self.dialog.append("I have the finest goods in town!")
+        elif npc_type == "guard":
+            self.dialog.append("Keep out of trouble, stranger.")
+            self.dialog.append("I'm watching you.")
+        elif npc_type == "villager":
+            self.dialog.append("Nice weather we're having.")
+            self.dialog.append("Have you heard about the trouble in the mines?")
+        elif npc_type == "traveler":
+            self.dialog.append("I've come from far away lands.")
+            self.dialog.append("The roads are dangerous these days.")
+    
+    def get_rect(self):
+        """Get pygame Rect for this NPC."""
+        return pygame.Rect(
+            self.position[0] * 32,  # Tile size
+            self.position[1] * 32,
+            32, 32
+        )
+    
+    def get_random_dialog(self):
+        """Get a random dialog line."""
+        return random.choice(self.dialog)
+    
+    def to_dict(self):
+        """Convert to dictionary for serialization."""
+        return {
+            'name': self.name,
+            'type': self.type,
+            'position': self.position,
+            'dialog': self.dialog
+        }
+    
+    @classmethod
+    def from_dict(cls, data, buildings=None):
+        """Create from dictionary."""
+        npc = cls(
+            data['name'],
+            data['type'],
+            data['position']
+        )
+        
+        if 'dialog' in data:
+            npc.dialog = data['dialog']
+            
+        return npc
+
+class Town:
+    """Represents a town with buildings and NPCs."""
+    
+    def __init__(self, id="town_1", name="Town", width=20, height=20):
+        self.id = id
+        self.name = name
+        self.width = width
+        self.height = height
+        self.buildings = []
+        self.npcs = []
+        self.danger_level = random.randint(0, 5)
+        self.enemy_types = ["bandit", "thief", "drunk"]
+    
+    def add_building(self, building):
+        """Add a building to the town."""
+        self.buildings.append(building)
+    
+    def add_npc(self, npc):
+        """Add an NPC to the town."""
+        self.npcs.append(npc)
+    
+    def get_building_at(self, position):
+        """Get building at the given position."""
+        for building in self.buildings:
+            if (position[0] >= building.position[0] and 
+                position[0] < building.position[0] + building.size[0] and
+                position[1] >= building.position[1] and 
+                position[1] < building.position[1] + building.size[1]):
+                return building
+        return None
+    
+    def get_npc_at(self, position):
+        """Get NPC at the given position."""
+        for npc in self.npcs:
+            if npc.position == position:
+                return npc
+        return None
+    
+    def to_dict(self):
+        """Convert to dictionary for serialization."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'width': self.width,
+            'height': self.height,
+            'buildings': [b.to_dict() for b in self.buildings],
+            'npcs': [n.to_dict() for n in self.npcs],
+            'danger_level': self.danger_level,
+            'enemy_types': self.enemy_types
+        }
+    
+    @classmethod
+    def from_dict(cls, data):
+        """Create from dictionary."""
+        town = cls(
+            data['id'],
+            data['name'],
+            data['width'],
+            data['height']
+        )
+        
+        # Add buildings
+        for building_data in data['buildings']:
+            town.add_building(TownBuilding.from_dict(building_data))
+        
+        # Add NPCs
+        for npc_data in data['npcs']:
+            town.add_npc(Npc.from_dict(npc_data))
+        
+        # Other properties
+        if 'danger_level' in data:
+            town.danger_level = data['danger_level']
+        
+        if 'enemy_types' in data:
+            town.enemy_types = data['enemy_types']
+            
+        return town
+
+class TownState(GameState):
+    """
+    Game state for town exploration and interaction.
+    
+    This state handles:
+    - Town exploration
+    - Building/NPC interaction
+    - Shopping and services
+    - Quests and dialog
+    """
+    
+    def __init__(self, state_manager, event_bus, settings):
+        """Initialize town state."""
+        super().__init__(state_manager, event_bus, settings)
+        
+        # Town data
+        self.town = None
+        self.town_id = "town_1"
+        self.town_name = "Default Town"
+        self.return_position = (0, 0)  # Position to return to on world map
+        
+        # Player data
+        self.player_town_position = (10, 10)
+        self.player_character = None
+        
+        # UI elements
+        self.font = None
+        self.font_small = None
+        self.tile_size = 32
+        
+        # Interaction
+        self.nearby_building = None
+        self.nearby_npc = None
+        self.show_dialog = False
+        self.current_dialog = []
+        self.dialog_index = 0
+        
+        # Random event timer
+        self.event_timer = 0
+        self.event_check_interval = 10  # seconds
+        
+        logger.info("TownState initialized")
+    
+    def enter(self, data=None):
+        """Enter town state with data from the world map."""
+        super().enter(data)
+        
+        # Initialize fonts
+        pygame.font.init()
+        self.font = pygame.font.SysFont(None, 24)
+        self.font_small = pygame.font.SysFont(None, 18)
+        
+        if data:
+            self.town_id = data.get("town_id", "town_1")
+            self.town_name = data.get("town_name", "Default Town")
+            self.return_position = data.get("return_position", (0, 0))
+            
+            # Load town data or generate if not exists
+            self.town = self._load_town(self.town_id)
+            
+            # Set player position at town entrance
+            self.player_town_position = (self.town.width // 2, self.town.height - 2)
+        
+        # Get player character
+        self.player_character = self.state_manager.get_persistent_data("player_character")
+        
+        # Subscribe to events
+        self.event_bus.subscribe("building_interaction", self._handle_building_interaction)
+        self.event_bus.subscribe("npc_interaction", self._handle_npc_interaction)
+        
+        # Notification that player entered town
+        self.event_bus.publish("show_notification", {
+            "title": self.town_name,
+            "message": f"Welcome to {self.town_name}",
+            "duration": 3.0
+        })
+        
+        logger.info(f"Entered town: {self.town_name}")
+    
+    def exit(self):
+        """Exit town state."""
+        super().exit()
+        
+        # Unsubscribe from events
+        self.event_bus.unsubscribe("building_interaction", self._handle_building_interaction)
+        self.event_bus.unsubscribe("npc_interaction", self._handle_npc_interaction)
+        
+        # Save town data
+        if self.town:
+            self.state_manager.set_persistent_data(f"town_{self.town_id}", self.town.to_dict())
+        
+        logger.info(f"Exited town: {self.town_name}")
+    
+    def handle_event(self, event):
+        """Handle pygame events in town."""
+        if not super().handle_event(event):
+            if event.type == pygame.KEYDOWN:
+                # If showing dialog, advance dialog
+                if self.show_dialog:
+                    if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                        self.dialog_index += 1
+                        if self.dialog_index >= len(self.current_dialog):
+                            self.show_dialog = False
+                        return True
+                    return False
+                
+                # Movement
+                new_pos = list(self.player_town_position)
+                
+                if event.key == pygame.K_UP:
+                    new_pos[1] -= 1
+                elif event.key == pygame.K_DOWN:
+                    new_pos[1] += 1
+                elif event.key == pygame.K_LEFT:
+                    new_pos[0] -= 1
+                elif event.key == pygame.K_RIGHT:
+                    new_pos[0] += 1
+                elif event.key == pygame.K_ESCAPE:
+                    # Return to world map
+                    self.change_state("world_exploration", {
+                        "return_position": self.return_position
+                    })
+                    return True
+                elif event.key == pygame.K_RETURN:
+                    # Interact with buildings or NPCs
+                    self._interact()
+                    return True
+                
+                # Check if the new position is valid
+                if self._is_valid_position(new_pos):
+                    self.player_town_position = tuple(new_pos)
+                    self._check_building_proximity()
+                    return True
+        
+        return False
+    
+    def update(self, dt):
+        """Update town state."""
+        super().update(dt)
+        
+        # Update event timer
+        self.event_timer += dt
+        if self.event_timer >= self.event_check_interval:
+            self.event_timer = 0
+            self._check_for_town_events()
+    
+    def render(self, screen):
+        """Render town state."""
+        if not self.town:
+            return
+        
+        # Fill background
+        screen.fill((50, 100, 50))  # Green background for town
+        
+        # Draw town grid
+        self._draw_town_grid(screen)
+        
+        # Draw buildings
+        for building in self.town.buildings:
+            self._draw_building(screen, building)
+        
+        # Draw NPCs
+        for npc in self.town.npcs:
+            self._draw_npc(screen, npc)
+        
+        # Draw player
+        player_rect = pygame.Rect(
+            self.player_town_position[0] * self.tile_size,
+            self.player_town_position[1] * self.tile_size,
+            self.tile_size,
+            self.tile_size
+        )
+        pygame.draw.rect(screen, (0, 0, 255), player_rect)  # Blue rectangle for player
+        
+        # Draw UI
+        self._draw_ui(screen)
+        
+        # Draw dialog if active
+        if self.show_dialog:
+            self._draw_dialog(screen)
+    
+    def _draw_town_grid(self, screen):
+        """Draw the town grid."""
+        # Draw ground tiles
+        for y in range(self.town.height):
+            for x in range(self.town.width):
+                rect = pygame.Rect(
+                    x * self.tile_size,
+                    y * self.tile_size,
+                    self.tile_size,
+                    self.tile_size
+                )
+                # Draw different colored tiles for variety
+                if (x + y) % 2 == 0:
+                    pygame.draw.rect(screen, (60, 110, 60), rect)
+                else:
+                    pygame.draw.rect(screen, (70, 120, 70), rect)
+                
+                # Draw grid lines
+                pygame.draw.rect(screen, (40, 90, 40), rect, 1)
+    
+    def _draw_building(self, screen, building):
+        """Draw a building on the screen."""
+        rect = pygame.Rect(
+            building.position[0] * self.tile_size,
+            building.position[1] * self.tile_size,
+            building.size[0] * self.tile_size,
+            building.size[1] * self.tile_size
+        )
+        
+        # Different colors for different building types
+        if building.type == "shop":
+            color = (200, 100, 100)  # Red for shops
+        elif building.type == "inn":
+            color = (100, 100, 200)  # Blue for inns
+        elif building.type == "tavern":
+            color = (200, 150, 50)   # Orange for taverns
+        elif building.type == "house":
+            color = (150, 150, 150)  # Gray for houses
+        elif building.type == "guild":
+            color = (150, 100, 200)  # Purple for guilds
+        else:
+            color = (120, 120, 120)  # Default gray
+        
+        pygame.draw.rect(screen, color, rect)
+        pygame.draw.rect(screen, (0, 0, 0), rect, 2)  # Black border
+        
+        # Draw building name
+        name_text = self.font_small.render(building.name, True, (255, 255, 255))
+        name_rect = name_text.get_rect(center=(
+            rect.centerx,
+            rect.centery
+        ))
+        screen.blit(name_text, name_rect)
+    
+    def _draw_npc(self, screen, npc):
+        """Draw an NPC on the screen."""
+        rect = pygame.Rect(
+            npc.position[0] * self.tile_size,
+            npc.position[1] * self.tile_size,
+            self.tile_size,
+            self.tile_size
+        )
+        
+        # Different colors for different NPC types
+        if npc.type == "merchant":
+            color = (200, 150, 50)   # Orange for merchants
+        elif npc.type == "guard":
+            color = (150, 150, 200)  # Blue for guards
+        elif npc.type == "villager":
+            color = (100, 200, 100)  # Green for villagers
+        elif npc.type == "traveler":
+            color = (200, 100, 200)  # Purple for travelers
+        else:
+            color = (150, 150, 150)  # Default gray
+        
+        pygame.draw.rect(screen, color, rect)
+        pygame.draw.circle(screen, (0, 0, 0), rect.center, self.tile_size // 3)  # Head
+        
+        # Draw NPC name
+        name_text = self.font_small.render(npc.name, True, (255, 255, 255))
+        name_rect = name_text.get_rect(midbottom=(
+            rect.centerx,
+            rect.top - 2
+        ))
+        screen.blit(name_text, name_rect)
+    
+    def _draw_ui(self, screen):
+        """Draw UI elements."""
+        # Draw town name
+        town_text = self.font.render(self.town_name, True, (255, 255, 255))
+        screen.blit(town_text, (10, 10))
+        
+        # Draw player position
+        pos_text = self.font_small.render(
+            f"Position: {self.player_town_position[0]}, {self.player_town_position[1]}",
+            True, (255, 255, 255)
+        )
+        screen.blit(pos_text, (10, 40))
+        
+        # Draw nearby building/NPC info
+        if self.nearby_building:
+            building_text = self.font_small.render(
+                f"Nearby: {self.nearby_building.name} (Press ENTER to interact)",
+                True, (255, 255, 255)
+            )
+            screen.blit(building_text, (10, 60))
+        elif self.nearby_npc:
+            npc_text = self.font_small.render(
+                f"Nearby: {self.nearby_npc.name} (Press ENTER to talk)",
+                True, (255, 255, 255)
+            )
+            screen.blit(npc_text, (10, 60))
+        
+        # Draw help text
+        help_text = self.font_small.render(
+            "Arrow keys: Move | ENTER: Interact | ESC: Exit town",
+            True, (255, 255, 255)
+        )
+        help_rect = help_text.get_rect(midbottom=(
+            screen.get_width() // 2,
+            screen.get_height() - 10
+        ))
+        screen.blit(help_text, help_rect)
+    
+    def _draw_dialog(self, screen):
+        """Draw dialog box."""
+        # Dialog box background
+        dialog_width = screen.get_width() - 100
+        dialog_height = 150
+        dialog_rect = pygame.Rect(
+            (screen.get_width() - dialog_width) // 2,
+            screen.get_height() - dialog_height - 20,
+            dialog_width,
+            dialog_height
+        )
+        
+        # Draw dialog box
+        pygame.draw.rect(screen, (50, 50, 80), dialog_rect)
+        pygame.draw.rect(screen, (255, 255, 255), dialog_rect, 2)
+        
+        # Draw speaker name
+        if self.nearby_npc:
+            speaker_text = self.font.render(self.nearby_npc.name, True, (255, 255, 200))
+            screen.blit(speaker_text, (dialog_rect.left + 20, dialog_rect.top + 15))
+        
+        # Draw dialog text
+        if self.dialog_index < len(self.current_dialog):
+            dialog_text = self.current_dialog[self.dialog_index]
+            
+            # Wrap text
+            words = dialog_text.split(' ')
+            lines = []
+            line = ""
+            for word in words:
+                test_line = line + word + " "
+                test_width = self.font.size(test_line)[0]
+                if test_width < dialog_width - 40:
+                    line = test_line
+                else:
+                    lines.append(line)
+                    line = word + " "
+            lines.append(line)
+            
+            # Draw lines
+            for i, line in enumerate(lines):
+                line_text = self.font.render(line, True, (255, 255, 255))
+                screen.blit(line_text, (dialog_rect.left + 20, dialog_rect.top + 50 + i * 25))
+        
+        # Draw continue prompt
+        prompt_text = self.font_small.render("Press ENTER to continue...", True, (200, 200, 255))
+        prompt_rect = prompt_text.get_rect(bottomright=(
+            dialog_rect.right - 20,
+            dialog_rect.bottom - 10
+        ))
+        screen.blit(prompt_text, prompt_rect)
+    
+    def _is_valid_position(self, position):
+        """Check if a position is valid for movement."""
+        x, y = position
+        
+        # Check town boundaries
+        if x < 0 or x >= self.town.width or y < 0 or y >= self.town.height:
+            return False
+        
+        # Check building collisions
+        for building in self.town.buildings:
+            if (x >= building.position[0] and x < building.position[0] + building.size[0] and
+                y >= building.position[1] and y < building.position[1] + building.size[1]):
+                return False
+        
+        # Check NPC collisions
+        for npc in self.town.npcs:
+            if npc.position == (x, y):
+                return False
+        
+        return True
+    
+    def _check_building_proximity(self):
+        """Check if player is near a building or NPC."""
+        self.nearby_building = None
+        self.nearby_npc = None
+        
+        # Check buildings
+        for building in self.town.buildings:
+            if self._is_adjacent_to(self.player_town_position, building.position, building.size):
+                self.nearby_building = building
+                break
+        
+        # Check NPCs
+        for npc in self.town.npcs:
+            if self._is_adjacent_to(self.player_town_position, npc.position, (1, 1)):
+                self.nearby_npc = npc
+                break
+    
+    def _is_adjacent_to(self, pos1, pos2, size):
+        """Check if pos1 is adjacent to the rectangle at pos2 with given size."""
+        # Check if pos1 is adjacent to any tile in the rectangle
+        for dx in range(size[0]):
+            for dy in range(size[1]):
+                rect_pos = (pos2[0] + dx, pos2[1] + dy)
+                
+                # Check if positions are adjacent (including diagonals)
+                if abs(pos1[0] - rect_pos[0]) <= 1 and abs(pos1[1] - rect_pos[1]) <= 1:
+                    return True
+        
+        return False
+    
+    def _interact(self):
+        """Interact with nearest building or NPC."""
+        # Check for buildings
+        if self.nearby_building:
+            # Handle building interaction
+            self.event_bus.publish("building_interaction", {
+                "building": self.nearby_building,
+                "player_position": self.player_town_position
+            })
+            return
+        
+        # Check for NPCs
+        if self.nearby_npc:
+            # Handle NPC interaction
+            self.event_bus.publish("npc_interaction", {
+                "npc": self.nearby_npc,
+                "player_position": self.player_town_position
+            })
+            return
+    
+    def _handle_building_interaction(self, data):
+        """Handle interaction with a building."""
+        building = data.get("building")
+        if not building:
+            return
+        
+        # Show building info
+        self.event_bus.publish("show_notification", {
+            "title": building.name,
+            "message": building.description,
+            "duration": 2.0
+        })
+        
+        # Handle special buildings
+        if building.type == "shop":
+            # Open shop interface
+            self.push_state("shop", {
+                "shop_id": building.shop_id if hasattr(building, "shop_id") else None,
+                "shop_name": building.name
+            })
+        elif building.type == "inn":
+            # Open inn interface
+            self.push_state("inn", {
+                "inn_name": building.name,
+                "room_price": building.room_price if hasattr(building, "room_price") else 10
+            })
+        elif building.type == "tavern":
+            # Open tavern interface
+            self.push_state("tavern", {
+                "tavern_name": building.name
+            })
+        elif building.type == "guild":
+            # Open guild interface
+            self.push_state("guild", {
+                "guild_type": building.guild_type if hasattr(building, "guild_type") else "adventurer",
+                "guild_name": building.name
+            })
+    
+    def _handle_npc_interaction(self, data):
+        """Handle interaction with an NPC."""
+        npc = data.get("npc")
+        if not npc:
+            return
+        
+        # Show dialog
+        self.show_dialog = True
+        self.dialog_index = 0
+        
+        # Get dialog lines
+        if hasattr(npc, 'dialog') and npc.dialog:
+            self.current_dialog = npc.dialog
+        else:
+            self.current_dialog = [f"Hello, I'm {npc.name}!"]
+    
+    def _check_for_town_events(self):
+        """Check for random events in town."""
+        # Small chance of random combat in bad parts of town
+        if hasattr(self.town, "danger_level") and self.town.danger_level > 0:
+            danger_chance = self.town.danger_level * 0.01  # 1% per danger level
+            
+            if random.random() < danger_chance:
+                # Create appropriate enemies based on town
+                if hasattr(self.town, "enemy_types") and self.town.enemy_types:
+                    enemy_type = random.choice(self.town.enemy_types)
+                else:
+                    enemy_type = "bandit"  # Default enemy type
+                    
+                # Get player character
+                player_character = self.state_manager.get_persistent_data("player_character")
+                player_level = 1
+                if player_character and hasattr(player_character, "level"):
+                    player_level = player_character.level
+                
+                # Start combat
+                self.change_state("combat", {
+                    "enemies": [{"type": enemy_type, "level": max(1, player_level)}],
+                    "location": {"type": "town", "name": self.town_name},
+                    "combat_type": "random"
+                })
+    
+    def _load_town(self, town_id):
+        """Load town data from cache or generate new town."""
+        # Check if town exists in cache
+        town_data = self.state_manager.get_persistent_data(f"town_{town_id}")
+        if town_data:
+            return Town.from_dict(town_data)
+        
+        # Generate new town
+        town = self._generate_town(town_id)
+        
+        # Cache town
+        self.state_manager.set_persistent_data(f"town_{town_id}", town.to_dict())
+        
+        return town
+    
+    def _generate_town(self, town_id):
+        """Generate a procedural town."""
+        # Get town info from world
+        town_info = None
+        world_generator = self.state_manager.get_persistent_data("world_generator")
+        
+        if world_generator and hasattr(world_generator, "get_locations"):
+            locations = world_generator.get_locations()
+            for location in locations:
+                if location.get('id') == town_id:
+                    town_info = location
+                    break
+        
+        town_size_map = {
+            'small': (15, 15),
+            'medium': (20, 20),
+            'large': (25, 25)
+        }
+        
+        # Default size if not found
+        size = 'medium' if not town_info else town_info.get('size', 'medium')
+        width, height = town_size_map.get(size, (20, 20))
+        
+        # Create town
+        town = Town(
+            id=town_id,
+            name=town_info['name'] if town_info else f"Town {town_id}",
+            width=width,
+            height=height
+        )
+        
+        # Add buildings based on size
+        if size == 'small':
+            num_buildings = random.randint(5, 8)
+            num_npcs = random.randint(3, 6)
+        elif size == 'medium':
+            num_buildings = random.randint(8, 12)
+            num_npcs = random.randint(6, 10)
+        else:  # large
+            num_buildings = random.randint(12, 18)
+            num_npcs = random.randint(10, 15)
+        
+        # Always include essential buildings
+        essential_buildings = [
+            {"name": "General Store", "type": "shop", "size": (2, 2)},
+            {"name": "Inn", "type": "inn", "size": (3, 2)},
+            {"name": "Tavern", "type": "tavern", "size": (2, 2)}
+        ]
+        
+        # Add random extra buildings based on town type
+        building_types = ["house", "storehouse", "smithy", "temple", "market", "guild"]
+        
+        # Place buildings
+        placed_buildings = []
+        
+        # First place essential buildings
+        for building_info in essential_buildings:
+            self._place_building(town, building_info, placed_buildings)
+        
+        # Then add random buildings up to the total count
+        while len(placed_buildings) < num_buildings:
+            building_type = random.choice(building_types)
+            building_info = {
+                "name": f"{building_type.capitalize()}",
+                "type": building_type,
+                "size": (random.randint(1, 2), random.randint(1, 2))
+            }
+            self._place_building(town, building_info, placed_buildings)
+        
+        # Add NPCs
+        for _ in range(num_npcs):
+            # Find a valid position
+            valid_position = False
+            pos = (0, 0)
+            
+            while not valid_position:
+                pos = (random.randint(1, town.width-2), random.randint(1, town.height-2))
+                valid_position = True
+                
+                # Check if position collides with a building
+                for building in town.buildings:
+                    if (pos[0] >= building.position[0] and 
+                        pos[0] < building.position[0] + building.size[0] and
+                        pos[1] >= building.position[1] and 
+                        pos[1] < building.position[1] + building.size[1]):
+                        valid_position = False
+                        break
+                
+                # Check if position collides with another NPC
+                for npc in town.npcs:
+                    if npc.position == pos:
+                        valid_position = False
+                        break
+            
+            # Generate NPC
+            npc_type = random.choice(["villager", "merchant", "guard", "traveler"])
+            npc_name = f"{npc_type.capitalize()} {random.randint(1, 100)}"
+            
+            town.add_npc(Npc(
+                name=npc_name,
+                npc_type=npc_type,
+                position=pos
+            ))
+        
+        return town
+    
+    def _place_building(self, town, building_info, placed_buildings):
+        """Try to place a building in the town."""
+        max_attempts = 50
+        attempts = 0
+        
+        name = building_info["name"]
+        building_type = building_info["type"]
+        size = building_info["size"]
+        
+        while attempts < max_attempts:
+            # Generate random position
+            x = random.randint(1, town.width - size[0] - 1)
+            y = random.randint(1, town.height - size[1] - 1)
+            
+            # Check for collisions with existing buildings
+            collision = False
+            for building in placed_buildings:
+                if (x + size[0] > building["x"] and x < building["x"] + building["size"][0] and
+                    y + size[1] > building["y"] and y < building["y"] + building["size"][1]):
+                    collision = True
+                    break
+            
+            if not collision:
+                # Place building
+                town.add_building(TownBuilding(
+                    name=name,
+                    building_type=building_type,
+                    position=(x, y),
+                    size=size
+                ))
+                
+                placed_buildings.append({
+                    "x": x,
+                    "y": y,
+                    "size": size
+                })
+                
+                return True
+            
+            attempts += 1
+        
+        return False
