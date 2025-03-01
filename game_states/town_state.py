@@ -2138,12 +2138,12 @@ class TownState(GameState):
                         if self.dialog_index >= len(self.current_dialog):
                             self.show_dialog = False
                         return True
-                    
+                
                     # Get tile position from mouse click
                     mouse_x, mouse_y = event.pos
                     tile_x = mouse_x // self.tile_size
                     tile_y = mouse_y // self.tile_size
-                    
+                
                     # Check if clicked on a building
                     building = None
                     for b in self.town.buildings:
@@ -2156,12 +2156,12 @@ class TownState(GameState):
                         if building_rect.collidepoint(mouse_x, mouse_y):
                             building = b
                             break
-                    
+                
                     if building:
                         self.nearby_building = building
                         self._handle_building_interaction({"building": building})
                         return True
-                    
+                
                     # Check if clicked on an NPC
                     npc = None
                     for n in self.town.npcs:
@@ -2174,16 +2174,25 @@ class TownState(GameState):
                         if npc_rect.collidepoint(mouse_x, mouse_y):
                             npc = n
                             break
-                    
+                
                     if npc:
                         self.nearby_npc = npc
                         self._handle_npc_interaction({"npc": npc})
                         return True
-                    
-                    # If nothing clicked, try to move player to that position
+                
+                    # If nothing clicked, try to move player towards that position
                     new_pos = (tile_x, tile_y)
                     if self._is_valid_position(new_pos):
-                        self.player_town_position = new_pos
+                        dx = new_pos[0] - self.player_town_position[0]
+                        dy = new_pos[1] - self.player_town_position[1]
+                        dist = (dx*dx + dy*dy) ** 0.5
+                        if dist < 5:
+                            self.player_town_position = new_pos
+                        else:
+                            self.target_position = new_pos
+                            self.player_moving = True
+                            total = abs(dx) + abs(dy) if (abs(dx)+abs(dy)) != 0 else 1
+                            self.player_direction = (dx/total, dy/total)
                         self._check_building_proximity()
                         return True
         
@@ -2198,7 +2207,24 @@ class TownState(GameState):
         if self.event_timer >= self.event_check_interval:
             self.event_timer = 0
             self._check_for_town_events()
-            
+        
+        # Update player movement (target-based)
+        if hasattr(self, 'player_moving') and self.player_moving:
+            dx = self.player_direction[0] * self.player_speed * dt
+            dy = self.player_direction[1] * self.player_speed * dt
+            new_x = self.player_town_position[0] + dx
+            new_y = self.player_town_position[1] + dy
+            if self.target_position:
+                target_x, target_y = self.target_position
+                if abs(new_x - target_x) < self.player_speed * dt * 1.5 and abs(new_y - target_y) < self.player_speed * dt * 1.5:
+                    new_x, new_y = target_x, target_y
+                    self.player_moving = False
+                    self.target_position = None
+                    self.player_direction = (0, 0)
+            new_x = max(0, min(self.town.width, new_x))
+            new_y = max(0, min(self.town.height, new_y))
+            self.player_town_position = (new_x, new_y)
+        
         # Check for nearby buildings and NPCs
         self._check_building_proximity()
     
