@@ -1133,17 +1133,6 @@ class TownState(GameState):
         self.camera_x = max(0, min(self.town.size[0] - screen_width, self.camera_x))
         self.camera_y = max(0, min(self.town.size[1] - screen_height, self.camera_y))
     
-    def _screen_to_world(self, screen_pos):
-        """
-        Convert screen coordinates to world coordinates.
-        
-        Args:
-            screen_pos: (x, y) screen position
-            
-        Returns:
-            (x, y) world position
-        """
-        return (screen_pos[0] + self.camera_x, screen_pos[1] + self.camera_y)
     
     def _world_to_screen(self, world_pos):
         """
