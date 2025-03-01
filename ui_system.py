@@ -1547,7 +1547,10 @@ class UITooltip(UIElement):
             
             # Calculate size based on text
             line_height = self.font.get_linesize()
-            width = min(self.max_width, max(self.font.size(line)[0] for line in lines) + self.padding * 2)
+            if lines:
+                width = min(self.max_width, max(self.font.size(line)[0] for line in lines) + self.padding * 2)
+            else:
+                width = 100  # Default width if no lines
             height = line_height * len(lines) + self.padding * 2
             
             self.rect.width = width

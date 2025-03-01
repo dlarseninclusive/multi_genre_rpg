@@ -61,7 +61,7 @@ class WorldExplorationState(GameState):
         self.player_direction = (0, 0)
         self.target_x = None
         self.target_y = None
-        self.move_speed = 3.0  # Tiles per second (adjust as needed)
+        self.move_speed = 5.0  # Tiles per second (adjust as needed)
         
         # Time and weather
         self.time_of_day = TimeOfDay.NOON
@@ -271,9 +271,18 @@ class WorldExplorationState(GameState):
                             break
                 
                 if clicked_location:
-                    # If clicking on a location, interact with it
-                    self.current_location = clicked_location
-                    self._interact_with_location()
+                    # Calculate distance to clicked location
+                    dx = clicked_location.x - self.player_x
+                    dy = clicked_location.y - self.player_y
+                    distance = math.sqrt(dx*dx + dy*dy)
+                    
+                    if distance <= 1.5:  # If close enough, interact with it
+                        self.current_location = clicked_location
+                        self._interact_with_location()
+                    else:  # Otherwise, set it as the movement target
+                        self.target_x = clicked_location.x
+                        self.target_y = clicked_location.y
+                        self.player_moving = True
                     return True
                 else:
                     # If clicking on walkable terrain, set it as target
@@ -555,6 +564,20 @@ class WorldExplorationState(GameState):
             return
         
         logger.info(f"Interacting with location: {self.current_location.name}")
+        
+        # Calculate distance to location
+        dx = self.current_location.x - self.player_x
+        dy = self.current_location.y - self.player_y
+        distance = math.sqrt(dx*dx + dy*dy)
+        
+        # Only allow interaction if player is close enough (within 1.5 tiles)
+        if distance > 1.5:
+            self.event_bus.publish("show_notification", {
+                "title": "Too Far Away",
+                "message": f"You need to get closer to enter {self.current_location.name}.",
+                "duration": 2.0
+            })
+            return
         
         try:
             # Handle different location types
