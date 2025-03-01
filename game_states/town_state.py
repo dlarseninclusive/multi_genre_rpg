@@ -839,7 +839,7 @@ class TownState(GameState):
         
         # Player
         self.player_pos = (600, 400)
-        self.player_speed = 200  # Pixels per second
+        self.player_speed = 300  # Pixels per second
         self.player_direction = (0, 0)
         self.player_moving = False
         
@@ -2029,7 +2029,7 @@ class TownState(GameState):
         # Player data
         self.player_town_position = (10, 10)
         self.player_character = None
-        self.player_speed = 5  # pixels per second
+        self.player_speed = 15  # pixels per second
         self.player_direction = (0, 0)
         self.player_moving = False
         self.target_position = None
