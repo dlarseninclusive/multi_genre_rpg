@@ -2326,8 +2326,8 @@ class TownState(GameState):
                 tile_image = self.tile_assets.get(tile_type, self.tile_assets['grass'])
                 
                 rect = pygame.Rect(
-                    x * self.tile_size,
-                    y * self.tile_size,
+                    x * self.tile_size - self.camera_x,
+                    y * self.tile_size - self.camera_y,
                     self.tile_size,
                     self.tile_size
                 )
