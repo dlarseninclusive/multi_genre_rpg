@@ -1106,7 +1106,7 @@ class TownState(GameState):
         if self.quest_journal_visible:
             # Create the quest UI if it doesn't exist
             if not self.quest_ui:
-                self.quest_ui = QuestUI(self.screen, self.event_bus, self.quest_manager)
+                self.quest_ui = QuestUI(self.screen, self.quest_manager, self.event_bus)
         else:
             # We'll keep the quest_ui instance, just not render it
             pass
