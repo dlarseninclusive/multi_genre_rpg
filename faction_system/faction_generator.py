@@ -1,7 +1,7 @@
 # faction_generator.py
 import random
 from typing import List, Dict, Tuple
-from faction import Faction, FactionManager, FactionType, RelationshipStatus
+from faction_system.faction_system import Faction, FactionManager, FactionType, RelationshipStatus
 
 class FactionGenerator:
     """Handles procedural generation of factions based on world state"""

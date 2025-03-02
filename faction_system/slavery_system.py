@@ -5,8 +5,8 @@ from enum import Enum, auto
 import random
 import uuid
 
-from faction import Faction, FactionManager, FactionType, RelationshipStatus
-from faction_integration import FactionSystemIntegration, CrimeSeverity, NPCFactionData
+from faction_system.faction_system import Faction, FactionManager, FactionType, RelationshipStatus
+from faction_system.faction_integration import FactionSystemIntegration, CrimeSeverity, NPCFactionData
 
 class SlaveType(Enum):
     LABOR = auto()      # Manual labor (mining, farming, etc.)

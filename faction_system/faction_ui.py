@@ -1,7 +1,7 @@
 # faction_ui.py
 import pygame
 from typing import Dict, List, Tuple, Optional
-from faction import Faction, FactionManager, RelationshipStatus
+from faction_system.faction_system import Faction, FactionManager, RelationshipStatus
 
 class FactionUI:
     """UI component for displaying faction information"""
@@ -288,7 +288,7 @@ class FactionUI:
 # Example usage
 if __name__ == "__main__":
     import sys
-    from faction_generator import FactionGenerator
+    from faction_system.faction_generator import FactionGenerator
     
     # Initialize pygame
     pygame.init()

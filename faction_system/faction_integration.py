@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 import random
 
-from faction import Faction, FactionManager, FactionType, RelationshipStatus
+from faction_system.faction_system import Faction, FactionManager, FactionType, RelationshipStatus
 
 # -----------------------------------------------------------------------------
 # NPC Faction Integration
@@ -940,7 +940,7 @@ class FactionSystemIntegration:
     
     def initialize_default_factions(self):
         """Initialize the system with default factions"""
-        from faction_generator import FactionGenerator
+        from faction_system.faction_generator import FactionGenerator
         self.faction_manager = FactionGenerator.generate_default_factions()
         
         # Update references in other components
