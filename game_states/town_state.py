@@ -730,20 +730,46 @@ class TownState(GameState):
         
         # Check for quests if this is a quest giver
         if npc.npc_type == NpcType.QUEST_GIVER:
-            # Use a closure for the callback to avoid late binding issues
-            def create_offer_quest_callback(specific_npc):
+            # Create closures for the callbacks
+            def create_accept_callback(the_npc, the_quest_id, the_player):
+                logger.info(f"Creating accept callback with quest_id: {the_quest_id}, type: {type(the_quest_id)}")
                 def callback(_):
-                    self._offer_quest(specific_npc)
+                    logger.info(f"Accept callback called with quest_id: {the_quest_id}")
+                    self._accept_quest(the_npc, the_quest_id, the_player)
                 return callback
             
-            # Offer quest button
-            quest_button = self.ui_manager.create_button(
+            # Make sure we're getting the ID as a string
+            quest_id = str(self.current_quest.id) if hasattr(self.current_quest, 'id') else "unknown"
+            logger.info(f"Using quest_id for callback: {quest_id}")
+            
+            # Update dialog options
+            for button in self.dialog_options:
+                self.ui_manager.remove_element(button)
+            
+            self.dialog_options = []
+            
+            # Add accept button 
+            accept_button = self.ui_manager.create_button(
                 pygame.Rect(20, option_y, 150, 30),
-                "Ask about quests",
-                create_offer_quest_callback(npc),
+                "Accept Quest",
+                create_accept_callback(npc, quest_id, player),
                 self.dialog_panel
             )
-            self.dialog_options.append(quest_button)
+            self.dialog_options.append(accept_button)
+            
+            # Add decline button
+            def create_decline_callback(the_npc, dialog_key):
+                def callback(_):
+                    self._continue_dialog(the_npc, dialog_key)
+                return callback
+            
+            decline_button = self.ui_manager.create_button(
+                pygame.Rect(180, option_y, 150, 30),
+                "Decline",
+                create_decline_callback(npc, "quest_declined"),
+                self.dialog_panel
+            )
+            self.dialog_options.append(decline_button)
             option_y += 40
         
         # Add shop option for merchants
