@@ -462,6 +462,10 @@ class TownState(GameState):
     
     def _update_camera(self):
         """Update camera position to follow player."""
+        # Check if screen is initialized
+        if not hasattr(self, 'screen') or self.screen is None:
+            return
+        
         target_x = int(self.player_grid_pos[0] * self.tile_size - self.screen.get_width() // 2)
         target_y = int(self.player_grid_pos[1] * self.tile_size - self.screen.get_height() // 2)
         
