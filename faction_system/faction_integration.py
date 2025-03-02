@@ -1107,12 +1107,16 @@ class FactionSystemIntegration:
             self.crime_manager.bounties = json.load(f)
     
     def update(self, game_time):
-        """Update faction system state based on game time"""
-        # Update territory control
-        self._update_territories(game_time)
+        """Update all faction systems."""
+        # Convert integer time to a usable format for faction updates
+        if isinstance(game_time, int):
+            # Create a simple time object with needed attributes
+            game_time = self._convert_ticks_to_game_time(game_time)
         
-        # Update faction relationships
+        # Update subsystems
+        self._update_territories(game_time)
         self._update_faction_relationships(game_time)
+        # Other update methods...
     
     def _update_territories(self, game_time):
         """Update territory control and resolve contests"""
@@ -1193,6 +1197,37 @@ class FactionSystemIntegration:
                     # Only update if relationship actually changed
                     if new_rel != current_rel:
                         self.faction_manager.set_relationship(f1.id, f2.id, new_rel)
+    
+    def _convert_ticks_to_game_time(self, ticks):
+        """Convert pygame ticks (milliseconds) to a game time object."""
+        # Calculate time values from ticks
+        total_seconds = ticks / 1000
+        total_minutes = total_seconds / 60
+        total_hours = total_minutes / 60
+        total_days = int(total_hours / 24)
+        
+        hour = int(total_hours) % 24
+        minute = int(total_minutes) % 60
+        second = int(total_seconds) % 60
+        
+        # Create a simple time object with all needed attributes
+        class GameTime:
+            def __init__(self, day, hour, minute, second, total_days, total_seconds):
+                self.day = day
+                self.hour = hour
+                self.minute = minute
+                self.second = second
+                self.total_days = total_days
+                self.total_seconds = total_seconds
+        
+        return GameTime(
+            day=total_days,
+            hour=hour,
+            minute=minute,
+            second=second,
+            total_days=total_days,
+            total_seconds=total_seconds
+        )
     
     def handle_player_faction_interaction(self, player, faction_id, interaction_type, **kwargs):
         """Handle player interactions with factions and their consequences"""
