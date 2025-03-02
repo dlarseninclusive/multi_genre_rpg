@@ -186,6 +186,7 @@ class TownState(GameState):
         self.player_path = []
         
         # UI elements
+        self.screen = None  # Will be set in render
         self.ui_manager = None  # Will be initialized when we have a screen
         self.status_panel = None
         self.dialog_panel = None
@@ -196,9 +197,6 @@ class TownState(GameState):
         # Quest system
         self.quest_manager = None
         self.current_quest = None  # Current quest being offered
-        
-        # Create UI elements
-        self._create_status_panel()
         
         # Load tile graphics
         self._load_graphics()
@@ -239,7 +237,8 @@ class TownState(GameState):
     def exit(self):
         """Exit this state."""
         # Clean up UI elements
-        self.ui_manager.clear()
+        if self.ui_manager:
+            self.ui_manager.clear()
         super().exit()
     
     def update(self, dt):
@@ -307,6 +306,9 @@ class TownState(GameState):
             elif event.key == pygame.K_j:
                 # Toggle quest journal
                 self._toggle_quest_journal()
+            elif event.key == pygame.K_w:
+                # Return to world map
+                self.state_manager.change_state("world_exploration")
     
     def render(self, screen):
         """Render the town."""
@@ -340,6 +342,9 @@ class TownState(GameState):
     
     def _create_status_panel(self):
         """Create the status panel UI."""
+        if self.ui_manager is None:
+            return
+            
         panel_rect = pygame.Rect(10, 10, 300, 80)
         self.status_panel = self.ui_manager.create_panel(panel_rect)
         
@@ -725,11 +730,17 @@ class TownState(GameState):
         
         # Check for quests if this is a quest giver
         if npc.npc_type == NpcType.QUEST_GIVER:
+            # Use a closure for the callback to avoid late binding issues
+            def create_offer_quest_callback(specific_npc):
+                def callback(_):
+                    self._offer_quest(specific_npc)
+                return callback
+            
             # Offer quest button
             quest_button = self.ui_manager.create_button(
                 pygame.Rect(20, option_y, 150, 30),
                 "Ask about quests",
-                lambda _: self._offer_quest(npc),
+                create_offer_quest_callback(npc),
                 self.dialog_panel
             )
             self.dialog_options.append(quest_button)
@@ -737,19 +748,30 @@ class TownState(GameState):
         
         # Add shop option for merchants
         if npc.npc_type == NpcType.MERCHANT or npc.npc_type == NpcType.BLACKSMITH:
+            # Use a closure for the callback
+            def create_shop_callback(specific_npc):
+                def callback(_):
+                    self._open_shop(specific_npc)
+                return callback
+            
             shop_button = self.ui_manager.create_button(
                 pygame.Rect(180, option_y - 40, 150, 30),
                 "Shop",
-                lambda _: self._open_shop(npc),
+                create_shop_callback(npc),
                 self.dialog_panel
             )
             self.dialog_options.append(shop_button)
         
-        # Add close button
+        # Add close button with closure
+        def create_close_callback():
+            def callback(_):
+                self._close_dialog()
+            return callback
+        
         close_button = self.ui_manager.create_button(
             pygame.Rect(430, option_y - 40, 150, 30),
             "Close",
-            lambda _: self._close_dialog(),
+            create_close_callback(),
             self.dialog_panel
         )
         self.dialog_options.append(close_button)
@@ -778,102 +800,126 @@ class TownState(GameState):
         
         # Get available quests from the quest manager
         if self.quest_manager:
-            available_quests = self.quest_manager.get_available_quests(player)
-            
-            if not available_quests:
-                self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
-                return
-            
-            # Find a quest for this NPC
-            self.current_quest = None
-            npc_id = f"{npc.npc_type.name.lower()}_{npc.name.lower().replace(' ', '_')}"
-            
-            for quest in available_quests:
-                if hasattr(quest, 'quest_giver') and quest.quest_giver == npc_id:
-                    self.current_quest = quest
-                    break
-            
-            if not self.current_quest and available_quests:
-                # If no specific quest for this NPC, just use the first one
-                self.current_quest = available_quests[0]
-            
-            if not self.current_quest:
-                self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
-                return
+            try:
+                available_quests = self.quest_manager.get_available_quests(player)
                 
-            # Update dialog text with quest description
-            self.dialog_text.set_text(f"{npc.name}: {self.current_quest.description}")
-            
-            # Update dialog options
-            for button in self.dialog_options:
-                self.ui_manager.remove_element(button)
-            
-            self.dialog_options = []
-            
-            # Store a reference to the quest
-            quest_for_callback = self.current_quest
-            
-            # Add accept button
-            accept_button = self.ui_manager.create_button(
-                pygame.Rect(20, 100, 150, 30),
-                "Accept Quest",
-                lambda _: self._accept_quest(npc, quest_for_callback, player),
-                self.dialog_panel
-            )
-            self.dialog_options.append(accept_button)
-            
-            # Add decline button
-            decline_button = self.ui_manager.create_button(
-                pygame.Rect(180, 100, 150, 30),
-                "Decline",
-                lambda _: self._continue_dialog(npc, "quest_declined"),
-                self.dialog_panel
-            )
-            self.dialog_options.append(decline_button)
+                if not available_quests:
+                    self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
+                    return
+                
+                # Find a quest for this NPC
+                self.current_quest = None
+                npc_id = f"{npc.npc_type.name.lower()}_{npc.name.lower().replace(' ', '_')}"
+                
+                for quest in available_quests:
+                    if hasattr(quest, 'quest_giver') and quest.quest_giver == npc_id:
+                        self.current_quest = quest
+                        break
+                
+                if not self.current_quest and available_quests:
+                    # If no specific quest for this NPC, just use the first one
+                    self.current_quest = available_quests[0]
+                
+                if not self.current_quest:
+                    self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
+                    return
+                    
+                # Update dialog text with quest description
+                self.dialog_text.set_text(f"{npc.name}: {self.current_quest.description}")
+                
+                # Update dialog options
+                for button in self.dialog_options:
+                    self.ui_manager.remove_element(button)
+                
+                self.dialog_options = []
+                
+                # Create closures for the callbacks to avoid Python's late binding issues
+                def create_accept_callback(the_npc, the_quest, the_player):
+                    def callback(_):
+                        # Pass the quest ID instead of the quest object
+                        self._accept_quest(the_npc, the_quest.id, the_player)
+                    return callback
+                
+                def create_decline_callback(the_npc, dialog_key):
+                    def callback(_):
+                        self._continue_dialog(the_npc, dialog_key)
+                    return callback
+                
+                # Add accept button
+                accept_button = self.ui_manager.create_button(
+                    pygame.Rect(20, 100, 150, 30),
+                    "Accept Quest",
+                    create_accept_callback(npc, self.current_quest, player),
+                    self.dialog_panel
+                )
+                self.dialog_options.append(accept_button)
+                
+                # Add decline button
+                decline_button = self.ui_manager.create_button(
+                    pygame.Rect(180, 100, 150, 30),
+                    "Decline",
+                    create_decline_callback(npc, "quest_declined"),
+                    self.dialog_panel
+                )
+                self.dialog_options.append(decline_button)
+            except Exception as e:
+                logger.error(f"Error offering quest: {e}")
+                self.dialog_text.set_text(f"{npc.name}: I'm having trouble with my quest ledger. Check back later.")
         else:
             # Fallback if quest manager not available
             self.dialog_text.set_text(f"{npc.name}: I'm sorry, I don't have any quests for you.")
     
-    def _accept_quest(self, npc, quest, player):
+    def _accept_quest(self, npc, quest_id, player):
         """
         Accept a quest from an NPC.
         
         Args:
             npc: Npc instance
-            quest: Quest object
+            quest_id: Quest ID string
             player: Player character
         """
-        if quest:
-            logger.info(f"Accepted quest: {quest.title}")
-            
-            # Activate the quest in the quest manager
-            if self.quest_manager:
-                self.quest_manager.activate_quest(quest.id, player)
-            
-            # Add response dialog
-            npc.add_dialog("quest_accepted", 
-                          "Excellent! Come back when you've completed the task.")
-            
-            # Update dialog
-            self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog('quest_accepted')}")
-            
-            # Update dialog options
-            for button in self.dialog_options:
-                self.ui_manager.remove_element(button)
-            
-            self.dialog_options = []
-            
-            # Add close button
-            close_button = self.ui_manager.create_button(
-                pygame.Rect(20, 100, 150, 30),
-                "Close",
-                lambda _: self._close_dialog(),
-                self.dialog_panel
-            )
-            self.dialog_options.append(close_button)
-        else:
-            logger.error("Attempted to accept a quest, but quest object is invalid")
-            self._close_dialog()
+        try:
+            if quest_id:
+                logger.info(f"Accepted quest: {quest_id}")
+                
+                # Activate the quest in the quest manager
+                if self.quest_manager:
+                    # Ensure we're using the quest ID, not the quest object
+                    self.quest_manager.activate_quest(quest_id, player)
+                
+                # Add response dialog
+                npc.add_dialog("quest_accepted", 
+                              "Excellent! Come back when you've completed the task.")
+                
+                # Update dialog
+                self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog('quest_accepted')}")
+                
+                # Update dialog options
+                for button in self.dialog_options:
+                    self.ui_manager.remove_element(button)
+                
+                self.dialog_options = []
+                
+                # Add close button with closure
+                def create_close_callback():
+                    def callback(_):
+                        self._close_dialog()
+                    return callback
+                
+                close_button = self.ui_manager.create_button(
+                    pygame.Rect(20, 100, 150, 30),
+                    "Close",
+                    create_close_callback(),
+                    self.dialog_panel
+                )
+                self.dialog_options.append(close_button)
+            else:
+                logger.error("Attempted to accept a quest, but quest ID is invalid")
+                self._close_dialog()
+        except Exception as e:
+            logger.error(f"Error accepting quest: {e}")
+            if self.dialog_text:
+                self.dialog_text.set_text(f"{npc.name}: There seems to be a problem with this quest. Let's talk later.")
     
     def _continue_dialog(self, npc, dialog_key):
         """
@@ -892,11 +938,16 @@ class TownState(GameState):
             
             self.dialog_options = []
             
-            # Add close button
+            # Add close button with closure
+            def create_close_callback():
+                def callback(_):
+                    self._close_dialog()
+                return callback
+            
             close_button = self.ui_manager.create_button(
                 pygame.Rect(20, 100, 150, 30),
                 "Close",
-                lambda _: self._close_dialog(),
+                create_close_callback(),
                 self.dialog_panel
             )
             self.dialog_options.append(close_button)
@@ -922,11 +973,16 @@ class TownState(GameState):
         
         self.dialog_options = []
         
-        # Add close button
+        # Add close button with closure
+        def create_close_callback():
+            def callback(_):
+                self._close_dialog()
+            return callback
+        
         close_button = self.ui_manager.create_button(
             pygame.Rect(20, 100, 150, 30),
             "Close",
-            lambda _: self._close_dialog(),
+            create_close_callback(),
             self.dialog_panel
         )
         self.dialog_options.append(close_button)
