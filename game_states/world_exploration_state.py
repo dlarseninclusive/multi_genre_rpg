@@ -573,6 +573,48 @@ class WorldExplorationState(GameState):
         self.camera_x = max(0, min(max_camera_x, self.camera_x))
         self.camera_y = max(0, min(max_camera_y, self.camera_y))
     
+    def _is_position_walkable(self, x, y):
+        """
+        Check if a position is walkable.
+        
+        Args:
+            x: X position in world coordinates
+            y: Y position in world coordinates
+            
+        Returns:
+            Boolean indicating if position is walkable
+        """
+        # Convert to integer grid coordinates
+        grid_x = int(x)
+        grid_y = int(y)
+        
+        # Check if position is within world bounds
+        if not (0 <= grid_x < self.world_width and 0 <= grid_y < self.world_height):
+            return False
+        
+        # Check terrain type
+        try:
+            terrain = self.world["terrain"][grid_y][grid_x]
+            
+            # Water is not walkable
+            if terrain == TerrainType.WATER.value:
+                return False
+            
+            # Check if position has an impassable feature (like a mountain peak)
+            # You can add more conditions here based on your game's rules
+            if terrain == TerrainType.MOUNTAINS.value:
+                # 20% chance mountain tiles are impassable (peaks)
+                # Using a deterministic approach based on position
+                # This way the same mountain tile is always passable or impassable
+                if (grid_x * 31 + grid_y * 17) % 100 < 20:
+                    return False
+            
+            # All other terrain types are walkable
+            return True
+        except Exception as e:
+            logger.error(f"Error checking if position is walkable: {e}")
+            return False
+    
     def _check_location_discovery(self):
         """Check if player has discovered new locations."""
         for location in self.world["locations"]:
