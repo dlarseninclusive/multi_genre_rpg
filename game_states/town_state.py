@@ -725,6 +725,11 @@ class TownState(GameState):
         
         self.dialog_options = []
         
+        # Get player character from state manager
+        player = self.state_manager.get_persistent_data("player_character")
+        if not player:
+            player = Character("Player", "Human", "Warrior")
+        
         # Create dialog options based on NPC type
         option_y = 100
         
