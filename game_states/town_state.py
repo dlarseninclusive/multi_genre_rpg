@@ -869,42 +869,56 @@ class TownState(GameState):
             self.dialog_text.set_text(f"{npc.name}: I'm sorry, I don't have any quests for you.")
     
     def _accept_quest(self, npc, quest_id, player):
-        """
-        Accept a quest from an NPC.
+        """Accept a quest from an NPC."""
+        logger.info(f"Accepting quest: {quest_id}, type: {type(quest_id)}")
+        logger.info(f"NPC: {npc}, type: {type(npc)}")
+        logger.info(f"Player: {player}, type: {type(player)}")
         
-        Args:
-            npc: Npc instance
-            quest_id: Quest ID string
-            player: Player character
-        """
         try:
-            if quest_id:
-                logger.info(f"Accepted quest: {quest_id}")
+            if not isinstance(npc, Npc):
+                logger.error(f"Invalid NPC object: {npc}")
+                return
                 
+            if quest_id:
                 # Find the quest object from the ID if needed
                 quest_name = quest_id  # Fallback for logging
                 quest_obj = None
-                if self.quest_manager:
-                    # Try to get the quest object by ID from the quest manager
-                    available_quests = self.quest_manager.get_available_quests(player)
-                    for quest in available_quests:
-                        if quest.id == quest_id:
-                            quest_obj = quest
-                            quest_name = quest.title
-                            break
                 
-                    logger.info(f"Activating quest: {quest_name}")
-                    # Activate the quest in the quest manager using the ID
-                    self.quest_manager.activate_quest(quest_id, player)
+                if self.quest_manager:
+                    logger.info("Getting quests from quest manager")
+                    # Try to get the quest object by ID from the quest manager
+                    try:
+                        available_quests = self.quest_manager.get_available_quests(player)
+                        logger.info(f"Found {len(available_quests)} available quests")
+                        
+                        for quest in available_quests:
+                            logger.info(f"Checking quest: {quest.id}, {quest.title}")
+                            if getattr(quest, 'id', None) == quest_id:
+                                quest_obj = quest
+                                quest_name = quest.title
+                                logger.info(f"Found matching quest object: {quest_name}")
+                                break
+                        
+                        if not quest_obj:
+                            logger.warning(f"Could not find quest object with ID: {quest_id}")
+                            
+                        logger.info(f"Activating quest ID: {quest_id}")
+                        # Activate the quest in the quest manager using the ID
+                        self.quest_manager.activate_quest(quest_id, player)
+                        logger.info("Quest activated successfully")
+                    except Exception as e:
+                        logger.error(f"Error finding or activating quest: {e}", exc_info=True)
                 
                 # Add response dialog
-                npc.add_dialog("quest_accepted", 
-                              "Excellent! Come back when you've completed the task.")
+                logger.info("Setting quest accepted dialog")
+                npc.add_dialog("quest_accepted", "Excellent! Come back when you've completed the task.")
                 
                 # Update dialog
+                logger.info("Updating dialog text")
                 self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog('quest_accepted')}")
                 
                 # Update dialog options
+                logger.info("Updating dialog options")
                 for button in self.dialog_options:
                     self.ui_manager.remove_element(button)
                 
@@ -927,7 +941,7 @@ class TownState(GameState):
                 logger.error("Attempted to accept a quest, but quest ID is invalid")
                 self._close_dialog()
         except Exception as e:
-            logger.error(f"Error accepting quest: {e}")
+            logger.error(f"Error accepting quest: {e}", exc_info=True)
             if self.dialog_text:
                 self.dialog_text.set_text(f"{npc.name}: There seems to be a problem with this quest. Let's talk later.")
     
