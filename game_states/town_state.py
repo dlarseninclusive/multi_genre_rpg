@@ -6,7 +6,7 @@ from enum import Enum
 from game_state import GameState
 from world_generator import Location, LocationType
 from ui_system import UIManager, UIButton, UILabel, UIPanel, UIImage, UIProgressBar
-from quest_system import QuestManager, QuestStatus, QuestType, ObjectiveType, Quest
+from quest_system import QuestManager, QuestStatus, QuestType, ObjectiveType, Quest, QuestUI
 from character import Character, Race, CharacterClass
 
 logger = logging.getLogger("town_state")
@@ -196,6 +196,8 @@ class TownState(GameState):
         
         # Quest system
         self.quest_manager = None
+        self.quest_ui = None  # Initialize the quest UI reference
+        self.quest_journal_visible = False  # To track if the journal is visible
         self.current_quest = None  # Current quest being offered
         
         # Load tile graphics
@@ -232,6 +234,9 @@ class TownState(GameState):
         if not self.buildings:
             self._generate_town()
         
+        # Set up quest NPCs with available quests
+        self._setup_npc_quests()
+        
         logger.info(f"Entered town: {self.town_name}")
     
     def exit(self):
@@ -265,6 +270,18 @@ class TownState(GameState):
         Args:
             event: Pygame event
         """
+        # If quest journal is open, let it handle events first
+        if self.quest_journal_visible and self.quest_ui:
+            self.quest_ui.handle_event(event)
+            
+            # Close journal on ESC key
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.quest_journal_visible = False
+                return
+            
+            # Don't let other UI elements handle events while journal is open
+            return
+        
         # Handle UI events if UI manager exists
         if self.ui_manager and self.ui_manager.handle_event(event):
             return
@@ -339,6 +356,10 @@ class TownState(GameState):
         # Render UI if available
         if self.ui_manager:
             self.ui_manager.render()
+        
+        # Render the quest journal if visible
+        if self.quest_journal_visible and self.quest_ui:
+            self.quest_ui.draw()
     
     def _create_status_panel(self):
         """Create the status panel UI."""
@@ -428,6 +449,8 @@ class TownState(GameState):
         quest_giver.add_dialog("greeting", "Welcome, traveler. The town is in need of your help.")
         quest_giver.add_dialog("quest_offer", "We've been having trouble with wolves attacking our livestock. Could you help us?")
         quest_giver.add_dialog("quest_declined", "I understand. Come back if you change your mind.")
+        quest_giver.add_dialog("quest_accepted", "Excellent! Come back when you've completed the task.")
+        # We will assign quests to this NPC later in _setup_npc_quests
         self.npcs.append(quest_giver)
         self.buildings[0].add_npc(quest_giver)
         
@@ -449,7 +472,7 @@ class TownState(GameState):
             (self.buildings[3].entrance[0] * self.tile_size, 
              self.buildings[3].entrance[1] * self.tile_size - 20)
         )
-        merchant.add_dialog("greeting", "Browse my wares! I have everything you need.")
+        merchant.add_dialog("greeting", "Browse my wares\! I have everything you need.")
         self.npcs.append(merchant)
         self.buildings[3].add_npc(merchant)
         
@@ -460,7 +483,7 @@ class TownState(GameState):
             (self.buildings[1].entrance[0] * self.tile_size, 
              self.buildings[1].entrance[1] * self.tile_size - 20)
         )
-        innkeeper.add_dialog("greeting", "Welcome to the Dancing Dragon! Food, drink, and a warm bed await.")
+        innkeeper.add_dialog("greeting", "Welcome to the Dancing Dragon\! Food, drink, and a warm bed await.")
         self.npcs.append(innkeeper)
         self.buildings[1].add_npc(innkeeper)
     
@@ -688,6 +711,55 @@ class TownState(GameState):
         self.player_target = list(building.entrance)
         self.player_moving = True
     
+    def _setup_npc_quests(self):
+        """Set up quests for NPCs based on quest manager data."""
+        if not self.quest_manager:
+            logger.warning("No quest manager available to set up NPC quests")
+            return
+            
+        # Get player character from state manager (for checking quest requirements)
+        player = self.state_manager.get_persistent_data("player_character")
+        if not player:
+            player = Character("Player", Race.HUMAN, CharacterClass.WARRIOR)
+            
+        # First, set up quest givers
+        for quest_id, quest in self.quest_manager.quests.items():
+            # If a quest doesn't have a quest giver, assign it to the Elder Thorne for now
+            if not hasattr(quest, 'quest_giver') or not quest.quest_giver:
+                # Simple heuristic: low-level quests go to Elder Thorne, but this could be more sophisticated
+                if quest.level <= 3:
+                    quest.quest_giver = "quest_giver_elder_thorne"
+                    logger.info(f"Auto-assigned quest '{quest.title}' to Elder Thorne")
+                    
+        # Now, assign quests to NPCs
+        for npc in self.npcs:
+            npc_id = f"{npc.npc_type.name.lower()}_{npc.name.lower().replace(' ', '_')}"
+            
+            # Clear existing quests first
+            npc.quests = []
+            
+            # Add quests where this NPC is the quest giver
+            for quest_id, quest in self.quest_manager.quests.items():
+                if hasattr(quest, 'quest_giver') and quest.quest_giver == npc_id:
+                    # Check if the player meets the requirements
+                    if self.quest_manager.can_accept_quest(quest, player):
+                        npc.quests.append(quest_id)
+                        logger.info(f"Assigned quest '{quest.title}' to NPC {npc.name}")
+            
+            # Also add active quests to NPCs (for turning in completed quests)
+            for quest_id in self.quest_manager.active_quests:
+                quest = self.quest_manager.quests.get(quest_id)
+                if quest and quest.is_complete() and hasattr(quest, 'quest_receiver') and quest.quest_receiver == npc_id:
+                    if quest_id not in npc.quests:
+                        npc.quests.append(quest_id)
+                        logger.info(f"Added completed quest '{quest.title}' to NPC {npc.name} for turn-in")
+                        
+        # Log the results for debugging
+        for npc in self.npcs:
+            if npc.quests:
+                quest_names = [self.quest_manager.quests[qid].title for qid in npc.quests if qid in self.quest_manager.quests]
+                logger.info(f"NPC {npc.name} has {len(npc.quests)} quests: {quest_names}")
+    
     def _open_dialog(self, npc):
         """
         Open dialog with NPC.
@@ -735,47 +807,23 @@ class TownState(GameState):
         
         # Check for quests if this is a quest giver
         if npc.npc_type == NpcType.QUEST_GIVER:
-            # Create closures for the callbacks
-            def create_accept_callback(the_npc, the_quest_id, the_player):
-                logger.info(f"Creating accept callback with quest_id: {the_quest_id}, type: {type(the_quest_id)}")
-                def callback(_):
-                    logger.info(f"Accept callback called with quest_id: {the_quest_id}")
-                    self._accept_quest(the_npc, the_quest_id, the_player)
-                return callback
-            
-            # Make sure we're getting the ID as a string
-            quest_id = str(self.current_quest.id) if hasattr(self.current_quest, 'id') else "unknown"
-            logger.info(f"Using quest_id for callback: {quest_id}")
-            
-            # Update dialog options
-            for button in self.dialog_options:
-                self.ui_manager.remove_element(button)
-            
-            self.dialog_options = []
-            
-            # Add accept button 
-            accept_button = self.ui_manager.create_button(
-                pygame.Rect(20, option_y, 150, 30),
-                "Accept Quest",
-                create_accept_callback(npc, quest_id, player),
-                self.dialog_panel
-            )
-            self.dialog_options.append(accept_button)
-            
-            # Add decline button
-            def create_decline_callback(the_npc, dialog_key):
-                def callback(_):
-                    self._continue_dialog(the_npc, dialog_key)
-                return callback
-            
-            decline_button = self.ui_manager.create_button(
-                pygame.Rect(180, option_y, 150, 30),
-                "Decline",
-                create_decline_callback(npc, "quest_declined"),
-                self.dialog_panel
-            )
-            self.dialog_options.append(decline_button)
-            option_y += 40
+            # If the NPC has quests, add a 'Quest' button
+            if npc.quests:
+                def create_quest_callback(specific_npc):
+                    def callback(_):
+                        self._offer_quest(specific_npc)
+                    return callback
+                
+                quest_button = self.ui_manager.create_button(
+                    pygame.Rect(20, option_y, 150, 30),
+                    "Ask about quests",
+                    create_quest_callback(npc),
+                    self.dialog_panel
+                )
+                self.dialog_options.append(quest_button)
+                option_y += 40
+# The following code moved to _offer_quest method for proper context
+# This code moved to _offer_quest method for proper context
         
         # Add shop option for merchants
         if npc.npc_type == NpcType.MERCHANT or npc.npc_type == NpcType.BLACKSMITH:
@@ -829,32 +877,34 @@ class TownState(GameState):
         if not player:
             player = Character("Player", Race.HUMAN, CharacterClass.WARRIOR)
         
+        # Check if NPC has any quests assigned
+        if not npc.quests:
+            self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
+            return
+            
         # Get available quests from the quest manager
         if self.quest_manager:
             try:
-                available_quests = self.quest_manager.get_available_quests(player)
+                logger.info(f"NPC {npc.name} has quests: {npc.quests}")
                 
-                if not available_quests:
-                    self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
-                    return
-                
-                # Find a quest for this NPC
+                # Find a quest for this NPC from their quest list
                 self.current_quest = None
-                npc_id = f"{npc.npc_type.name.lower()}_{npc.name.lower().replace(' ', '_')}"
                 
-                for quest in available_quests:
-                    if hasattr(quest, 'quest_giver') and quest.quest_giver == npc_id:
+                for quest_id in npc.quests:
+                    # Get the quest object from the quest manager
+                    quest = self.quest_manager.quests.get(quest_id)
+                    if quest and self.quest_manager.can_accept_quest(quest, player):
                         self.current_quest = quest
                         break
-                
-                if not self.current_quest and available_quests:
-                    # If no specific quest for this NPC, just use the first one
-                    self.current_quest = available_quests[0]
-                
+                        
                 if not self.current_quest:
                     self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
                     return
                     
+                # Get the quest ID properly
+                quest_id = self.current_quest.id
+                logger.info(f"Offering quest: {quest_id} - {self.current_quest.title}")
+                
                 # Update dialog text with quest description
                 self.dialog_text.set_text(f"{npc.name}: {self.current_quest.description}")
                 
@@ -866,21 +916,11 @@ class TownState(GameState):
                 
                 # Create closures for the callbacks
                 def create_accept_callback(the_npc, the_quest_id, the_player):
-                    logger.info(f"Creating accept callback with quest_id: {the_quest_id}, type: {type(the_quest_id)}")
+                    logger.info(f"Creating accept callback with quest_id: {the_quest_id}")
                     def callback(_):
                         logger.info(f"Accept callback called with quest_id: {the_quest_id}")
                         self._accept_quest(the_npc, the_quest_id, the_player)
                     return callback
-                
-                # Make sure we're getting the ID as a string
-                quest_id = str(self.current_quest.id) if hasattr(self.current_quest, 'id') else "unknown"
-                logger.info(f"Using quest_id for callback: {quest_id}")
-                
-                # Update dialog options
-                for button in self.dialog_options:
-                    self.ui_manager.remove_element(button)
-                
-                self.dialog_options = []
                 
                 # Add accept button 
                 accept_button = self.ui_manager.create_button(
@@ -952,7 +992,7 @@ class TownState(GameState):
                 
                 # Add response dialog
                 logger.info("Setting quest accepted dialog")
-                npc.add_dialog("quest_accepted", "Excellent! Come back when you've completed the task.")
+                npc.add_dialog("quest_accepted", "Excellent\! Come back when you've completed the task.")
                 
                 # Update dialog
                 logger.info("Updating dialog text")
@@ -1030,7 +1070,7 @@ class TownState(GameState):
         logger.info(f"Opening shop with {npc.name}")
         
         # For now, just show a message
-        self.dialog_text.set_text(f"{npc.name}: Welcome to my shop! (Shop interface not implemented yet)")
+        self.dialog_text.set_text(f"{npc.name}: Welcome to my shop\! (Shop interface not implemented yet)")
         
         # Update dialog options
         for button in self.dialog_options:
@@ -1056,7 +1096,17 @@ class TownState(GameState):
         """Toggle the quest journal UI."""
         logger.info("Toggling quest journal")
         
-        # TODO: Implement quest journal UI
-        if self.quest_manager:
-            # This would create or destroy the quest journal UI
+        if not self.quest_manager:
+            logger.warning("Cannot open quest journal: No quest manager available")
+            return
+        
+        # Toggle visibility state
+        self.quest_journal_visible = not self.quest_journal_visible
+        
+        if self.quest_journal_visible:
+            # Create the quest UI if it doesn't exist
+            if not self.quest_ui:
+                self.quest_ui = QuestUI(self.screen, self.event_bus, self.quest_manager)
+        else:
+            # We'll keep the quest_ui instance, just not render it
             pass

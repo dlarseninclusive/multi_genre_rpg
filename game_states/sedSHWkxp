@@ -325,6 +325,7 @@ class WorldExplorationState(GameState):
                         self.player_moving = True
                         return True
     
+
     def update(self, dt):
         """Update game state."""
         if not self.active:
@@ -332,6 +333,9 @@ class WorldExplorationState(GameState):
         
         # Update time of day
         self._update_time_and_weather(dt)
+        
+        # Record position before movement for encounter checks
+        old_position = (self.player_x, self.player_y)
         
         # Update player movement
         if self.player_moving:
@@ -342,7 +346,11 @@ class WorldExplorationState(GameState):
         
         # Update current location
         self._update_current_location()
-    
+        
+        # Check for random encounters if player moved
+        new_position = (self.player_x, self.player_y)
+        if old_position != new_position:
+            self._check_random_encounter(old_position, new_position)
     def render(self, screen):
         """Render the game state."""
         if not self.visible:
