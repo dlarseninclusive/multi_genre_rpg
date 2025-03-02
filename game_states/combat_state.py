@@ -101,21 +101,68 @@ class CombatGameState(GameState):
         # Default to level 1 if player_character is None
         player_level = getattr(player_character, 'level', 1)
         
-        # Determine enemy count based on terrain and player level
-        enemy_count = random.randint(1, 3)
+        # Create simple enemy entities based on the terrain
+        enemy_count = random.randint(1, 2)  # Start with fewer enemies
+        enemies = []
+        
+        for i in range(enemy_count):
+            # Create a simple enemy based on terrain
+            if terrain == "forest":
+                enemy_name = "Wolf"
+                enemy_health = 20
+                enemy_attack = 4 + player_level
+            elif terrain == "mountains":
+                enemy_name = "Troll"
+                enemy_health = 30
+                enemy_attack = 6 + player_level
+            else:
+                enemy_name = "Bandit"
+                enemy_health = 25
+                enemy_attack = 5 + player_level
+                
+            # Create a simple enemy entity
+            enemy = SimpleCombatEntity(
+                name=f"{enemy_name} #{i+1}", 
+                max_health=enemy_health,
+                health=enemy_health,
+                level=player_level,
+                attack=enemy_attack,
+                defense=player_level
+            )
+            enemies.append(enemy)
         
         # Notify about enemy encounter
         self.event_bus.publish("show_notification", {
             "title": "Combat",
-            "message": f"Encountered {enemy_count} enemies!",
+            "message": f"Encountered {enemy_count} {enemies[0].name.split()[0]}!",
             "duration": 2.0
         })
         
         logger.info(f"Generated {enemy_count} random enemies")
         
-        # Placeholder for enemy creation and combat setup:
-        # e.g., enemy_entities = [ ... ]
-        # self.active_combat = self.combat_manager.start_combat(player_character, enemy_entities)
+        # Create player proxy if we don't have a real character
+        if not player_character:
+            player_character = SimpleCombatEntity(
+                name="Player",
+                max_health=50,
+                health=50,
+                level=1,
+                attack=8,
+                defense=3
+            )
+        
+        # Store combat entities
+        self.player_entity = player_character
+        self.enemy_entities = enemies
+        self.active_combat = True
+        self.current_turn = 0  # 0 for player, 1+ for enemies
+        
+        # Show combat start message
+        self.event_bus.publish("show_notification", {
+            "title": "Combat Started",
+            "message": f"Your turn! Press SPACE to attack or ESC to flee.",
+            "duration": 3.0
+        })
         
     def exit(self):
         """Exit the combat state."""
