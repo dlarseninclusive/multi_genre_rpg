@@ -88,9 +88,9 @@ class WorldExplorationState(GameState):
         self.discover_radius = 5  # Radius (in tiles) around player to discover locations
 
         # Random encounters
-        self.encounter_chance_per_step = 0.05  # Increased from 0.02
+        self.encounter_chance_per_step = 0.1  # Increased from 0.05
         self.steps_since_last_encounter = 0
-        self.encounter_cooldown = 5  # Reduced from 10
+        self.encounter_cooldown = 3  # Reduced from 5
         self.terrain_encounter_modifiers = {
             TerrainType.WATER.value: 0.3,  # Low chance in water
             TerrainType.BEACH.value: 0.8,  # Slightly lower chance on beaches
