@@ -603,7 +603,8 @@ class QuestManager:
 
 class QuestUI:
     """User interface for the quest system."""
-    def __init__(self, screen: pygame.Surface, event_bus: EventBus, quest_manager: QuestManager):
+    def __init__(self, screen: pygame.Surface, quest_manager: QuestManager, event_bus: EventBus):
+        """Initialize the quest UI."""
         self.screen = screen
         self.event_bus = event_bus
         self.quest_manager = quest_manager
@@ -618,6 +619,7 @@ class QuestUI:
         self.completed_quests_tab_active = False
         self.quest_details_visible = False
         self.selected_quest_id = None
+        self.visible = False  # Start with the UI hidden
         
         # UI colors
         self.color_bg = (30, 30, 30)
@@ -640,8 +642,20 @@ class QuestUI:
         self.event_bus.subscribe("quest_failed", self.handle_quest_failed)
         self.event_bus.subscribe("quest_updated", self.handle_quest_updated)
     
+    def update(self, dt):
+        """Update the quest UI."""
+        # This method is empty but required for compatibility
+        pass
+        
+    def toggle_visibility(self):
+        """Toggle the visibility of the quest UI."""
+        self.visible = not self.visible
+        
     def draw(self):
         """Draw the quest UI."""
+        if not self.visible:
+            return
+            
         # Background
         pygame.draw.rect(self.screen, self.color_bg, pygame.Rect(30, 50, 900, 500))
         pygame.draw.rect(self.screen, (50, 50, 50), pygame.Rect(30, 50, 900, 500), 2)

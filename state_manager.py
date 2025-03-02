@@ -24,6 +24,7 @@ class StateManager:
         self.state_stack = []  # Active state stack (allows for layered states)
         self.transitioning = False
         self.persistent_data = {}  # Data that persists between state transitions
+        self.current_state = None  # Current active state (top of the stack)
         
         # Subscribe to relevant events
         self.event_bus.subscribe("request_state_change", self._handle_state_change_request)
@@ -73,6 +74,7 @@ class StateManager:
         
         new_state.enter(merged_data)
         self.state_stack.append(new_state)
+        self.current_state = new_state
     
     def push_state(self, state_id, data=None):
         """
@@ -100,6 +102,7 @@ class StateManager:
         
         new_state.enter(merged_data)
         self.state_stack.append(new_state)
+        self.current_state = new_state
     
     def pop_state(self):
         """Remove the top state from the stack."""
@@ -115,6 +118,9 @@ class StateManager:
         # Resume the previous state if one exists
         if self.state_stack:
             self.state_stack[-1].resume()
+            self.current_state = self.state_stack[-1]
+        else:
+            self.current_state = None
     
     def set_persistent_data(self, key, value):
         """

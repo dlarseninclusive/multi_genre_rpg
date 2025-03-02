@@ -1,7 +1,10 @@
 import pygame
 import logging
-import random  # Add this import
+import random
 from dataclasses import dataclass
+from game_state import GameState
+logger = logging.getLogger("combat")
+
 @dataclass
 class SimpleCombatEntity:
     name: str
@@ -19,13 +22,44 @@ class SimpleCombatEntity:
     def is_alive(self):
         return self.health > 0
 
-    def attack_target(self, target):
-        damage = self.attack + random.randint(0, 3) - 1  # Add some randomness
-        return target.take_damage(damage)
 
-from game_state import GameState
+class SimpleCombat:
+    """A simplified combat class for handling turn-based combat."""
+    
+    def __init__(self, player, enemies, event_bus=None):
+        self.player = player
+        self.enemies = enemies
+        self.event_bus = event_bus
+        self.current_turn = 0  # 0 for player, 1+ for enemies
+        self.round = 1
+        
+    def is_player_turn(self):
+        """Check if it's the player's turn."""
+        return self.current_turn == 0
+    
+    def get_current_entity(self):
+        """Get the entity whose turn it is."""
+        if self.is_player_turn():
+            return self.player
+        else:
+            enemy_index = self.current_turn - 1
+            if enemy_index < len(self.enemies):
+                return self.enemies[enemy_index]
+        return None
+    
+    def get_enemy_entities(self):
+        """Get all enemy entities."""
+        return self.enemies
+    
+    def next_turn(self):
+        """Advance to the next turn."""
+        self.current_turn += 1
+        if self.current_turn > len(self.enemies):
+            self.current_turn = 0
+            self.round += 1
+            return True  # New round
+        return False  # Same round, different entity
 
-logger = logging.getLogger("combat")
 
 class CombatGameState(GameState):
     """
@@ -49,7 +83,7 @@ class CombatGameState(GameState):
         super().__init__(state_manager, event_bus, settings)
         from combat_system_integration import CombatManager
         self.combat_manager = CombatManager(event_bus, settings)
-        self.active_combat = False
+        self.active_combat = None
         self.selected_action = 0
         self.selected_target = 0
         self.current_turn = 0
@@ -157,7 +191,7 @@ class CombatGameState(GameState):
         # Store combat entities
         self.player_entity = player_character
         self.enemy_entities = enemies
-        self.active_combat = True
+        self.active_combat = SimpleCombat(player_character, enemies, self.event_bus)
         self.current_turn = 0  # 0 for player, 1+ for enemies
         
         # Show combat start message
@@ -219,321 +253,384 @@ class CombatGameState(GameState):
                             self.selected_target = (self.selected_target - 1) % enemy_count
                         else:
                             self.selected_target = (self.selected_target + 1) % enemy_count
-                        target = self.active_combat.get_enemy_entities()[self.selected_target]
-                        self.event_bus.publish("show_notification", {
-                            "title": "Target Selected",
-                            "message": f"Targeting {target.name} ({target.health}/{target.max_health} HP)",
-                            "duration": 1.0
-                        })
-                        return True
+                    return True
+                
+                # Action selection
+                elif event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                    action_count = 5  # attack, skill, item, defend, flee
+                    if event.key == pygame.K_LEFT:
+                        self.selected_action = (self.selected_action - 1) % action_count
+                    else:
+                        self.selected_action = (self.selected_action + 1) % action_count
+                    return True
         
         return super().handle_event(event)
     
     def update(self, dt):
         """
-        Update state.
+        Update combat state.
         
         Args:
             dt: Time delta in seconds
         """
         super().update(dt)
         
-        # Update combat manager
-        self.combat_manager.update(dt)
+        # If no active combat, return
+        if not self.active_combat:
+            return
+        
+        # Handle AI turns if not player's turn
+        if not self.active_combat.is_player_turn():
+            # Simple AI: just attack the player
+            enemy = self.active_combat.get_current_entity()
+            if enemy and self.player_entity:
+                # AI performs an attack
+                damage = enemy.attack
+                taken = self.player_entity.take_damage(damage)
+                
+                # Notify about the attack
+                self.event_bus.publish("attack_result", {
+                    "attacker": enemy.name,
+                    "target": self.player_entity.name,
+                    "damage": taken
+                })
+                
+                # Check if player is defeated
+                if not self.player_entity.is_alive():
+                    self._handle_combat_defeat()
+                    return
+                
+                # Advance turn
+                self.active_combat.next_turn()
     
     def render(self, screen):
         """
-        Render state.
+        Render the combat state.
         
         Args:
             screen: Pygame surface to render on
         """
-        # Clear screen with dark background
+        if not self.visible:
+            return
+        
+        # Fill background with a dark color
         screen.fill((20, 20, 40))
         
+        # If no active combat, just show a message
         if not self.active_combat:
-            # Draw placeholder if no active combat
-            self._render_placeholder(screen)
+            font = pygame.font.Font(None, 36)
+            text = font.render("No active combat. Press ESC to exit.", True, (255, 255, 255))
+            screen.blit(text, (screen.get_width() // 2 - text.get_width() // 2, 
+                              screen.get_height() // 2 - text.get_height() // 2))
             return
         
-        if isinstance(self.active_combat, bool):
-            self._render_placeholder(screen)
-            return
+        # Draw player entity
+        if self.player_entity:
+            player_rect = pygame.Rect(100, 300, 50, 50)
+            pygame.draw.rect(screen, (0, 128, 255), player_rect)
+            
+            # Draw player health bar
+            health_percent = self.player_entity.health / self.player_entity.max_health
+            health_bar_rect = pygame.Rect(100, 360, 100, 10)
+            pygame.draw.rect(screen, (200, 0, 0), health_bar_rect)
+            pygame.draw.rect(screen, (0, 200, 0), 
+                            pygame.Rect(health_bar_rect.x, health_bar_rect.y, 
+                                        health_bar_rect.width * health_percent, health_bar_rect.height))
+            
+            # Draw player name
+            font = pygame.font.Font(None, 24)
+            name_text = font.render(self.player_entity.name, True, (255, 255, 255))
+            screen.blit(name_text, (100, 375))
+            
+            # Draw player health
+            health_text = font.render(f"HP: {self.player_entity.health}/{self.player_entity.max_health}", 
+                                     True, (255, 255, 255))
+            screen.blit(health_text, (100, 400))
         
-        # Get entities
-        player_entities = [self.player_entity] if self.player_entity else []
-        enemy_entities = self.enemy_entities
-        
-        # Draw combat UI
-        self._render_combat_ui(screen, player_entities, enemy_entities)
-        
-        # Draw turn indicator
-        current_entity = self.player_entity if self.current_turn == 0 else (self.enemy_entities[self.current_turn-1] if len(self.enemy_entities) > 0 else None)
-        if current_entity:
-            is_player_turn = (self.current_turn == 0)
-            self._render_turn_indicator(screen, current_entity, is_player_turn)
+        # Draw enemies
+        enemy_spacing = 150
+        for i, enemy in enumerate(self.enemy_entities):
+            # Highlight selected enemy
+            color = (255, 0, 0) if i == self.selected_target else (200, 0, 0)
+            
+            # Draw enemy
+            enemy_rect = pygame.Rect(400 + i * enemy_spacing, 200, 40, 40)
+            pygame.draw.rect(screen, color, enemy_rect)
+            
+            # Draw enemy health bar
+            health_percent = enemy.health / enemy.max_health
+            health_bar_rect = pygame.Rect(400 + i * enemy_spacing, 250, 80, 10)
+            pygame.draw.rect(screen, (200, 0, 0), health_bar_rect)
+            pygame.draw.rect(screen, (0, 200, 0), 
+                            pygame.Rect(health_bar_rect.x, health_bar_rect.y, 
+                                        health_bar_rect.width * health_percent, health_bar_rect.height))
+            
+            # Draw enemy name
+            font = pygame.font.Font(None, 24)
+            name_text = font.render(enemy.name, True, (255, 255, 255))
+            screen.blit(name_text, (400 + i * enemy_spacing, 265))
+            
+            # Draw enemy health
+            health_text = font.render(f"HP: {enemy.health}/{enemy.max_health}", 
+                                     True, (255, 255, 255))
+            screen.blit(health_text, (400 + i * enemy_spacing, 290))
         
         # Draw action menu if it's player's turn
-        if self.current_turn == 0:
-            self._render_action_menu(screen)
+        if self.active_combat and self.active_combat.is_player_turn():
+            self._draw_action_menu(screen)
     
-    def _render_placeholder(self, screen):
-        """Render placeholder combat screen."""
-        font = pygame.font.SysFont(None, 36)
-        
-        # Title
-        title_text = font.render("COMBAT MODE", True, (255, 255, 255))
-        screen.blit(title_text, (screen.get_width() // 2 - title_text.get_width() // 2, 50))
-        
-        # Instructions
-        font_small = pygame.font.SysFont(None, 24)
-        instr1 = font_small.render("Loading combat...", True, (200, 200, 200))
-        
-        screen.blit(instr1, (screen.get_width() // 2 - instr1.get_width() // 2, 120))
-        
-        # Player area
-        pygame.draw.rect(screen, (50, 50, 80), (50, 200, screen.get_width() - 100, 100))
-        player_text = font.render("Player", True, (255, 255, 255))
-        screen.blit(player_text, (100, 230))
-        
-        # Enemy area
-        pygame.draw.rect(screen, (80, 50, 50), (50, 350, screen.get_width() - 100, 100))
-        enemy_text = font.render("Enemy", True, (255, 255, 255))
-        screen.blit(enemy_text, (100, 380))
-    
-    def _render_combat_ui(self, screen, player_entities, enemy_entities):
-        """Render the main combat UI with entities."""
-        # Header
-        font_large = pygame.font.SysFont(None, 36)
-        title_text = font_large.render("COMBAT", True, (255, 255, 255))
-        screen.blit(title_text, (screen.get_width() // 2 - title_text.get_width() // 2, 20))
-    
-        # Player area
-        player_area_height = 150
-        player_area_y = screen.get_height() - player_area_height - 20
-        pygame.draw.rect(screen, (50, 50, 80), (20, player_area_y, screen.get_width() - 40, player_area_height))
-    
-        # Enemy area
-        enemy_area_height = 150
-        enemy_area_y = 70
-        pygame.draw.rect(screen, (80, 50, 50), (20, enemy_area_y, screen.get_width() - 40, enemy_area_height))
-    
-        # Render player entities
-        self._render_entities(screen, player_entities, player_area_y, is_player=True)
-    
-        # Render enemy entities
-        self._render_entities(screen, enemy_entities, enemy_area_y, is_player=False)
-    
-    def _render_entities(self, screen, entities, base_y, is_player=True):
-        """Render a group of entities."""
-        if not entities:
-            return
-    
-        entity_width = 120
-        entity_height = 120
-    
-        # Calculate total width needed
-        total_width = len(entities) * entity_width
-    
-        # Center entities
-        start_x = (screen.get_width() - total_width) // 2
-    
-        font = pygame.font.SysFont(None, 24)
-        font_small = pygame.font.SysFont(None, 18)
-    
-        for i, entity in enumerate(entities):
-            x = start_x + i * entity_width
-            y = base_y + 15
-        
-            # Entity background
-            bg_color = (30, 30, 40) if is_player else (40, 30, 30)
-        
-            # Highlight selected target
-            if not is_player and i == self.selected_target and self.current_turn == 0:
-                bg_color = (60, 40, 40)
-                pygame.draw.rect(screen, (255, 200, 0), 
-                               (x + 8, y - 2, entity_width - 16, entity_height - 26), 2)
-        
-            pygame.draw.rect(screen, bg_color, (x + 10, y, entity_width - 20, entity_height - 30))
-        
-            # Entity name
-            name_text = font.render(entity.name, True, (255, 255, 255))
-            screen.blit(name_text, (x + entity_width//2 - name_text.get_width()//2, y + 5))
-        
-            # HP bar
-            hp_percent = entity.health / entity.max_health
-            hp_bar_width = entity_width - 40
-            hp_bar_height = 10
-            hp_bar_x = x + 20
-            hp_bar_y = y + 30
-        
-            # HP bar background
-            pygame.draw.rect(screen, (100, 100, 100), 
-                           (hp_bar_x, hp_bar_y, hp_bar_width, hp_bar_height))
-        
-            # HP bar fill
-            hp_fill_width = int(hp_bar_width * hp_percent)
-            hp_color = (0, 255, 0) if hp_percent > 0.5 else (255, 255, 0) if hp_percent > 0.25 else (255, 0, 0)
-            pygame.draw.rect(screen, hp_color, 
-                           (hp_bar_x, hp_bar_y, hp_fill_width, hp_bar_height))
-        
-            # HP text
-            hp_text = font_small.render(f"{entity.health}/{entity.max_health}", True, (255, 255, 255))
-            screen.blit(hp_text, (hp_bar_x + hp_bar_width//2 - hp_text.get_width()//2, hp_bar_y + 12))
-        
-            # Status effects
-            if hasattr(entity, 'status_effects') and entity.status_effects:
-                status_y = hp_bar_y + 30
-                for j, status in enumerate(entity.status_effects):
-                    if j >= 3:  # Show max 3 status effects
-                        break
-                    status_text = font_small.render(status.name, True, (200, 200, 255))
-                    screen.blit(status_text, (hp_bar_x, status_y + j * 15))
-    
-    def _render_turn_indicator(self, screen, entity, is_player_turn):
-        """Render indicator for whose turn it is."""
-        font = pygame.font.SysFont(None, 28)
-        turn_text = font.render(f"{'Your' if is_player_turn else entity.name + '\'s'} Turn", True, (255, 255, 0))
-        screen.blit(turn_text, (screen.get_width() // 2 - turn_text.get_width() // 2, 225))
-    
-    def _render_action_menu(self, screen):
-        """Render action menu for player turn."""
-        menu_width = 400
-        menu_height = 60
-        menu_x = (screen.get_width() - menu_width) // 2
-        menu_y = 250
-    
-        # Menu background
-        pygame.draw.rect(screen, (40, 40, 60), (menu_x, menu_y, menu_width, menu_height))
-        pygame.draw.rect(screen, (100, 100, 150), (menu_x, menu_y, menu_width, menu_height), 2)
-    
-        # Actions
+    def _draw_action_menu(self, screen):
+        """Draw the action menu for player turns."""
         actions = ["Attack", "Skill", "Item", "Defend", "Flee"]
-        font = pygame.font.SysFont(None, 24)
-    
+        
+        menu_rect = pygame.Rect(50, 500, screen.get_width() - 100, 60)
+        pygame.draw.rect(screen, (50, 50, 80), menu_rect)
+        pygame.draw.rect(screen, (100, 100, 150), menu_rect, 2)
+        
+        # Draw actions
+        font = pygame.font.Font(None, 28)
+        action_width = menu_rect.width / len(actions)
+        
         for i, action in enumerate(actions):
-            action_width = menu_width // len(actions)
-            action_x = menu_x + i * action_width
-        
-            # Highlight if selected
+            # Highlight selected action
             if i == self.selected_action:
-                pygame.draw.rect(screen, (60, 60, 100), (action_x, menu_y, action_width, menu_height))
-        
-            # Action text
+                action_rect = pygame.Rect(
+                    menu_rect.x + i * action_width, menu_rect.y, 
+                    action_width, menu_rect.height
+                )
+                pygame.draw.rect(screen, (80, 80, 120), action_rect)
+            
             text = font.render(action, True, (255, 255, 255))
-            screen.blit(text, (action_x + action_width//2 - text.get_width()//2, menu_y + menu_height//2 - text.get_height()//2))
+            screen.blit(text, (
+                menu_rect.x + i * action_width + (action_width / 2 - text.get_width() / 2),
+                menu_rect.y + 20
+            ))
+        
+        # Draw turn indicator
+        turn_text = font.render("Your Turn", True, (255, 255, 100))
+        screen.blit(turn_text, (menu_rect.x + 10, menu_rect.y - 30))
     
     def _execute_selected_action(self):
         """Execute the currently selected action."""
-        if not self.active_combat:
+        if not self.active_combat or not self.active_combat.is_player_turn():
             return
         
-        actions = ["attack", "skill", "item", "defend", "flee"]
-        action = actions[self.selected_action]
+        # Get action type and target
+        action_type = ["attack", "skill", "item", "defend", "flee"][self.selected_action]
         
-        if action == "attack":
-            # Player attacks the selected enemy
-            if self.current_turn == 0 and 0 <= self.selected_target < len(self.enemy_entities):
-                target = self.enemy_entities[self.selected_target]
-                damage = self.player_entity.attack_target(target)
-                
-                # Show attack message
-                self.event_bus.publish("show_notification", {
-                    "title": "Player Attack",
-                    "message": f"You hit {target.name} for {damage} damage! ({target.health}/{target.max_health} HP)",
-                    "duration": 2.0
-                })
-                
-                # Check if enemy is defeated
-                if not target.is_alive():
-                    self.event_bus.publish("show_notification", {
-                        "title": "Enemy Defeated",
-                        "message": f"You defeated {target.name}!",
-                        "duration": 2.0
-                    })
-                    self.enemy_entities.remove(target)
-                
-                # Check if all enemies are defeated
-                if not self.enemy_entities:
-                    self._handle_combat_victory()
-                    return
-                
-                # Change to enemy turn
-                self.current_turn = 1
-                self._execute_enemy_turn()
-    
-        elif action == "flee":
-            # 50% chance to flee successfully
-            if random.random() < 0.5:
-                self.event_bus.publish("show_notification", {
-                    "title": "Escaped",
-                    "message": "You fled from battle.",
-                    "duration": 2.0
-                })
-                self.change_state("world_exploration")
-            else:
-                self.event_bus.publish("show_notification", {
-                    "title": "Failed to Escape",
-                    "message": "You couldn't escape! Enemy's turn.",
-                    "duration": 2.0
-                })
-                # Change to enemy turn
-                self.current_turn = 1
-                self._execute_enemy_turn()
-    
-    def _handle_combat_victory(self):
-        """Handle combat victory."""
-        # End combat with victory
-        self.combat_manager.end_combat("victory")
-    def _handle_combat_end(self, data):
-        """Handle combat_ended event."""
-        result = data.get("result", "defeat")
-        rewards = data.get("rewards", {})
+        # Get target enemy if needed
+        target = None
+        if action_type in ["attack", "skill"] and self.enemy_entities:
+            target = self.enemy_entities[self.selected_target]
         
-        if result == "victory":
-            # Show victory notification
-            self.event_bus.publish("show_notification", {
-                "title": "Victory!",
-                "message": "You won the battle!",
-                "duration": 3.0
+        # Execute the action
+        if action_type == "attack":
+            self._execute_attack(target)
+        elif action_type == "skill":
+            self._execute_skill(target)
+        elif action_type == "item":
+            self._execute_item_use()
+        elif action_type == "defend":
+            self._execute_defend()
+        elif action_type == "flee":
+            self._execute_flee()
+    
+    def _execute_attack(self, target):
+        """Execute an attack action."""
+        if not target or not self.player_entity:
+            return
+        
+        # Calculate damage (simple version)
+        damage = self.player_entity.attack
+        taken = target.take_damage(damage)
+        
+        # Notify about the attack
+        self.event_bus.publish("attack_result", {
+            "attacker": self.player_entity.name,
+            "target": target.name,
+            "damage": taken
+        })
+        
+        # Check if target is defeated
+        if not target.is_alive():
+            # Remove dead enemy
+            self.enemy_entities.remove(target)
+            
+            # Check if all enemies are defeated
+            if not self.enemy_entities:
+                self._handle_combat_victory()
+                return
+        
+        # Advance turn
+        self.active_combat.next_turn()
+    
+    def _execute_skill(self, target):
+        """Execute a skill action."""
+        # For now, just do a stronger attack
+        if not target or not self.player_entity:
+            return
+        
+        # Calculate damage (simple version)
+        damage = int(self.player_entity.attack * 1.5)
+        taken = target.take_damage(damage)
+        
+        # Notify about the skill use
+        self.event_bus.publish("skill_result", {
+            "user": self.player_entity.name,
+            "skill": "Power Strike",
+            "target": target.name,
+            "damage": taken
+        })
+        
+        # Check if target is defeated
+        if not target.is_alive():
+            # Remove dead enemy
+            self.enemy_entities.remove(target)
+            
+            # Check if all enemies are defeated
+            if not self.enemy_entities:
+                self._handle_combat_victory()
+                return
+        
+        # Advance turn
+        self.active_combat.next_turn()
+    
+    def _execute_item_use(self):
+        """Execute an item use action."""
+        # For now, just a simple heal
+        if not self.player_entity:
+            return
+        
+        # Heal player
+        heal_amount = int(self.player_entity.max_health * 0.3)
+        self.player_entity.health = min(self.player_entity.max_health, 
+                                      self.player_entity.health + heal_amount)
+        
+        # Notify about the item use
+        self.event_bus.publish("item_used", {
+            "user": self.player_entity.name,
+            "item": "Health Potion",
+            "heal": heal_amount
+        })
+        
+        # Advance turn
+        self.active_combat.next_turn()
+    
+    def _execute_defend(self):
+        """Execute a defend action."""
+        # For now, just skip the turn (would normally boost defense)
+        if not self.player_entity:
+            return
+        
+        # Notify about the defend action
+        self.event_bus.publish("defend", {
+            "entity": self.player_entity.name
+        })
+        
+        # Advance turn
+        self.active_combat.next_turn()
+    
+    def _execute_flee(self):
+        """Execute a flee action."""
+        # Random chance to flee
+        if random.random() < 0.7:
+            # Success - end combat
+            self.event_bus.publish("combat_ended", {
+                "result": "flee",
+                "message": "You successfully fled from combat!"
+            })
+        else:
+            # Failed - lose turn
+            self.event_bus.publish("flee_failed", {
+                "entity": self.player_entity.name,
+                "message": "Failed to escape!"
             })
             
-            # Show rewards if any
-            if rewards:
-                xp = rewards.get("experience", 0)
-                gold = rewards.get("gold", 0)
-                
-                self.event_bus.publish("show_notification", {
-                    "title": "Rewards",
-                    "message": f"Gained {xp} XP and {gold} gold",
-                    "duration": 3.0
-                })
+            # Advance turn
+            self.active_combat.next_turn()
+    
+    def _handle_combat_victory(self):
+        """Handle victory in combat."""
+        # Calculate rewards
+        xp_reward = sum(enemy.level * 10 for enemy in self.enemy_entities)
+        gold_reward = sum(enemy.level * 5 for enemy in self.enemy_entities)
         
-        elif result == "defeat":
-            # Show defeat notification
-            self.event_bus.publish("show_notification", {
-                "title": "Defeat",
-                "message": "You were defeated in battle.",
-                "duration": 3.0
-            })
+        # Notify about victory
+        self.event_bus.publish("combat_ended", {
+            "result": "victory",
+            "message": f"Victory! Gained {xp_reward} XP and {gold_reward} gold.",
+            "rewards": {
+                "xp": xp_reward,
+                "gold": gold_reward
+            }
+        })
+    
+    def _handle_combat_defeat(self):
+        """Handle defeat in combat."""
+        # Notify about defeat
+        self.event_bus.publish("combat_ended", {
+            "result": "defeat",
+            "message": "Defeat! You have been defeated in combat."
+        })
+    
+    def _handle_combat_end(self, data):
+        """Handle the end of combat."""
+        # Log combat result
+        result = data.get("result", "unknown")
+        message = data.get("message", "Combat ended.")
+        logger.info(f"Combat ended with result: {result}. {message}")
         
-        elif result == "flee":
-            # Show flee notification
-            self.event_bus.publish("show_notification", {
-                "title": "Escaped",
-                "message": "You fled from battle.",
-                "duration": 3.0
-            })
+        # Handle rewards if victory
+        if result == "victory":
+            rewards = data.get("rewards", {})
+            self._award_combat_rewards(rewards)
         
-        # Return to world exploration
-        self.change_state("world_exploration")
+        # Change back to previous state after a delay
+        self.active_combat = None
+        self.event_bus.publish("show_notification", {
+            "title": "Combat Ended",
+            "message": message,
+            "duration": 3.0
+        })
+        
+        # Add a slight delay before returning
+        pygame.time.set_timer(pygame.USEREVENT + 1, 2000)  # 2 second delay
+    
+    def _award_combat_rewards(self, rewards):
+        """Award combat rewards to the player."""
+        # Get player character from persistent data
+        player_character = self.state_manager.get_persistent_data("player_character")
+        if not player_character:
+            logger.warning("No player character found to award rewards to")
+            return
+        
+        # Award XP
+        xp_reward = rewards.get("xp", 0)
+        if hasattr(player_character, "gain_xp") and callable(getattr(player_character, "gain_xp")):
+            player_character.gain_xp(xp_reward)
+        
+        # Award gold
+        gold_reward = rewards.get("gold", 0)
+        if hasattr(player_character, "gold"):
+            player_character.gold += gold_reward
     
     def _handle_attack_result(self, data):
-        """Handle attack_result event."""
-        # Could be used for animations or sound effects
-        pass
+        """Handle attack result event."""
+        # Update UI or play animations based on attack result
+        target = data.get("target")
+        if target and hasattr(target, "health") and target.health <= 0:
+            # Enemy defeated - update quest objectives
+            if hasattr(target, "enemy_type"):
+                enemy_type = target.enemy_type
+                # Publish an event for quest system to pick up
+                self.event_bus.publish("enemy_killed", {
+                    "enemy_type": enemy_type,
+                    "enemy_id": getattr(target, "id", "unknown")
+                })
+                logger.info(f"Enemy of type {enemy_type} defeated, notifying quest system")
     
     def _handle_skill_result(self, data):
-        """Handle skill_result event."""
-        # Could be used for animations or sound effects
+        """Handle skill result event."""
+        # Update UI or play animations based on skill result
         pass
+    
