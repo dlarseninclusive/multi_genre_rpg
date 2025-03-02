@@ -82,9 +82,17 @@ class PauseMenuState(GameState):
             self.menu_panel
         )
         
+        # Character sheet button
+        self.char_sheet_button = self.ui_manager.create_button(
+            pygame.Rect(button_x, 280, button_width, button_height),
+            "Character Sheet",
+            self._toggle_character_sheet,
+            self.menu_panel
+        )
+        
         # Main menu button
         self.main_menu_button = self.ui_manager.create_button(
-            pygame.Rect(button_x, 280, button_width, button_height),
+            pygame.Rect(button_x, 340, button_width, button_height),
             "Return to Main Menu",
             self._return_to_main_menu,
             self.menu_panel
@@ -92,7 +100,7 @@ class PauseMenuState(GameState):
         
         # Quit button
         self.quit_button = self.ui_manager.create_button(
-            pygame.Rect(button_x, 340, button_width, button_height),
+            pygame.Rect(button_x, 400, button_width, button_height),
             "Quit Game",
             self._quit_game,
             self.menu_panel
