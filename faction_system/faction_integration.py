@@ -1116,6 +1116,17 @@ class FactionSystemIntegration:
     
     def _update_territories(self, game_time):
         """Update territory control and resolve contests"""
+        # Convert integer game_time to a simple time object if needed
+        if not hasattr(game_time, 'hour'):
+            total_seconds = game_time / 1000
+            hours = int(total_seconds / 3600) % 24
+            minutes = int((total_seconds % 3600) / 60)
+            class SimpleTime:
+                def __init__(self, hour, minute):
+                    self.hour = hour
+                    self.minute = minute
+            game_time = SimpleTime(hours, minutes)
+        
         # Only update every in-game day
         if game_time.hour == 0 and game_time.minute == 0:
             # Resolve contested territories
