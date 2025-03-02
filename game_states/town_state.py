@@ -872,12 +872,6 @@ class TownState(GameState):
                     create_decline_callback(npc, "quest_declined"),
                     self.dialog_panel
                 )
-                self.dialog_options.append(decline_button)
-                    "Decline",
-                    create_decline_callback(npc, "quest_declined"),
-                    self.dialog_panel
-                )
-                self.dialog_options.append(decline_button)
             except Exception as e:
                 logger.error(f"Error offering quest: {e}")
                 self.dialog_text.set_text(f"{npc.name}: I'm having trouble with my quest ledger. Check back later.")
