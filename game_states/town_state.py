@@ -186,7 +186,6 @@ class TownState(GameState):
         self.player_path = []
         
         # UI elements
-        self.ui_manager = UIManager(self.screen)
         self.status_panel = None
         self.dialog_panel = None
         self.dialog_text = None
@@ -197,13 +196,18 @@ class TownState(GameState):
         self.quest_manager = None
         
         # Create UI elements
-        self._create_status_panel()
         
         logger.info("TownState initialized")
     
     def enter(self, previous_state=None):
         """Enter this state."""
         super().enter(previous_state)
+        
+        # Initialize UI manager with screen
+        self.ui_manager = UIManager(self.screen)
+        
+        # Create UI elements
+        self._create_status_panel()
         
         # Get the quest manager from persistent data
         self.quest_manager = self.state_manager.get_persistent_data("quest_manager")
