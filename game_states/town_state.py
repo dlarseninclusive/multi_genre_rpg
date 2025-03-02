@@ -7,7 +7,7 @@ from game_state import GameState
 from world_generator import Location, LocationType
 from ui_system import UIManager, UIButton, UILabel, UIPanel, UIImage, UIProgressBar
 from quest_system import QuestManager, QuestStatus, QuestType, ObjectiveType, Quest
-from character import Character
+from character import Character, Race, CharacterClass
 
 logger = logging.getLogger("town_state")
 
@@ -728,7 +728,7 @@ class TownState(GameState):
         # Get player character from state manager
         player = self.state_manager.get_persistent_data("player_character")
         if not player:
-            player = Character("Player", "Human", "Warrior")
+            player = Character("Player", Race.HUMAN, CharacterClass.WARRIOR)
         
         # Create dialog options based on NPC type
         option_y = 100
@@ -827,7 +827,7 @@ class TownState(GameState):
         # Get player character
         player = self.state_manager.get_persistent_data("player_character")
         if not player:
-            player = Character("Player", "Human", "Warrior")
+            player = Character("Player", Race.HUMAN, CharacterClass.WARRIOR)
         
         # Get available quests from the quest manager
         if self.quest_manager:
