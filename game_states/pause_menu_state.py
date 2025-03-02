@@ -26,6 +26,7 @@ class PauseMenuState(GameState):
     def enter(self, data=None):
         """Set up the state when entered."""
         super().enter(data)
+        self.show_character_sheet = False
         
         # Get screen dimensions
         screen_width, screen_height = pygame.display.get_surface().get_size()
@@ -175,11 +176,12 @@ class PauseMenuState(GameState):
     def _resume_game(self, button):
         """Resume the game."""
         logger.info("Resuming game")
-        self.pop_state()  # Only pop once to return to the previous state
+        self.state_manager.pop_state()
     
     def _toggle_character_sheet(self, button):
         """Toggle the character sheet."""
         self.show_character_sheet = not self.show_character_sheet
+        logger.info(f"Character sheet toggled: {self.show_character_sheet}")
     
     def _render_character_sheet(self, screen, character):
         """Render the character sheet."""
@@ -307,7 +309,7 @@ class PauseMenuState(GameState):
     def _return_to_main_menu(self, button):
         """Return to the main menu."""
         logger.info("Returning to main menu")
-        self.change_state("main_menu")
+        self.state_manager.change_state("main_menu")
     
     def _quit_game(self, button):
         """Quit the game."""
