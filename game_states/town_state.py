@@ -834,10 +834,9 @@ class TownState(GameState):
                 self.dialog_options = []
                 
                 # Create closures for the callbacks to avoid Python's late binding issues
-                def create_accept_callback(the_npc, the_quest, the_player):
+                def create_accept_callback(the_npc, the_quest_id, the_player):
                     def callback(_):
-                        # Pass the quest ID instead of the quest object
-                        self._accept_quest(the_npc, the_quest.id, the_player)
+                        self._accept_quest(the_npc, the_quest_id, the_player)
                     return callback
                 
                 def create_decline_callback(the_npc, dialog_key):
@@ -849,7 +848,7 @@ class TownState(GameState):
                 accept_button = self.ui_manager.create_button(
                     pygame.Rect(20, 100, 150, 30),
                     "Accept Quest",
-                    create_accept_callback(npc, self.current_quest, player),
+                    create_accept_callback(npc, self.current_quest.id, player),
                     self.dialog_panel
                 )
                 self.dialog_options.append(accept_button)
