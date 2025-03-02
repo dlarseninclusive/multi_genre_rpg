@@ -307,20 +307,20 @@ class CombatGameState(GameState):
         font_large = pygame.font.SysFont(None, 36)
         title_text = font_large.render("COMBAT", True, (255, 255, 255))
         screen.blit(title_text, (screen.get_width() // 2 - title_text.get_width() // 2, 20))
-        
+    
         # Player area
         player_area_height = 150
         player_area_y = screen.get_height() - player_area_height - 20
         pygame.draw.rect(screen, (50, 50, 80), (20, player_area_y, screen.get_width() - 40, player_area_height))
-        
+    
         # Enemy area
         enemy_area_height = 150
         enemy_area_y = 70
         pygame.draw.rect(screen, (80, 50, 50), (20, enemy_area_y, screen.get_width() - 40, enemy_area_height))
-        
+    
         # Render player entities
         self._render_entities(screen, player_entities, player_area_y, is_player=True)
-        
+    
         # Render enemy entities
         self._render_entities(screen, enemy_entities, enemy_area_y, is_player=False)
     
@@ -328,59 +328,59 @@ class CombatGameState(GameState):
         """Render a group of entities."""
         if not entities:
             return
-        
+    
         entity_width = 120
         entity_height = 120
-        
+    
         # Calculate total width needed
         total_width = len(entities) * entity_width
-        
+    
         # Center entities
         start_x = (screen.get_width() - total_width) // 2
-        
+    
         font = pygame.font.SysFont(None, 24)
         font_small = pygame.font.SysFont(None, 18)
-        
+    
         for i, entity in enumerate(entities):
             x = start_x + i * entity_width
             y = base_y + 15
-            
+        
             # Entity background
             bg_color = (30, 30, 40) if is_player else (40, 30, 30)
-            
+        
             # Highlight selected target
-            if not is_player and i == self.selected_target and self.active_combat.is_player_turn():
+            if not is_player and i == self.selected_target and self.current_turn == 0:
                 bg_color = (60, 40, 40)
                 pygame.draw.rect(screen, (255, 200, 0), 
                                (x + 8, y - 2, entity_width - 16, entity_height - 26), 2)
-            
+        
             pygame.draw.rect(screen, bg_color, (x + 10, y, entity_width - 20, entity_height - 30))
-            
+        
             # Entity name
             name_text = font.render(entity.name, True, (255, 255, 255))
             screen.blit(name_text, (x + entity_width//2 - name_text.get_width()//2, y + 5))
-            
+        
             # HP bar
             hp_percent = entity.health / entity.max_health
             hp_bar_width = entity_width - 40
             hp_bar_height = 10
             hp_bar_x = x + 20
             hp_bar_y = y + 30
-            
+        
             # HP bar background
             pygame.draw.rect(screen, (100, 100, 100), 
                            (hp_bar_x, hp_bar_y, hp_bar_width, hp_bar_height))
-            
+        
             # HP bar fill
             hp_fill_width = int(hp_bar_width * hp_percent)
             hp_color = (0, 255, 0) if hp_percent > 0.5 else (255, 255, 0) if hp_percent > 0.25 else (255, 0, 0)
             pygame.draw.rect(screen, hp_color, 
                            (hp_bar_x, hp_bar_y, hp_fill_width, hp_bar_height))
-            
+        
             # HP text
             hp_text = font_small.render(f"{entity.health}/{entity.max_health}", True, (255, 255, 255))
             screen.blit(hp_text, (hp_bar_x + hp_bar_width//2 - hp_text.get_width()//2, hp_bar_y + 12))
-            
+        
             # Status effects
             if hasattr(entity, 'status_effects') and entity.status_effects:
                 status_y = hp_bar_y + 30
@@ -394,7 +394,6 @@ class CombatGameState(GameState):
         """Render indicator for whose turn it is."""
         font = pygame.font.SysFont(None, 28)
         turn_text = font.render(f"{'Your' if is_player_turn else entity.name + '\'s'} Turn", True, (255, 255, 0))
-        
         screen.blit(turn_text, (screen.get_width() // 2 - turn_text.get_width() // 2, 225))
     
     def _render_action_menu(self, screen):
@@ -403,23 +402,23 @@ class CombatGameState(GameState):
         menu_height = 60
         menu_x = (screen.get_width() - menu_width) // 2
         menu_y = 250
-        
+    
         # Menu background
         pygame.draw.rect(screen, (40, 40, 60), (menu_x, menu_y, menu_width, menu_height))
         pygame.draw.rect(screen, (100, 100, 150), (menu_x, menu_y, menu_width, menu_height), 2)
-        
+    
         # Actions
         actions = ["Attack", "Skill", "Item", "Defend", "Flee"]
         font = pygame.font.SysFont(None, 24)
-        
+    
         for i, action in enumerate(actions):
             action_width = menu_width // len(actions)
             action_x = menu_x + i * action_width
-            
+        
             # Highlight if selected
             if i == self.selected_action:
                 pygame.draw.rect(screen, (60, 60, 100), (action_x, menu_y, action_width, menu_height))
-            
+        
             # Action text
             text = font.render(action, True, (255, 255, 255))
             screen.blit(text, (action_x + action_width//2 - text.get_width()//2, menu_y + menu_height//2 - text.get_height()//2))
