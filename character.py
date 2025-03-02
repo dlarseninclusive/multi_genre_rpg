@@ -243,6 +243,27 @@ class Character:
             self._level_up()
             return True
         return False
+
+    def gain_combat_experience(self, enemies_defeated):
+        """
+        Gain experience from defeated enemies.
+        
+        Args:
+            enemies_defeated: List of defeated enemy entities
+            
+        Returns:
+            Total XP gained
+        """
+        total_xp = 0
+        for enemy in enemies_defeated:
+            xp = enemy.level * 10
+            if enemy.level > self.level:
+                xp = int(xp * 1.5)
+            elif enemy.level < self.level - 3:
+                xp = max(1, xp // 2)
+            total_xp += xp
+        self.gain_experience(total_xp)
+        return total_xp
     
     def _level_up(self):
         """Handle level up effects."""

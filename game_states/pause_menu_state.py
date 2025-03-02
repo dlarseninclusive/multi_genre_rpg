@@ -152,17 +152,25 @@ class PauseMenuState(GameState):
         overlay.fill((0, 0, 0, 128))  # Semi-transparent black
         screen.blit(overlay, (0, 0))
         
+        # Initialize character sheet flag if not present
+        if not hasattr(self, 'show_character_sheet'):
+            self.show_character_sheet = False
+        
         # Render UI
         self.ui_manager.render()
         
         # Character info if available
         player = self.state_manager.get_persistent_data("player_character")
-        if player and getattr(self, 'show_character_sheet', False):
+        if player and self.show_character_sheet:
             self._render_character_sheet(screen, player)
     
     def _resume_game(self, button):
         """Resume the game."""
         logger.info("Resuming game")
+    
+    def _toggle_character_sheet(self, button):
+        """Toggle the character sheet."""
+        self.show_character_sheet = not self.show_character_sheet
     
     def _render_character_sheet(self, screen, character):
         """Render the character sheet."""

@@ -477,6 +477,27 @@ class WorldExplorationState(GameState):
             
             # Update camera to follow player
             self._center_camera_on_player()
+            
+            # Check for random encounters based on movement
+            if abs(self.player_x - self.last_position[0]) > 0.1 or abs(self.player_y - self.last_position[1]) > 0.1:
+                self.steps_since_last_encounter += 1
+                
+                # Get terrain type at current position
+                terrain_x, terrain_y = int(self.player_x), int(self.player_y)
+                if 0 <= terrain_x < self.world_width and 0 <= terrain_y < self.world_height:
+                    terrain_type = self.world["terrain"][terrain_y][terrain_x]
+                    terrain_modifier = self.terrain_encounter_modifiers.get(terrain_type, 1.0)
+                    
+                    # Calculate encounter chance based on terrain and steps since last encounter
+                    base_chance = self.encounter_chance_per_step * terrain_modifier
+                    cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
+                    encounter_chance = base_chance + cooldown_bonus
+                    
+                    if random.random() < encounter_chance:
+                        self._trigger_random_encounter(terrain_type)
+                
+                # Update last position for next check
+                self.last_position = (self.player_x, self.player_y)
         else:
             # Original keyboard movement code
             dx, dy = self.player_direction
