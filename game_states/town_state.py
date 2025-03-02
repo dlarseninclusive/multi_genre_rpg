@@ -881,13 +881,12 @@ class TownState(GameState):
     
     def _accept_quest(self, npc, quest_id, player):
         """Accept a quest from an NPC."""
-        logger.info(f"Accepting quest: {quest_id}, type: {type(quest_id)}")
-        logger.info(f"NPC: {npc}, type: {type(npc)}")
-        logger.info(f"Player: {player}, type: {type(player)}")
+        logger.info(f"Accepting quest: {quest_id}")
         
         try:
-            if not isinstance(npc, Npc):
-                logger.error(f"Invalid NPC object: {npc}")
+            if not self.quest_manager:
+                logger.error("No quest manager available")
+                self.dialog_text.set_text(f"{npc.name}: I'm sorry, there seems to be a problem with the quest system.")
                 return
                 
             if quest_id:
