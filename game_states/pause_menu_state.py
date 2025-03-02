@@ -26,6 +26,8 @@ class PauseMenuState(GameState):
     def enter(self, data=None):
         """Set up the state when entered."""
         super().enter(data)
+        self._resuming = False
+        self.show_character_sheet = False
         self.show_character_sheet = False
         
         # Get screen dimensions
@@ -63,7 +65,7 @@ class PauseMenuState(GameState):
         self.resume_button = self.ui_manager.create_button(
             pygame.Rect(button_x, 100, button_width, button_height),
             "Resume Game",
-            self._resume_game,
+            lambda btn: self._resume_game(btn),
             self.menu_panel
         )
         
@@ -111,6 +113,8 @@ class PauseMenuState(GameState):
     
     def exit(self):
         """Clean up when leaving the state."""
+        if hasattr(self, 'ui_manager'):
+            self.ui_manager.clear()
         super().exit()
         logger.info("Exited pause menu")
     
@@ -175,8 +179,11 @@ class PauseMenuState(GameState):
     
     def _resume_game(self, button):
         """Resume the game."""
-        logger.info("Resuming game")
-        self.state_manager.pop_state()
+        # Prevent double-execution
+        if not hasattr(self, '_resuming') or not self._resuming:
+            self._resuming = True
+            logger.info("Resuming game")
+            self.state_manager.pop_state()
     
     def _toggle_character_sheet(self, button):
         """Toggle the character sheet."""
