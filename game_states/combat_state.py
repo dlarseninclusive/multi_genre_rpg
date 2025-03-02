@@ -49,9 +49,12 @@ class CombatGameState(GameState):
         super().__init__(state_manager, event_bus, settings)
         from combat_system_integration import CombatManager
         self.combat_manager = CombatManager(event_bus, settings)
-        self.active_combat = None
+        self.active_combat = False
         self.selected_action = 0
         self.selected_target = 0
+        self.current_turn = 0
+        self.player_entity = None
+        self.enemy_entities = []
         logger.info("CombatGameState initialized")
     
     def enter(self, data=None):
