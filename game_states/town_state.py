@@ -186,6 +186,7 @@ class TownState(GameState):
         self.player_path = []
         
         # UI elements
+        self.ui_manager = UIManager(self.screen)
         self.status_panel = None
         self.dialog_panel = None
         self.dialog_text = None
@@ -194,13 +195,37 @@ class TownState(GameState):
         
         # Quest system
         self.quest_manager = None
+        self.current_quest = None  # Current quest being offered
         
+        # Create UI elements
+        self._create_status_panel()
+        
+        # Load tile graphics
+        self._load_graphics()
         
         logger.info("TownState initialized")
     
-    def enter(self, data=None):
+    def _load_graphics(self):
+        """Load game graphics."""
+        try:
+            # Try to load tiles from assets folder
+            self.tile_images = {
+                'grass': pygame.image.load('assets/tiles/grass.png').convert_alpha(),
+                'road': pygame.image.load('assets/tiles/road.png').convert_alpha(),
+                'water': pygame.image.load('assets/tiles/water.png').convert_alpha(),
+                'building': pygame.image.load('assets/tiles/building.png').convert_alpha(),
+                'roof': pygame.image.load('assets/tiles/roof.png').convert_alpha(),
+                'player': pygame.image.load('assets/characters/player.png').convert_alpha(),
+                'npc': pygame.image.load('assets/characters/npc.png').convert_alpha(),
+            }
+        except (pygame.error, FileNotFoundError) as e:
+            # If graphics loading fails, fall back to simple rendering
+            logger.warning(f"Failed to load graphics: {e}. Using simple rendering.")
+            self.tile_images = {}
+    
+    def enter(self, previous_state=None):
         """Enter this state."""
-        super().enter(data)
+        super().enter(previous_state)
         
         # Get the quest manager from persistent data
         self.quest_manager = self.state_manager.get_persistent_data("quest_manager")
@@ -224,9 +249,8 @@ class TownState(GameState):
         Args:
             dt: Time delta in seconds
         """
-        # Update UI if available
-        if hasattr(self, 'ui_manager') and self.has_ui:
-            self.ui_manager.update(dt)
+        # Update UI
+        self.ui_manager.update(dt)
         
         # Update player movement
         self._update_player_movement(dt)
@@ -241,8 +265,8 @@ class TownState(GameState):
         Args:
             event: Pygame event
         """
-        # Handle UI events if UI is available
-        if hasattr(self, 'ui_manager') and self.has_ui and self.ui_manager.handle_event(event):
+        # Handle UI events
+        if self.ui_manager.handle_event(event):
             return
         
         # Handle mouse clicks
@@ -283,20 +307,10 @@ class TownState(GameState):
                 # Toggle quest journal
                 self._toggle_quest_journal()
     
-    def render(self, screen):
+    def render(self):
         """Render the town."""
-        # Store screen for future use if we don't have it yet
-        if not hasattr(self, 'screen') or self.screen is None:
-            self.screen = screen
-            
-            # Initialize UI if we now have a screen
-            if not hasattr(self, 'ui_manager'):
-                self.ui_manager = UIManager(self.screen)
-                self._create_status_panel()
-                self.has_ui = True
-        
         # Clear screen
-        screen.fill((0, 0, 0))
+        self.screen.fill((0, 0, 0))
         
         # Render town grid
         self._render_town_grid()
@@ -310,9 +324,8 @@ class TownState(GameState):
         # Render player
         self._render_player()
         
-        # Render UI if available
-        if hasattr(self, 'ui_manager') and self.has_ui:
-            self.ui_manager.render()
+        # Render UI
+        self.ui_manager.render(self.screen)
     
     def _create_status_panel(self):
         """Create the status panel UI."""
@@ -398,6 +411,7 @@ class TownState(GameState):
         )
         quest_giver.add_dialog("greeting", "Welcome, traveler. The town is in need of your help.")
         quest_giver.add_dialog("quest_offer", "We've been having trouble with wolves attacking our livestock. Could you help us?")
+        quest_giver.add_dialog("quest_declined", "I understand. Come back if you change your mind.")
         self.npcs.append(quest_giver)
         self.buildings[0].add_npc(quest_giver)
         
@@ -462,10 +476,6 @@ class TownState(GameState):
     
     def _update_camera(self):
         """Update camera position to follow player."""
-        # Check if screen is initialized
-        if not hasattr(self, 'screen') or self.screen is None:
-            return
-        
         target_x = int(self.player_grid_pos[0] * self.tile_size - self.screen.get_width() // 2)
         target_y = int(self.player_grid_pos[1] * self.tile_size - self.screen.get_height() // 2)
         
@@ -496,15 +506,20 @@ class TownState(GameState):
         # Draw grid
         for y in range(start_y, end_y):
             for x in range(start_x, end_x):
-                # Draw grass tile
                 rect = pygame.Rect(
                     x * self.tile_size - self.camera_offset[0],
                     y * self.tile_size - self.camera_offset[1],
                     self.tile_size,
                     self.tile_size
                 )
-                pygame.draw.rect(self.screen, (50, 150, 50), rect)
-                pygame.draw.rect(self.screen, (40, 120, 40), rect, 1)
+                
+                # Use sprite if available, otherwise draw a simple rectangle
+                if 'grass' in self.tile_images:
+                    self.screen.blit(self.tile_images['grass'], rect)
+                else:
+                    # Draw grass tile
+                    pygame.draw.rect(self.screen, (50, 150, 50), rect)
+                    pygame.draw.rect(self.screen, (40, 120, 40), rect, 1)
     
     def _render_buildings(self):
         """Render town buildings."""
@@ -522,18 +537,40 @@ class TownState(GameState):
                 building_rect.top > self.screen.get_height()):
                 continue
             
-            # Draw building
-            pygame.draw.rect(self.screen, (150, 100, 50), building_rect)
-            pygame.draw.rect(self.screen, (120, 70, 30), building_rect, 2)
-            
-            # Draw roof
-            roof_rect = pygame.Rect(
-                building_rect.left,
-                building_rect.top,
-                building_rect.width,
-                building_rect.height // 2
-            )
-            pygame.draw.rect(self.screen, (180, 50, 50), roof_rect)
+            # Use sprites if available, otherwise draw simple shapes
+            if 'building' in self.tile_images and 'roof' in self.tile_images:
+                # Draw building base
+                for y in range(building.size[1]):
+                    for x in range(building.size[0]):
+                        pos = (
+                            (building.position[0] + x) * self.tile_size - self.camera_offset[0],
+                            (building.position[1] + y) * self.tile_size - self.camera_offset[1]
+                        )
+                        self.screen.blit(self.tile_images['building'], pos)
+                
+                # Draw roof on top half
+                roof_rect = pygame.Rect(
+                    building_rect.left,
+                    building_rect.top,
+                    building_rect.width,
+                    building_rect.height // 2
+                )
+                pygame.transform.scale(self.tile_images['roof'], (roof_rect.width, roof_rect.height))
+                self.screen.blit(pygame.transform.scale(self.tile_images['roof'], 
+                                                      (roof_rect.width, roof_rect.height)), roof_rect)
+            else:
+                # Draw building (simple rectangle)
+                pygame.draw.rect(self.screen, (150, 100, 50), building_rect)
+                pygame.draw.rect(self.screen, (120, 70, 30), building_rect, 2)
+                
+                # Draw roof (simple rectangle)
+                roof_rect = pygame.Rect(
+                    building_rect.left,
+                    building_rect.top,
+                    building_rect.width,
+                    building_rect.height // 2
+                )
+                pygame.draw.rect(self.screen, (180, 50, 50), roof_rect)
             
             # Draw name
             name_text = self.small_font.render(building.name, True, (255, 255, 255))
@@ -555,8 +592,18 @@ class TownState(GameState):
                 screen_y > self.screen.get_height() + 20):
                 continue
             
-            # Draw NPC
-            pygame.draw.circle(self.screen, (200, 200, 0), (int(screen_x), int(screen_y)), 10)
+            # Draw NPC sprite if available, otherwise a circle
+            if 'npc' in self.tile_images:
+                sprite_rect = pygame.Rect(
+                    screen_x - self.tile_size // 2,
+                    screen_y - self.tile_size // 2,
+                    self.tile_size,
+                    self.tile_size
+                )
+                self.screen.blit(self.tile_images['npc'], sprite_rect)
+            else:
+                # Draw NPC as a circle
+                pygame.draw.circle(self.screen, (200, 200, 0), (int(screen_x), int(screen_y)), 10)
             
             # Draw NPC name
             name_text = self.small_font.render(npc.name, True, (255, 255, 255))
@@ -579,9 +626,19 @@ class TownState(GameState):
         screen_x = int(self.player_grid_pos[0] * self.tile_size - self.camera_offset[0])
         screen_y = int(self.player_grid_pos[1] * self.tile_size - self.camera_offset[1])
         
-        # Draw player
-        pygame.draw.circle(self.screen, (0, 100, 255), (screen_x, screen_y), 12)
-        pygame.draw.circle(self.screen, (0, 50, 200), (screen_x, screen_y), 12, 2)
+        # Draw player sprite if available, otherwise a circle
+        if 'player' in self.tile_images:
+            sprite_rect = pygame.Rect(
+                screen_x - self.tile_size // 2,
+                screen_y - self.tile_size // 2,
+                self.tile_size,
+                self.tile_size
+            )
+            self.screen.blit(self.tile_images['player'], sprite_rect)
+        else:
+            # Draw player as a circle
+            pygame.draw.circle(self.screen, (0, 100, 255), (screen_x, screen_y), 12)
+            pygame.draw.circle(self.screen, (0, 50, 200), (screen_x, screen_y), 12, 2)
     
     def _interact_with_npc(self, npc):
         """
@@ -691,6 +748,7 @@ class TownState(GameState):
             self.dialog_text = None
             self.dialog_npc = None
             self.dialog_options = []
+            self.current_quest = None
     
     def _offer_quest(self, npc):
         """
@@ -713,20 +771,24 @@ class TownState(GameState):
                 return
             
             # Find a quest for this NPC
-            npc_quest = None
+            self.current_quest = None
             npc_id = f"{npc.npc_type.name.lower()}_{npc.name.lower().replace(' ', '_')}"
             
             for quest in available_quests:
-                if quest.quest_giver == npc_id:
-                    npc_quest = quest
+                if hasattr(quest, 'quest_giver') and quest.quest_giver == npc_id:
+                    self.current_quest = quest
                     break
             
-            if not npc_quest:
+            if not self.current_quest and available_quests:
                 # If no specific quest for this NPC, just use the first one
-                npc_quest = available_quests[0]
+                self.current_quest = available_quests[0]
             
+            if not self.current_quest:
+                self.dialog_text.set_text(f"{npc.name}: I don't have any quests for you right now.")
+                return
+                
             # Update dialog text with quest description
-            self.dialog_text.set_text(f"{npc.name}: {npc_quest.description}")
+            self.dialog_text.set_text(f"{npc.name}: {self.current_quest.description}")
             
             # Update dialog options
             for button in self.dialog_options:
@@ -734,11 +796,14 @@ class TownState(GameState):
             
             self.dialog_options = []
             
+            # Store a reference to the quest
+            quest_for_callback = self.current_quest
+            
             # Add accept button
             accept_button = self.ui_manager.create_button(
                 pygame.Rect(20, 100, 150, 30),
                 "Accept Quest",
-                lambda _: self._accept_quest(npc, npc_quest, player),
+                lambda _: self._accept_quest(npc, quest_for_callback, player),
                 self.dialog_panel
             )
             self.dialog_options.append(accept_button)
@@ -764,33 +829,37 @@ class TownState(GameState):
             quest: Quest object
             player: Player character
         """
-        logger.info(f"Accepted quest: {quest.title}")
-        
-        # Activate the quest in the quest manager
-        if self.quest_manager:
-            self.quest_manager.activate_quest(quest.id, player)
-        
-        # Add response dialog
-        npc.add_dialog("quest_accepted", 
-                      "Excellent! Come back when you've completed the task.")
-        
-        # Update dialog
-        self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog('quest_accepted')}")
-        
-        # Update dialog options
-        for button in self.dialog_options:
-            self.ui_manager.remove_element(button)
-        
-        self.dialog_options = []
-        
-        # Add close button
-        close_button = self.ui_manager.create_button(
-            pygame.Rect(20, 100, 150, 30),
-            "Close",
-            lambda _: self._close_dialog(),
-            self.dialog_panel
-        )
-        self.dialog_options.append(close_button)
+        if quest:
+            logger.info(f"Accepted quest: {quest.title}")
+            
+            # Activate the quest in the quest manager
+            if self.quest_manager:
+                self.quest_manager.activate_quest(quest.id, player)
+            
+            # Add response dialog
+            npc.add_dialog("quest_accepted", 
+                          "Excellent! Come back when you've completed the task.")
+            
+            # Update dialog
+            self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog('quest_accepted')}")
+            
+            # Update dialog options
+            for button in self.dialog_options:
+                self.ui_manager.remove_element(button)
+            
+            self.dialog_options = []
+            
+            # Add close button
+            close_button = self.ui_manager.create_button(
+                pygame.Rect(20, 100, 150, 30),
+                "Close",
+                lambda _: self._close_dialog(),
+                self.dialog_panel
+            )
+            self.dialog_options.append(close_button)
+        else:
+            logger.error("Attempted to accept a quest, but quest object is invalid")
+            self._close_dialog()
     
     def _continue_dialog(self, npc, dialog_key):
         """
@@ -800,22 +869,26 @@ class TownState(GameState):
             npc: Npc instance
             dialog_key: Dialog key
         """
-        self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog(dialog_key)}")
-        
-        # Update dialog options
-        for button in self.dialog_options:
-            self.ui_manager.remove_element(button)
-        
-        self.dialog_options = []
-        
-        # Add close button
-        close_button = self.ui_manager.create_button(
-            pygame.Rect(20, 100, 150, 30),
-            "Close",
-            lambda _: self._close_dialog(),
-            self.dialog_panel
-        )
-        self.dialog_options.append(close_button)
+        if npc and dialog_key:
+            self.dialog_text.set_text(f"{npc.name}: {npc.get_dialog(dialog_key)}")
+            
+            # Update dialog options
+            for button in self.dialog_options:
+                self.ui_manager.remove_element(button)
+            
+            self.dialog_options = []
+            
+            # Add close button
+            close_button = self.ui_manager.create_button(
+                pygame.Rect(20, 100, 150, 30),
+                "Close",
+                lambda _: self._close_dialog(),
+                self.dialog_panel
+            )
+            self.dialog_options.append(close_button)
+        else:
+            logger.error("Invalid parameters in _continue_dialog")
+            self._close_dialog()
     
     def _open_shop(self, npc):
         """
