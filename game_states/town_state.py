@@ -198,12 +198,21 @@ class TownState(GameState):
         
         logger.info("TownState initialized")
     
-    def enter(self, previous_state=None):
+    def enter(self, data=None):
         """Enter this state."""
-        super().enter(previous_state)
+        super().enter(data)
         
-        # Assume self.screen is already set by GameState
-        
+        # Try to get screen from data
+        if data and 'screen' in data:
+            self.screen = data['screen']
+        else:
+            # Try to get from persistent data
+            self.screen = self.state_manager.get_persistent_data("screen")
+            
+        if not hasattr(self, 'screen') or self.screen is None:
+            logger.warning("No screen available. UI elements will not be created.")
+            return
+            
         # Initialize UI manager with screen
         self.ui_manager = UIManager(self.screen)
         
