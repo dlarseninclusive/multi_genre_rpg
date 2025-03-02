@@ -425,50 +425,61 @@ class CombatGameState(GameState):
     
     def _execute_selected_action(self):
         """Execute the currently selected action."""
-        if not self.active_combat or not self.active_combat.is_player_turn():
+        if not self.active_combat:
             return
-            
+        
         actions = ["attack", "skill", "item", "defend", "flee"]
         action = actions[self.selected_action]
         
         if action == "attack":
-            # Get enemy targets
-            enemy_entities = self.active_combat.get_enemy_entities()
-            if enemy_entities and 0 <= self.selected_target < len(enemy_entities):
-                # Send combat action event
-                self.event_bus.publish("combat_action", {
-                    "type": "attack",
-                    "target": self.selected_target
+            # Player attacks the selected enemy
+            if self.current_turn == 0 and 0 <= self.selected_target < len(self.enemy_entities):
+                target = self.enemy_entities[self.selected_target]
+                damage = self.player_entity.attack_target(target)
+                
+                # Show attack message
+                self.event_bus.publish("show_notification", {
+                    "title": "Player Attack",
+                    "message": f"You hit {target.name} for {damage} damage! ({target.health}/{target.max_health} HP)",
+                    "duration": 2.0
                 })
-        
-        elif action == "skill":
-            # Placeholder for skill selection UI
-            # For now, just show a notification
-            self.event_bus.publish("show_notification", {
-                "title": "Skills",
-                "message": "Skill system not implemented yet",
-                "duration": 2.0
-            })
-            
-        elif action == "item":
-            # Placeholder for item selection UI
-            self.event_bus.publish("show_notification", {
-                "title": "Items",
-                "message": "Item system not implemented yet",
-                "duration": 2.0
-            })
-            
-        elif action == "defend":
-            # Send defend action
-            self.event_bus.publish("combat_action", {
-                "type": "defend"
-            })
-            
+                
+                # Check if enemy is defeated
+                if not target.is_alive():
+                    self.event_bus.publish("show_notification", {
+                        "title": "Enemy Defeated",
+                        "message": f"You defeated {target.name}!",
+                        "duration": 2.0
+                    })
+                    self.enemy_entities.remove(target)
+                
+                # Check if all enemies are defeated
+                if not self.enemy_entities:
+                    self._handle_combat_victory()
+                    return
+                
+                # Change to enemy turn
+                self.current_turn = 1
+                self._execute_enemy_turn()
+    
         elif action == "flee":
-            # Send flee action
-            self.event_bus.publish("combat_action", {
-                "type": "flee"
-            })
+            # 50% chance to flee successfully
+            if random.random() < 0.5:
+                self.event_bus.publish("show_notification", {
+                    "title": "Escaped",
+                    "message": "You fled from battle.",
+                    "duration": 2.0
+                })
+                self.change_state("world_exploration")
+            else:
+                self.event_bus.publish("show_notification", {
+                    "title": "Failed to Escape",
+                    "message": "You couldn't escape! Enemy's turn.",
+                    "duration": 2.0
+                })
+                # Change to enemy turn
+                self.current_turn = 1
+                self._execute_enemy_turn()
     
     def _handle_combat_victory(self):
         """Handle combat victory."""
