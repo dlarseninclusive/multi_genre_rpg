@@ -532,6 +532,26 @@ class WorldExplorationState(GameState):
                 "duration": 5.0
             })
     
+    def _center_camera_on_player(self):
+        """Center the camera on the player's position."""
+        if hasattr(self, 'screen'):
+            screen_width = self.screen.get_width()
+            screen_height = self.screen.get_height()
+        else:
+            # Use default screen dimensions if screen not available yet
+            screen_width = 800
+            screen_height = 600
+
+        # Calculate camera position to center player
+        self.camera_x = int(self.player_x * self.tile_size - screen_width // 2)
+        self.camera_y = int(self.player_y * self.tile_size - screen_height // 2)
+
+        # Ensure camera doesn't go beyond map bounds
+        self.camera_x = max(0, min(self.camera_x, self.world_width * self.tile_size - screen_width))
+        self.camera_y = max(0, min(self.camera_y, self.world_height * self.tile_size - screen_height))
+
+        logger.debug(f"Camera centered at ({self.camera_x}, {self.camera_y})")
+
     def _move_player(self, dt):
         """Update player position based on direction and speed."""
         # If we have a target to move to
@@ -640,6 +660,10 @@ class WorldExplorationState(GameState):
         if not self.faction_manager:
             logger.warning("No faction manager available to set up territories")
             return
+        # Check if faction manager has factions attribute, if not initialize it
+        if not hasattr(self.faction_manager, 'factions'):
+            logger.warning("Faction manager missing factions attribute, initializing empty dictionary")
+            self.faction_manager.factions = {}
         
         try:
             # Get all factions
