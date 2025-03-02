@@ -256,21 +256,25 @@ class CombatGameState(GameState):
             self._render_placeholder(screen)
             return
         
+        if isinstance(self.active_combat, bool):
+            self._render_placeholder(screen)
+            return
+        
         # Get entities
-        player_entities = self.active_combat.get_player_entities()
-        enemy_entities = self.active_combat.get_enemy_entities()
+        player_entities = [self.player_entity] if self.player_entity else []
+        enemy_entities = self.enemy_entities
         
         # Draw combat UI
         self._render_combat_ui(screen, player_entities, enemy_entities)
         
         # Draw turn indicator
-        current_entity = self.active_combat.get_current_entity()
+        current_entity = self.player_entity if self.current_turn == 0 else (self.enemy_entities[self.current_turn-1] if len(self.enemy_entities) > 0 else None)
         if current_entity:
-            is_player_turn = self.active_combat.is_player_turn()
+            is_player_turn = (self.current_turn == 0)
             self._render_turn_indicator(screen, current_entity, is_player_turn)
         
         # Draw action menu if it's player's turn
-        if self.active_combat.is_player_turn():
+        if self.current_turn == 0:
             self._render_action_menu(screen)
     
     def _render_placeholder(self, screen):
