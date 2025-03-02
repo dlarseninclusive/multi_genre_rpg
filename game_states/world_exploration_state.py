@@ -321,6 +321,41 @@ class WorldExplorationState(GameState):
                 "location_name": location.name,
                 "location_type": location.location_type.value
             })
+            
+    def _check_location_discovery(self):
+        """Check for and discover locations near the player."""
+        if not self.world or "locations" not in self.world:
+            return
+            
+        player_x, player_y = self.player_x, self.player_y
+        
+        # Check each location to see if it's within discovery radius
+        for location in self.world["locations"]:
+            # Calculate distance to location
+            dx = location.x - player_x
+            dy = location.y - player_y
+            distance = math.sqrt(dx*dx + dy*dy)
+            
+            # If within discovery radius, mark as discovered
+            if distance <= self.discover_radius and not location.discovered:
+                location.discovered = True
+                logger.info(f"Discovered location: {location.name} ({location.location_type.name})")
+                
+                # Publish location discovered event
+                self.event_bus.publish("location_discovered", {
+                    "location_id": location.name.lower().replace(" ", "_"),
+                    "location_name": location.name,
+                    "location_type": location.location_type.value,
+                    "x": location.x,
+                    "y": location.y
+                })
+                
+                # Show notification
+                self.event_bus.publish("show_notification", {
+                    "title": f"Discovered {location.name}",
+                    "message": f"You have discovered {location.name}, a {location.location_type.name.lower().replace('_', ' ')}.",
+                    "duration": 3.0
+                })
     
     def handle_event(self, event):
         """Handle pygame events."""
