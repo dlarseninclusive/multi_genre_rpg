@@ -154,10 +154,77 @@ class PauseMenuState(GameState):
         
         # Render UI
         self.ui_manager.render()
+        
+        # Character info if available
+        player = self.state_manager.get_persistent_data("player_character")
+        if player and getattr(self, 'show_character_sheet', False):
+            self._render_character_sheet(screen, player)
     
     def _resume_game(self, button):
         """Resume the game."""
         logger.info("Resuming game")
+    
+    def _render_character_sheet(self, screen, character):
+        """Render the character sheet."""
+        # Create a semi-transparent background
+        sheet_surface = pygame.Surface((400, 500))
+        sheet_surface.set_alpha(230)
+        sheet_surface.fill((30, 30, 40))
+        
+        # Position in center of screen
+        sheet_rect = sheet_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+        
+        # Render character info
+        title_font = pygame.font.Font(None, 36)
+        label_font = pygame.font.Font(None, 24)
+        value_font = pygame.font.Font(None, 24)
+        
+        # Character name and class
+        name_text = title_font.render(f"{character.name} - Level {character.level} {character.race.name} {character.character_class.name}", True, (220, 220, 220))
+        sheet_surface.blit(name_text, (20, 20))
+        
+        # Stats
+        y_pos = 70
+        for stat_name, stat in character.stats.items():
+            stat_label = label_font.render(f"{stat_name.capitalize()}:", True, (180, 180, 180))
+            stat_value = value_font.render(f"{stat.value}", True, (220, 220, 220))
+            sheet_surface.blit(stat_label, (30, y_pos))
+            sheet_surface.blit(stat_value, (150, y_pos))
+            y_pos += 30
+        
+        # Health and Mana
+        y_pos += 10
+        health_label = label_font.render("Health:", True, (180, 180, 180))
+        health_value = value_font.render(f"{character.health}/{character.max_health}", True, (220, 100, 100))
+        sheet_surface.blit(health_label, (30, y_pos))
+        sheet_surface.blit(health_value, (150, y_pos))
+        
+        y_pos += 30
+        mana_label = label_font.render("Mana:", True, (180, 180, 180))
+        mana_value = value_font.render(f"{character.mana}/{character.max_mana}", True, (100, 100, 220))
+        sheet_surface.blit(mana_label, (30, y_pos))
+        sheet_surface.blit(mana_value, (150, y_pos))
+        
+        # Experience
+        y_pos += 30
+        exp_label = label_font.render("Experience:", True, (180, 180, 180))
+        exp_value = value_font.render(f"{character.experience}/{character.next_level_exp}", True, (220, 220, 100))
+        sheet_surface.blit(exp_label, (30, y_pos))
+        sheet_surface.blit(exp_value, (150, y_pos))
+        
+        # Skills
+        y_pos += 50
+        skills_label = title_font.render("Skills:", True, (220, 220, 220))
+        sheet_surface.blit(skills_label, (20, y_pos))
+        
+        y_pos += 30
+        for skill in character.skills:
+            skill_text = label_font.render(f"• {skill}", True, (180, 180, 180))
+            sheet_surface.blit(skill_text, (40, y_pos))
+            y_pos += 25
+        
+        # Draw the surface to the screen
+        screen.blit(sheet_surface, sheet_rect.topleft)
         self.pop_state()
     
     def _save_game(self, button):
