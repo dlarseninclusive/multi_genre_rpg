@@ -1,5 +1,6 @@
 import pygame
 import logging
+import random  # Add this import
 from game_state import GameState
 
 logger = logging.getLogger("combat")
