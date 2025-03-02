@@ -247,6 +247,81 @@ class WorldExplorationState(GameState):
         super().exit()
         logger.info("Exited world exploration")
     
+    def _handle_enter_location(self, data):
+        """Handle entering a location event."""
+        location_name = data.get("name", "Unknown")
+        location_type = data.get("type")
+        location_id = data.get("id")
+        
+        logger.info(f"Entering location: {location_name}")
+        
+        # Update current location information
+        self.current_location = {
+            "name": location_name,
+            "type": location_type,
+            "id": location_id
+        }
+        
+        # Show notification
+        self.event_bus.publish("show_notification", {
+            "title": f"Entering {location_name}",
+            "message": f"You have arrived at {location_name}",
+            "duration": 3.0
+        })
+        
+        # Handle location specific actions
+        if location_type == LocationType.TOWN.value:
+            # Push town state with location data
+            self.state_manager.push_state("town", {"location_name": location_name, "location_id": location_id})
+        elif location_type == LocationType.DUNGEON.value:
+            # Push dungeon state with location data
+            self.state_manager.push_state("dungeon", {"location_name": location_name, "location_id": location_id})
+    
+    def _handle_exit_location(self, data):
+        """Handle exiting a location event."""
+        location_name = data.get("name", "Unknown")
+        
+        logger.info(f"Exiting location: {location_name}")
+        
+        # Clear current location
+        self.current_location = None
+        
+        # Show notification
+        self.event_bus.publish("show_notification", {
+            "title": f"Leaving {location_name}",
+            "message": f"You have left {location_name}",
+            "duration": 2.0
+        })
+    
+    def _get_location_at(self, x, y):
+        """Get location at the specified coordinates."""
+        for location in self.world["locations"]:
+            if math.sqrt((x - location.x)**2 + (y - location.y)**2) < 1.0:
+                return location
+        return None
+    
+    def _interact_with_location(self, location):
+        """Handle player interaction with a location."""
+        logger.info(f"Interacting with location: {location.name}")
+        
+        # Mark as visited if discovered
+        if location.discovered:
+            location.visited = True
+            
+            # Publish location entered event
+            self.event_bus.publish("enter_location", {
+                "name": location.name,
+                "type": location.location_type.value,
+                "id": location.name.lower().replace(" ", "_")
+            })
+            
+            # Notify quest system that location was visited
+            self.event_bus.publish("location_visited", {
+                "location_id": location.name.lower().replace(" ", "_"),
+                "location_name": location.name,
+                "location_type": location.location_type.value
+            })
+    
     def handle_event(self, event):
         """Handle pygame events."""
         if event.type == pygame.KEYDOWN:
