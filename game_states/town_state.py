@@ -472,7 +472,7 @@ class TownState(GameState):
             (self.buildings[3].entrance[0] * self.tile_size, 
              self.buildings[3].entrance[1] * self.tile_size - 20)
         )
-        merchant.add_dialog("greeting", "Browse my wares\! I have everything you need.")
+        merchant.add_dialog("greeting", "Browse my wares! I have everything you need.")
         self.npcs.append(merchant)
         self.buildings[3].add_npc(merchant)
         
@@ -483,7 +483,7 @@ class TownState(GameState):
             (self.buildings[1].entrance[0] * self.tile_size, 
              self.buildings[1].entrance[1] * self.tile_size - 20)
         )
-        innkeeper.add_dialog("greeting", "Welcome to the Dancing Dragon\! Food, drink, and a warm bed await.")
+        innkeeper.add_dialog("greeting", "Welcome to the Dancing Dragon! Food, drink, and a warm bed await.")
         self.npcs.append(innkeeper)
         self.buildings[1].add_npc(innkeeper)
     
@@ -992,7 +992,7 @@ class TownState(GameState):
                 
                 # Add response dialog
                 logger.info("Setting quest accepted dialog")
-                npc.add_dialog("quest_accepted", "Excellent\! Come back when you've completed the task.")
+                npc.add_dialog("quest_accepted", "Excellent! Come back when you've completed the task.")
                 
                 # Update dialog
                 logger.info("Updating dialog text")
@@ -1070,7 +1070,7 @@ class TownState(GameState):
         logger.info(f"Opening shop with {npc.name}")
         
         # For now, just show a message
-        self.dialog_text.set_text(f"{npc.name}: Welcome to my shop\! (Shop interface not implemented yet)")
+        self.dialog_text.set_text(f"{npc.name}: Welcome to my shop! (Shop interface not implemented yet)")
         
         # Update dialog options
         for button in self.dialog_options:
