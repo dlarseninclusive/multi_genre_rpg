@@ -175,6 +175,7 @@ class PauseMenuState(GameState):
     def _resume_game(self, button):
         """Resume the game."""
         logger.info("Resuming game")
+        self.pop_state()
     
     def _toggle_character_sheet(self, button):
         """Toggle the character sheet."""
@@ -241,7 +242,6 @@ class PauseMenuState(GameState):
         
         # Draw the surface to the screen
         screen.blit(sheet_surface, sheet_rect.topleft)
-        self.pop_state()
     
     def _save_game(self, button):
         """Save the current game."""
