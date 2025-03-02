@@ -882,9 +882,20 @@ class TownState(GameState):
             if quest_id:
                 logger.info(f"Accepted quest: {quest_id}")
                 
-                # Activate the quest in the quest manager
+                # Find the quest object from the ID if needed
+                quest_name = quest_id  # Fallback for logging
+                quest_obj = None
                 if self.quest_manager:
-                    # Ensure we're using the quest ID, not the quest object
+                    # Try to get the quest object by ID from the quest manager
+                    available_quests = self.quest_manager.get_available_quests(player)
+                    for quest in available_quests:
+                        if quest.id == quest_id:
+                            quest_obj = quest
+                            quest_name = quest.title
+                            break
+                
+                    logger.info(f"Activating quest: {quest_name}")
+                    # Activate the quest in the quest manager using the ID
                     self.quest_manager.activate_quest(quest_id, player)
                 
                 # Add response dialog
