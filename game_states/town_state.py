@@ -312,7 +312,7 @@ class TownState(GameState):
         
         # Render UI if available
         if hasattr(self, 'ui_manager') and self.has_ui:
-            self.ui_manager.render(screen)
+            self.ui_manager.render()
     
     def _create_status_panel(self):
         """Create the status panel UI."""
