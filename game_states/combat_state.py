@@ -32,44 +32,27 @@ class CombatGameState(GameState):
         logger.info("CombatGameState initialized")
     
     def enter(self, data=None):
-        """
-        Enter the combat state.
-        
-        Args:
-            data: Optional data dictionary with:
-                - player_entities: List of player entities
-                - enemy_entities: List of enemy entities
-                - background: Optional background image
-        """
+        """Enter the combat state."""
         super().enter(data)
         
         try:
             # Get player character from game data
             player_character = self.state_manager.get_persistent_data("player_character")
             
-            # Get or create enemies
-            enemies = []
-            if data and "enemies" in data:
-                enemies = data["enemies"]
+            # Check if this is a random encounter
+            encounter_type = data.get("encounter_type") if data else None
+            terrain = data.get("terrain") if data else "plains"
+            
+            # Generate appropriate enemies based on encounter type
+            if encounter_type == "random":
+                # Generate random enemies based on terrain and player level
+                self._generate_random_enemies(player_character, terrain)
             else:
-                # Generate random enemies based on location/difficulty
-                from combat_system import CombatEntity
-                
-                # Default enemy for testing
-                enemy = CombatEntity(
-                    name="Goblin",
-                    level=1,
-                    team=1
-                )
-                enemies = [enemy]
-            
-            # Get location data
-            location = data.get("location") if data else None
-            
-            # Start combat
-            self.active_combat = self.combat_manager.start_combat(
-                player_character, enemies, location
-            )
+                # Use enemies provided in data if available
+                enemies = data.get("enemies", []) if data else []
+                if not enemies:
+                    # Create default enemy for testing
+                    self._generate_random_enemies(player_character, terrain)
             
             # Subscribe to combat events
             self.event_bus.subscribe("combat_ended", self._handle_combat_end)
@@ -79,7 +62,7 @@ class CombatGameState(GameState):
             # Show notification
             self.event_bus.publish("show_notification", {
                 "title": "Combat Started",
-                "message": "You've entered combat mode!",
+                "message": "Prepare for battle!",
                 "duration": 3.0
             })
             

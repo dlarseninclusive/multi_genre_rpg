@@ -1097,6 +1097,44 @@ class WorldExplorationState(GameState):
     def _handle_exit_location(self, _):
         """Handle exit_location event from other states."""
         logger.info("Exited location from external state")
+    def _trigger_random_encounter(self, terrain_type):
+        """Trigger a random combat encounter based on terrain."""
+        # Reset counter
+        self.steps_since_last_encounter = 0
+
+        # Get player character
+        player_character = self.state_manager.get_persistent_data("player_character")
+
+        # Generate enemy data based on terrain and player level
+        player_level = 1
+        if player_character:
+            player_level = player_character.level
+
+        # Adjust encounter difficulty based on terrain
+        terrain_names = {
+            TerrainType.WATER.value: "water",
+            TerrainType.BEACH.value: "beach",
+            TerrainType.PLAINS.value: "plains",
+            TerrainType.FOREST.value: "forest",
+            TerrainType.MOUNTAINS.value: "mountains"
+        }
+        terrain_name = terrain_names.get(terrain_type, "plains")
+
+        # Show encounter notification
+        self.event_bus.publish("show_notification", {
+            "title": "Combat Encounter!",
+            "message": f"You've encountered enemies in the {terrain_name}!",
+            "duration": 2.0
+        })
+
+        # Transition to combat state
+        self.change_state("combat", {
+            "encounter_type": "random",
+            "terrain": terrain_name,
+            "player_level": player_level,
+            "return_position": (self.player_x, self.player_y)
+        })
+
     def _create_player_graphic(self):
         """Create a player graphic matching the town's pixel art style."""
         tile_size = 32  # Adjust if your world map uses a different size
