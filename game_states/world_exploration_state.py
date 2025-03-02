@@ -809,6 +809,34 @@ class WorldExplorationState(GameState):
                         cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                         encounter_chance = base_chance + cooldown_bonus
     
+    def _is_position_walkable(self, x, y):
+        """Check if a position is walkable by the player."""
+        # Convert to integer grid coordinates
+        grid_x, grid_y = int(x), int(y)
+        
+        # Check map boundaries
+        if grid_x < 0 or grid_x >= self.world_width or grid_y < 0 or grid_y >= self.world_height:
+            return False
+        
+        # Check terrain type
+        try:
+            terrain = self.world["terrain"][grid_y][grid_x]
+            
+            # Water and mountains are not walkable
+            if terrain == TerrainType.WATER.value:
+                return False
+                
+            # Mountains are not walkable
+            if terrain == TerrainType.MOUNTAINS.value:
+                return False
+                
+            # All other terrain types are walkable
+            return True
+        except (IndexError, KeyError, TypeError) as e:
+            logger.error(f"Error checking walkable position: {e}")
+            # Default to not walkable if there's an error
+            return False
+
     def _setup_faction_territories(self):
         """
         Assign territories to factions based on world locations.
