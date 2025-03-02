@@ -88,9 +88,9 @@ class WorldExplorationState(GameState):
         self.discover_radius = 5  # Radius (in tiles) around player to discover locations
 
         # Random encounters
-        self.encounter_chance_per_step = 0.1  # Increased from 0.05
+        self.encounter_chance_per_step = 0.05  # Reduced from 0.1
         self.steps_since_last_encounter = 0
-        self.encounter_cooldown = 3  # Reduced from 5
+        self.encounter_cooldown = 8  # Increased from 3
         self.terrain_encounter_modifiers = {
             TerrainType.WATER.value: 0.3,  # Low chance in water
             TerrainType.BEACH.value: 0.8,  # Slightly lower chance on beaches
@@ -259,6 +259,15 @@ class WorldExplorationState(GameState):
             # Toggle location labels
             elif event.key == pygame.K_l:
                 self.show_location_labels = not self.show_location_labels
+            # Open quest journal
+            elif event.key == pygame.K_j:
+                # Get the quest UI from state manager
+                quest_ui = self.state_manager.get_persistent_data("quest_ui")
+                if quest_ui:
+                    quest_ui.toggle_visibility()
+                    logger.info("Toggled quest journal visibility")
+                else:
+                    logger.warning("Quest UI not available")
             
             # Interact key
             elif event.key == pygame.K_e or event.key == pygame.K_RETURN:
@@ -497,16 +506,7 @@ class WorldExplorationState(GameState):
                     cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                     encounter_chance = base_chance + cooldown_bonus
                     
-                    # Increase the base chance for testing
-                    encounter_chance = encounter_chance * 5
-                    roll = random.random()
-                    logger.debug(f"Encounter check: chance={encounter_chance:.4f}, roll={roll:.4f}")
-                    
-                    if roll < encounter_chance:
-                        self._trigger_random_encounter(terrain_type)
-                
-                # Update last position for next check
-                self.last_position = (self.player_x, self.player_y)
+                    # Decrease the base chance for better gameplay
         else:
             # Original keyboard movement code
             dx, dy = self.player_direction
@@ -525,26 +525,38 @@ class WorldExplorationState(GameState):
             
             # Check if new position is walkable
             if self._is_position_walkable(new_x, new_y):
+                old_x, old_y = self.player_x, self.player_y
                 self.player_x = new_x
                 self.player_y = new_y
                 
                 # Update camera to follow player
                 self._center_camera_on_player()
-    
-    def _is_position_walkable(self, x, y):
-        """Check if a position is walkable."""
-        # Get integer coordinates for tile lookup
-        tile_x, tile_y = int(x), int(y)
-        
-        # Check bounds
-        if not (0 <= tile_x < self.world_width and 0 <= tile_y < self.world_height):
-            return False
-        
-        # Get terrain type
-        terrain = self.world["terrain"][tile_y][tile_x]
-        
-        # Water is not walkable
-        return terrain != TerrainType.WATER.value
+                
+                # Check for random encounters with keyboard movement too
+                if abs(new_x - old_x) > 0.05 or abs(new_y - old_y) > 0.05:
+                    self.steps_since_last_encounter += 1
+                    
+                    # Get terrain type at current position
+                    terrain_x, terrain_y = int(self.player_x), int(self.player_y)
+                    if 0 <= terrain_x < self.world_width and 0 <= terrain_y < self.world_height:
+                        terrain_type = self.world["terrain"][terrain_y][terrain_x]
+                        terrain_modifier = self.terrain_encounter_modifiers.get(terrain_type, 1.0)
+                        
+                        # Calculate encounter chance for keyboard movement
+                        base_chance = self.encounter_chance_per_step * terrain_modifier
+                        cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
+                        encounter_chance = base_chance + cooldown_bonus
+                        
+                        # Apply the same reduced encounter rate
+                        encounter_chance = encounter_chance * 0.1
+                        roll = random.random()
+                        logger.debug(f"Keyboard movement encounter check: chance={encounter_chance:.4f}, roll={roll:.4f}")
+                        
+                        if roll < encounter_chance:
+                            self._trigger_random_encounter(terrain_type)
+                    
+                    # Update last position
+                    self.last_position = (self.player_x, self.player_y)
     
     def _center_camera_on_player(self):
         """Center the camera on the player."""
