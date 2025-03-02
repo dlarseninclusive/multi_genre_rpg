@@ -197,20 +197,18 @@ class CombatGameState(GameState):
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                # Open pause menu or return to world
-                self.push_state("pause_menu")
+                # Set action to flee and execute
+                self.selected_action = 4  # Index for "flee" in actions list
+                self._execute_selected_action()
                 return True
                 
             if is_player_turn:
                 # Action selection
-                if event.key == pygame.K_LEFT:
-                    self.selected_action = max(0, self.selected_action - 1)
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    self._execute_selected_action()
                     return True
-                elif event.key == pygame.K_RIGHT:
-                    self.selected_action = min(4, self.selected_action + 1)
-                    return True
-                    
-                # Target selection (for attack and some skills)
+                
+                # Target selection
                 elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
                     enemy_count = len(self.active_combat.get_enemy_entities())
                     if enemy_count > 0:
@@ -218,17 +216,13 @@ class CombatGameState(GameState):
                             self.selected_target = (self.selected_target - 1) % enemy_count
                         else:
                             self.selected_target = (self.selected_target + 1) % enemy_count
-                    return True
-                
-                # Confirm action
-                elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    self._execute_selected_action()
-                    return True
-                    
-                # Debug key - instant win
-                elif event.key == pygame.K_F12:
-                    self._handle_combat_victory()
-                    return True
+                        target = self.active_combat.get_enemy_entities()[self.selected_target]
+                        self.event_bus.publish("show_notification", {
+                            "title": "Target Selected",
+                            "message": f"Targeting {target.name} ({target.health}/{target.max_health} HP)",
+                            "duration": 1.0
+                        })
+                        return True
         
         return super().handle_event(event)
     
