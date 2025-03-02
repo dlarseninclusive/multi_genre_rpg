@@ -1,6 +1,28 @@
 import pygame
 import logging
 import random  # Add this import
+from dataclasses import dataclass
+@dataclass
+class SimpleCombatEntity:
+    name: str
+    max_health: int
+    health: int
+    level: int
+    attack: int = 5
+    defense: int = 2
+
+    def take_damage(self, amount):
+        actual_damage = max(1, amount - self.defense)
+        self.health = max(0, self.health - actual_damage)
+        return actual_damage
+
+    def is_alive(self):
+        return self.health > 0
+
+    def attack_target(self, target):
+        damage = self.attack + random.randint(0, 3) - 1  # Add some randomness
+        return target.take_damage(damage)
+
 from game_state import GameState
 
 logger = logging.getLogger("combat")
