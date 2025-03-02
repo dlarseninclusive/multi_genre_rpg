@@ -580,6 +580,135 @@ class WorldExplorationState(GameState):
             
             return surface
         
+    def _update_time_and_weather(self, dt):
+        """Update time of day and weather."""
+        # Update time counter
+        self.time_counter += dt
+
+        # Calculate current time of day
+        day_progress = (self.time_counter % self.day_night_cycle_duration) / self.day_night_cycle_duration
+
+        # Map progress to time of day
+        time_values = list(TimeOfDay)
+        time_index = int(day_progress * len(time_values))
+        new_time = time_values[min(time_index, len(time_values) - 1)]
+
+        # Check if we've completed a day cycle
+        if self.time_of_day.value > new_time.value and not self.time_cycle_completed:
+            self.day_counter += 1
+            self.time_cycle_completed = True
+            logger.info(f"Day {self.day_counter} has begun")
+
+            # Publish day change event
+            self.event_bus.publish("day_changed", {
+                "day": self.day_counter,
+                "time_of_day": new_time.name
+            })
+        elif self.time_of_day.value <= new_time.value:
+            self.time_cycle_completed = False
+
+        # Update time of day if changed
+        if self.time_of_day != new_time:
+            logger.debug(f"Time of day changed from {self.time_of_day.name} to {new_time.name}")
+            self.time_of_day = new_time
+
+            # Publish time changed event
+            self.event_bus.publish("time_changed", {
+                "time_of_day": self.time_of_day.name,
+                "day": self.day_counter
+            })
+
+        # Update weather
+        self.weather_counter += dt
+
+        # Random chance to change weather based on elapsed time
+        if random.random() < self.weather_change_chance * dt:
+            # Reset counter
+            self.weather_counter = 0
+
+            # Get possible weather options based on current time and terrain
+            weather_options = self._get_possible_weather()
+
+            # Select new weather
+            new_weather = random.choice(weather_options)
+
+            # Update weather if changed
+            if self.weather != new_weather:
+                logger.info(f"Weather changed from {self.weather.name} to {new_weather.name}")
+                self.weather = new_weather
+
+                # Publish weather changed event
+                self.event_bus.publish("weather_changed", {
+                    "weather": self.weather.name,
+                    "time_of_day": self.time_of_day.name
+                })
+    
+    def _get_possible_weather(self):
+        """Get possible weather options based on current conditions."""
+        # Default options (always possible)
+        options = [Weather.CLEAR, Weather.PARTLY_CLOUDY, Weather.CLOUDY]
+
+        # Add time-of-day specific options
+        if self.time_of_day in [TimeOfDay.MORNING, TimeOfDay.NOON, TimeOfDay.AFTERNOON]:
+            # Daytime options
+            options.extend([Weather.LIGHT_RAIN, Weather.RAINY])
+        elif self.time_of_day in [TimeOfDay.DUSK, TimeOfDay.EVENING]:
+            # Evening options
+            options.extend([Weather.MISTY, Weather.FOGGY, Weather.LIGHT_RAIN])
+        else:
+            # Night options
+            options.extend([Weather.FOGGY, Weather.STORMY])
+
+        # Check player's terrain type for additional options
+        if hasattr(self, 'world') and self.world is not None:
+            try:
+                x, y = int(self.player_x), int(self.player_y)
+                if 0 <= x < self.world_width and 0 <= y < self.world_height:
+                    terrain = self.world["terrain"][y][x]
+
+                    # Add terrain-specific options
+                    if terrain == TerrainType.MOUNTAINS.value:
+                        if self.time_of_day in [TimeOfDay.EARLY_DAWN, TimeOfDay.MIDNIGHT, TimeOfDay.LATE_NIGHT]:
+                            options.extend([Weather.LIGHT_SNOW, Weather.SNOWY])
+                    elif terrain in [TerrainType.BEACH.value, TerrainType.WATER.value]:
+                        options.extend([Weather.MISTY, Weather.RAINY, Weather.STORMY])
+            except (IndexError, KeyError, AttributeError) as e:
+                logger.warning(f"Error getting terrain for weather: {e}")
+
+        return options
+    
+    def _get_sky_color(self):
+        """Get sky color based on time of day and weather."""
+        # Base colors for different times of day
+        time_colors = {
+            TimeOfDay.EARLY_DAWN: (50, 50, 80),
+            TimeOfDay.DAWN: (150, 100, 150),
+            TimeOfDay.SUNRISE: (255, 150, 100),
+            TimeOfDay.MORNING: (200, 230, 255),
+            TimeOfDay.NOON: (100, 180, 255),
+            TimeOfDay.AFTERNOON: (120, 210, 255),
+            TimeOfDay.SUNSET: (255, 120, 80),
+            TimeOfDay.DUSK: (150, 100, 150),
+            TimeOfDay.EVENING: (50, 50, 100),
+            TimeOfDay.MIDNIGHT: (20, 20, 50),
+            TimeOfDay.LATE_NIGHT: (10, 10, 30)
+        }
+
+        # Get base color for current time
+        base_color = time_colors.get(self.time_of_day, (100, 180, 255))
+
+        # Adjust for weather
+        if self.weather == Weather.CLOUDY:
+            return tuple(max(0, c - 50) for c in base_color)
+        elif self.weather in [Weather.LIGHT_RAIN, Weather.RAINY, Weather.STORMY]:
+            return tuple(max(0, min(c - 70, 150)) for c in base_color)
+        elif self.weather in [Weather.FOGGY, Weather.MISTY]:
+            return tuple(min(255, c + 50) for c in base_color)
+        elif self.weather in [Weather.LIGHT_SNOW, Weather.SNOWY, Weather.BLIZZARD]:
+            return tuple(min(255, c + 100) for c in base_color)
+        else:
+            return base_color
+
     def _move_player(self, dt):
         """Update player position based on direction and speed."""
         # If we have a target to move to
