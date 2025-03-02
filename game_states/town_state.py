@@ -186,7 +186,7 @@ class TownState(GameState):
         self.player_path = []
         
         # UI elements
-        self.ui_manager = UIManager(self.screen)
+        self.ui_manager = None  # Will be initialized when we have a screen
         self.status_panel = None
         self.dialog_panel = None
         self.dialog_text = None
@@ -249,8 +249,9 @@ class TownState(GameState):
         Args:
             dt: Time delta in seconds
         """
-        # Update UI
-        self.ui_manager.update(dt)
+        # Update UI if available
+        if self.ui_manager:
+            self.ui_manager.update(dt)
         
         # Update player movement
         self._update_player_movement(dt)
@@ -265,8 +266,8 @@ class TownState(GameState):
         Args:
             event: Pygame event
         """
-        # Handle UI events
-        if self.ui_manager.handle_event(event):
+        # Handle UI events if UI manager exists
+        if self.ui_manager and self.ui_manager.handle_event(event):
             return
         
         # Handle mouse clicks
@@ -307,10 +308,19 @@ class TownState(GameState):
                 # Toggle quest journal
                 self._toggle_quest_journal()
     
-    def render(self):
+    def render(self, screen):
         """Render the town."""
+        # Store screen for future use if we don't have it yet
+        if not hasattr(self, 'screen') or self.screen is None:
+            self.screen = screen
+            
+            # Initialize UI if we now have a screen
+            if self.ui_manager is None:
+                self.ui_manager = UIManager(self.screen)
+                self._create_status_panel()
+    
         # Clear screen
-        self.screen.fill((0, 0, 0))
+        screen.fill((0, 0, 0))
         
         # Render town grid
         self._render_town_grid()
@@ -324,8 +334,9 @@ class TownState(GameState):
         # Render player
         self._render_player()
         
-        # Render UI
-        self.ui_manager.render(self.screen)
+        # Render UI if available
+        if self.ui_manager:
+            self.ui_manager.render()
     
     def _create_status_panel(self):
         """Create the status panel UI."""
@@ -476,6 +487,9 @@ class TownState(GameState):
     
     def _update_camera(self):
         """Update camera position to follow player."""
+        if not hasattr(self, 'screen') or self.screen is None:
+            return
+            
         target_x = int(self.player_grid_pos[0] * self.tile_size - self.screen.get_width() // 2)
         target_y = int(self.player_grid_pos[1] * self.tile_size - self.screen.get_height() // 2)
         
