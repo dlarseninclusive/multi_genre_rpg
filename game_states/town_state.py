@@ -202,25 +202,6 @@ class TownState(GameState):
         """Enter this state."""
         super().enter(data)
         
-        # Try to get screen from data
-        if data and 'screen' in data:
-            self.screen = data['screen']
-        else:
-            # Try to get from persistent data
-            self.screen = self.state_manager.get_persistent_data("screen")
-            
-        # Flag to track if UI is available
-        self.has_ui = hasattr(self, 'screen') and self.screen is not None
-        
-        if self.has_ui:
-            # Initialize UI manager with screen
-            self.ui_manager = UIManager(self.screen)
-            
-            # Create UI elements
-            self._create_status_panel()
-        else:
-            logger.warning("No screen available. UI elements will not be created.")
-        
         # Get the quest manager from persistent data
         self.quest_manager = self.state_manager.get_persistent_data("quest_manager")
         
