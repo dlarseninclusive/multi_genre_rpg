@@ -551,7 +551,35 @@ class WorldExplorationState(GameState):
         self.camera_y = max(0, min(self.camera_y, self.world_height * self.tile_size - screen_height))
 
         logger.debug(f"Camera centered at ({self.camera_x}, {self.camera_y})")
-
+        
+    def _create_player_graphic(self):
+        """Create a simple player graphic."""
+        try:
+            # Try to load player sprite from assets
+            player_sprite = pygame.image.load('assets/characters/player.png').convert_alpha()
+            logger.debug("Loaded player sprite from assets")
+            return player_sprite
+        except (pygame.error, FileNotFoundError):
+            # If loading fails, create a simple colored surface
+            logger.debug("Creating simple player graphic")
+            size = self.tile_size
+            surface = pygame.Surface((size, size), pygame.SRCALPHA)
+            
+            # Draw simple player representation (blue circle with white outline)
+            center = size // 2
+            radius = size // 3
+            pygame.draw.circle(surface, (0, 100, 255), (center, center), radius)  # Blue fill
+            pygame.draw.circle(surface, (255, 255, 255), (center, center), radius, 2)  # White outline
+            
+            # Add direction indicator (small triangle)
+            pygame.draw.polygon(surface, (255, 255, 255), [
+                (center, center - radius - 5),  # Top point
+                (center - 5, center - radius + 5),  # Bottom left
+                (center + 5, center - radius + 5)   # Bottom right
+            ])
+            
+            return surface
+        
     def _move_player(self, dt):
         """Update player position based on direction and speed."""
         # If we have a target to move to
