@@ -1,0 +1,186 @@
+[
+  {
+    "id": "intro_quest",
+    "title": "Welcome to the Adventure",
+    "description": "Your first step into a larger world. Meet the town elder to learn about your destiny.",
+    "type": "MAIN",
+    "level": 1,
+    "required_level": 1,
+    "required_quests": [],
+    "is_hidden": false,
+    "is_repeatable": false,
+    "quest_giver": "town_elder",
+    "objectives": [
+      {
+        "id": "meet_elder",
+        "type": "TALK",
+        "description": "Speak with the Town Elder",
+        "target": "town_elder",
+        "required_amount": 1
+      }
+    ],
+    "rewards": {
+      "xp": 100,
+      "gold": 50,
+      "items": [],
+      "unlock_quests": ["fetch_herbs"]
+    }
+  },
+  {
+    "id": "fetch_herbs",
+    "title": "Medicinal Needs",
+    "description": "The village healer needs medicinal herbs to treat the sick. Collect 5 herbs from the forest.",
+    "type": "SIDE",
+    "level": 1,
+    "required_level": 1,
+    "required_quests": ["intro_quest"],
+    "is_hidden": false,
+    "is_repeatable": true,
+    "quest_giver": "village_healer",
+    "objectives": [
+      {
+        "id": "collect_herbs",
+        "type": "COLLECT",
+        "description": "Collect medicinal herbs",
+        "target": "herb_item",
+        "required_amount": 5
+      }
+    ],
+    "rewards": {
+      "xp": 150,
+      "gold": 75,
+      "items": [
+        {
+          "id": "health_potion",
+          "name": "Health Potion",
+          "quantity": 2
+        }
+      ]
+    }
+  },
+  {
+    "id": "wolf_hunt",
+    "title": "Wolf Problem",
+    "description": "Wolves have been attacking the village livestock. Defeat 3 wolves to protect the village.",
+    "type": "SIDE",
+    "level": 2,
+    "required_level": 1,
+    "required_quests": ["intro_quest"],
+    "is_hidden": false,
+    "is_repeatable": true,
+    "quest_giver": "village_hunter",
+    "objectives": [
+      {
+        "id": "kill_wolves",
+        "type": "KILL",
+        "description": "Defeat wolf pack members",
+        "target": "wolf_enemy",
+        "required_amount": 3
+      }
+    ],
+    "rewards": {
+      "xp": 200,
+      "gold": 100,
+      "items": [
+        {
+          "id": "wolf_pelt",
+          "name": "Wolf Pelt",
+          "quantity": 1
+        }
+      ],
+      "unlock_quests": ["wolf_alpha"]
+    }
+  },
+  {
+    "id": "wolf_alpha",
+    "title": "Alpha of the Pack",
+    "description": "After defeating several wolves, you've learned the pack is led by a fearsome alpha. Defeat it to end the threat once and for all.",
+    "type": "SIDE",
+    "level": 3,
+    "required_level": 2,
+    "required_quests": ["wolf_hunt"],
+    "is_hidden": true,
+    "is_repeatable": false,
+    "quest_giver": "village_hunter",
+    "objectives": [
+      {
+        "id": "find_den",
+        "type": "LOCATION",
+        "description": "Locate the wolf den",
+        "target": "wolf_den",
+        "coordinates": [200, 300]
+      },
+      {
+        "id": "defeat_alpha",
+        "type": "BOSS",
+        "description": "Defeat the Alpha Wolf",
+        "target": "wolf_alpha"
+      }
+    ],
+    "rewards": {
+      "xp": 350,
+      "gold": 200,
+      "items": [
+        {
+          "id": "alpha_pelt",
+          "name": "Alpha Wolf Pelt",
+          "quantity": 1
+        },
+        {
+          "id": "hunter_bow",
+          "name": "Hunter's Bow",
+          "quantity": 1
+        }
+      ]
+    }
+  },
+  {
+    "id": "haunted_ruins",
+    "title": "Secrets of the Ancient Ruins",
+    "description": "Strange noises have been heard from the ancient ruins north of town. Investigate and discover what lurks inside.",
+    "type": "MAIN",
+    "level": 5,
+    "required_level": 3,
+    "required_quests": ["intro_quest"],
+    "is_hidden": false,
+    "is_repeatable": false,
+    "quest_giver": "scholar",
+    "dialog_start": "ruins_start",
+    "dialog_incomplete": "ruins_incomplete",
+    "dialog_complete": "ruins_complete",
+    "objectives": [
+      {
+        "id": "enter_ruins",
+        "type": "LOCATION",
+        "description": "Enter the ancient ruins",
+        "target": "ruins_entrance",
+        "coordinates": [500, 150]
+      },
+      {
+        "id": "find_artifact",
+        "type": "COLLECT",
+        "description": "Find the lost artifact",
+        "target": "ancient_medallion"
+      },
+      {
+        "id": "defeat_guardian",
+        "type": "BOSS",
+        "description": "Defeat the ruins guardian",
+        "target": "stone_guardian"
+      }
+    ],
+    "rewards": {
+      "xp": 500,
+      "gold": 300,
+      "items": [
+        {
+          "id": "ancient_medallion",
+          "name": "Ancient Medallion",
+          "quantity": 1
+        }
+      ],
+      "unlock_quests": ["medallion_power"],
+      "unlock_locations": ["ancient_temple"]
+    }
+  }
+]

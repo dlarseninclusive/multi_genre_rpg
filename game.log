@@ -12120,3 +12120,2011 @@ AttributeError: 'TownState' object has no attribute '_world_to_screen'
 2025-03-01 13:43:45,165 - pause_menu - INFO - Entered pause menu
 2025-03-01 13:43:46,809 - pause_menu - INFO - Quitting game
 2025-03-01 13:43:46,890 - main - INFO - Cleaning up resources
+2025-03-01 19:10:23,796 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:10:23,796 - settings - INFO - Settings initialized
+2025-03-01 19:10:23,845 - event_bus - INFO - EventBus initialized
+2025-03-01 19:10:23,845 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:10:23,846 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:10:23,847 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:10:23,848 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:10:23,848 - main - INFO - Quests loaded successfully
+2025-03-01 19:10:23,848 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:10:23,848 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:10:23,849 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:10:23,849 - state_manager - INFO - StateManager initialized
+2025-03-01 19:10:23,849 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:10:23,849 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:10:23,849 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:10:23,849 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:10:23,850 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:10:23,850 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:10:23,850 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:10:23,850 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:10:23,850 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:10:23,850 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:10:23,850 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:10:23,851 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:10:23,851 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:10:23,859 - main - ERROR - Unhandled exception: UIManager.__init__() missing 1 required positional argument: 'surface'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 173, in <module>
+    game = Game()
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 81, in __init__
+    self._register_game_states()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 101, in _register_game_states
+    self.state_manager.register_state("town", TownState(self.state_manager, self.event_bus, self.settings))
+                                              ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 189, in __init__
+    self.ui_manager = UIManager()
+                      ~~~~~~~~~^^
+TypeError: UIManager.__init__() missing 1 required positional argument: 'surface'
+2025-03-01 19:13:21,279 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:13:21,279 - settings - INFO - Settings initialized
+2025-03-01 19:13:21,328 - event_bus - INFO - EventBus initialized
+2025-03-01 19:13:21,328 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:13:21,329 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:13:21,330 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:13:21,331 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:13:21,331 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:13:21,331 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:13:21,331 - main - INFO - Quests loaded successfully
+2025-03-01 19:13:21,332 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:13:21,332 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:13:21,332 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:13:21,332 - state_manager - INFO - StateManager initialized
+2025-03-01 19:13:21,332 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:13:21,332 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:13:21,333 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:13:21,333 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:13:21,333 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:13:21,333 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:13:21,333 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:13:21,334 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:13:21,334 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:13:21,334 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:13:21,334 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:13:21,334 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:13:21,334 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:13:21,335 - main - ERROR - Unhandled exception: 'TownState' object has no attribute 'screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 173, in <module>
+    game = Game()
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 81, in __init__
+    self._register_game_states()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 101, in _register_game_states
+    self.state_manager.register_state("town", TownState(self.state_manager, self.event_bus, self.settings))
+                                              ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 189, in __init__
+    self.ui_manager = UIManager(self.screen)
+                                ^^^^^^^^^^^
+AttributeError: 'TownState' object has no attribute 'screen'
+2025-03-01 19:19:37,901 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:19:37,902 - settings - INFO - Settings initialized
+2025-03-01 19:19:37,950 - event_bus - INFO - EventBus initialized
+2025-03-01 19:19:37,951 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:19:37,951 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:19:37,951 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:19:37,951 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:19:37,951 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:19:37,952 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:19:37,953 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:19:37,953 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:19:37,953 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:19:37,953 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:19:37,954 - main - INFO - Quests loaded successfully
+2025-03-01 19:19:37,954 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:19:37,954 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:19:37,954 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:19:37,954 - state_manager - INFO - StateManager initialized
+2025-03-01 19:19:37,954 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:19:37,955 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:19:37,955 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:19:37,955 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:19:37,955 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:19:37,955 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:19:37,955 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:19:37,955 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:19:37,956 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:19:37,956 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:19:37,956 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:19:37,956 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:19:37,956 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:19:37,957 - town_state - INFO - TownState initialized
+2025-03-01 19:19:37,957 - state_manager - INFO - Registered state: town
+2025-03-01 19:19:37,960 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:19:37,960 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:19:37,960 - combat - INFO - CombatGameState initialized
+2025-03-01 19:19:37,960 - state_manager - INFO - Registered state: combat
+2025-03-01 19:19:37,960 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:19:37,960 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:19:37,961 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:19:37,961 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:19:37,962 - main_menu - INFO - Entered main menu state
+2025-03-01 19:19:37,962 - main - INFO - Game initialized successfully
+2025-03-01 19:19:37,962 - main - INFO - Starting game loop
+2025-03-01 19:19:40,510 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:19:41,393 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:19:41,393 - main_menu - INFO - Starting new game
+2025-03-01 19:19:41,394 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:19:41,394 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:19:41,394 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:19:41,394 - main_menu - INFO - Exited main menu state
+2025-03-01 19:19:41,394 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:19:41,405 - world_exploration - INFO - Generating new world
+2025-03-01 19:19:41,405 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 198318
+2025-03-01 19:19:41,405 - world_generator - INFO - Starting world generation
+2025-03-01 19:19:41,405 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:19:41,441 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:19:41,441 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:19:41,441 - world_generator - INFO - Generating rivers
+2025-03-01 19:19:41,447 - world_generator - DEBUG - Found 277 mountain tiles and 1919 water tiles
+2025-03-01 19:19:41,447 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:19:41,448 - world_generator - DEBUG - Generating river from (21, 41) to nearest water at (20, 37)
+2025-03-01 19:19:41,448 - world_generator - DEBUG - River reached water at (19, 37)
+2025-03-01 19:19:41,448 - world_generator - DEBUG - Generated river path with 5 points
+2025-03-01 19:19:41,448 - world_generator - DEBUG - Generated river 1 with 5 points
+2025-03-01 19:19:41,449 - world_generator - DEBUG - Generating river from (9, 39) to nearest water at (10, 37)
+2025-03-01 19:19:41,449 - world_generator - DEBUG - River reached water at (10, 37)
+2025-03-01 19:19:41,449 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:19:41,449 - world_generator - DEBUG - Generated river 2 with 6 points
+2025-03-01 19:19:41,450 - world_generator - DEBUG - Generating river from (31, 2) to nearest water at (23, 15)
+2025-03-01 19:19:41,450 - world_generator - DEBUG - River reached water at (23, 16)
+2025-03-01 19:19:41,450 - world_generator - DEBUG - Generated river path with 15 points
+2025-03-01 19:19:41,450 - world_generator - DEBUG - Generated river 3 with 15 points
+2025-03-01 19:19:41,451 - world_generator - DEBUG - Generating river from (22, 37) to nearest water at (21, 36)
+2025-03-01 19:19:41,451 - world_generator - DEBUG - River reached water at (21, 36)
+2025-03-01 19:19:41,451 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:19:41,451 - world_generator - DEBUG - Generated river 4 with 2 points
+2025-03-01 19:19:41,452 - world_generator - DEBUG - Generating river from (89, 87) to nearest water at (54, 87)
+2025-03-01 19:19:41,452 - world_generator - DEBUG - River reached water at (54, 87)
+2025-03-01 19:19:41,452 - world_generator - DEBUG - Generated river path with 38 points
+2025-03-01 19:19:41,452 - world_generator - DEBUG - Generated river 5 with 38 points
+2025-03-01 19:19:41,452 - world_generator - DEBUG - Generating river from (1, 46) to nearest water at (7, 35)
+2025-03-01 19:19:41,453 - world_generator - DEBUG - River reached water at (7, 34)
+2025-03-01 19:19:41,453 - world_generator - DEBUG - Generated river path with 13 points
+2025-03-01 19:19:41,453 - world_generator - DEBUG - Generated river 6 with 13 points
+2025-03-01 19:19:41,453 - world_generator - DEBUG - Generating river from (27, 3) to nearest water at (20, 13)
+2025-03-01 19:19:41,453 - world_generator - DEBUG - River reached water at (19, 13)
+2025-03-01 19:19:41,454 - world_generator - DEBUG - Generated river path with 13 points
+2025-03-01 19:19:41,454 - world_generator - DEBUG - Generated river 7 with 13 points
+2025-03-01 19:19:41,454 - world_generator - DEBUG - Generating river from (3, 33) to nearest water at (5, 33)
+2025-03-01 19:19:41,454 - world_generator - DEBUG - River reached water at (5, 33)
+2025-03-01 19:19:41,454 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 19:19:41,454 - world_generator - DEBUG - Generated river 8 with 3 points
+2025-03-01 19:19:41,455 - world_generator - DEBUG - Generating river from (19, 43) to nearest water at (19, 37)
+2025-03-01 19:19:41,455 - world_generator - DEBUG - River reached water at (19, 37)
+2025-03-01 19:19:41,455 - world_generator - DEBUG - Generated river path with 7 points
+2025-03-01 19:19:41,455 - world_generator - DEBUG - Generated river 9 with 7 points
+2025-03-01 19:19:41,456 - world_generator - DEBUG - Generating river from (1, 40) to nearest water at (6, 34)
+2025-03-01 19:19:41,456 - world_generator - DEBUG - River reached water at (6, 35)
+2025-03-01 19:19:41,456 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:19:41,456 - world_generator - DEBUG - Generated river 10 with 6 points
+2025-03-01 19:19:41,456 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:19:41,456 - world_generator - INFO - River generation completed
+2025-03-01 19:19:41,456 - world_generator - INFO - Generating locations
+2025-03-01 19:19:41,456 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:19:41,526 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:19:41,532 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:19:41,536 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:19:41,536 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:19:41,536 - world_generator - DEBUG - Connected locations 0 and 22
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 0 and 8
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 8 and 16
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 16 and 13
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 13 and 14
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 14 and 7
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 7 and 11
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 11 and 3
+2025-03-01 19:19:41,537 - world_generator - DEBUG - Connected locations 3 and 17
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 17 and 18
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 3 and 29
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 29 and 2
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 2 and 1
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 1 and 24
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 24 and 28
+2025-03-01 19:19:41,538 - world_generator - DEBUG - Connected locations 28 and 23
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 23 and 15
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 23 and 5
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 5 and 20
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 2 and 21
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 21 and 19
+2025-03-01 19:19:41,539 - world_generator - DEBUG - Connected locations 19 and 6
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 6 and 10
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 10 and 12
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 19 and 4
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 4 and 9
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 9 and 25
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 4 and 27
+2025-03-01 19:19:41,540 - world_generator - DEBUG - Connected locations 27 and 26
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Added extra connection between 21 and 18
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Added extra connection between 7 and 13
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Added extra connection between 26 and 6
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:19:41,541 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:19:41,541 - world_generator - INFO - Locations generation completed
+2025-03-01 19:19:41,541 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:19:41,542 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:19:41,542 - world_exploration - INFO - Entered world exploration at position (1, 18)
+2025-03-01 19:19:41,542 - world_exploration - DEBUG - Now at location: Lakeview
+2025-03-01 19:19:43,539 - world_exploration - DEBUG - Left location
+2025-03-01 19:19:46,692 - world_exploration - INFO - Interacting with location: Lakeview
+2025-03-01 19:19:46,692 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:19:46,692 - notification - DEBUG - Added notification: Entering Town - Welcome to Lakeview!
+2025-03-01 19:19:46,692 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:19:46,693 - state_manager - INFO - Changing state to: town
+2025-03-01 19:19:46,693 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:19:46,693 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:19:46,693 - TownState - INFO - Entered state: TownState
+2025-03-01 19:19:46,693 - event_bus - ERROR - Error in event handler for 'request_state_change': 'TownState' object has no attribute 'screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\event_bus.py", line 62, in publish
+    callback(data)
+    ~~~~~~~~^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 173, in _handle_state_change_request
+    self.change_state(state_id, state_data)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 74, in change_state
+    new_state.enter(merged_data)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 207, in enter
+    self.ui_manager = UIManager(self.screen)
+                                ^^^^^^^^^^^
+AttributeError: 'TownState' object has no attribute 'screen'
+2025-03-01 19:20:01,749 - main - INFO - Cleaning up resources
+2025-03-01 19:22:26,421 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:22:26,421 - settings - INFO - Settings initialized
+2025-03-01 19:22:26,474 - event_bus - INFO - EventBus initialized
+2025-03-01 19:22:26,474 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:22:26,474 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:22:26,474 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:22:26,475 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:22:26,476 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:22:26,477 - main - INFO - Quests loaded successfully
+2025-03-01 19:22:26,477 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:22:26,477 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:22:26,477 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:22:26,478 - state_manager - INFO - StateManager initialized
+2025-03-01 19:22:26,478 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:22:26,478 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:22:26,478 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:22:26,479 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:22:26,479 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:22:26,479 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:22:26,479 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:22:26,479 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:22:26,480 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:22:26,480 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:22:26,480 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:22:26,480 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:22:26,480 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:22:26,481 - town_state - INFO - TownState initialized
+2025-03-01 19:22:26,481 - state_manager - INFO - Registered state: town
+2025-03-01 19:22:26,484 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:22:26,484 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:22:26,484 - combat - INFO - CombatGameState initialized
+2025-03-01 19:22:26,484 - state_manager - INFO - Registered state: combat
+2025-03-01 19:22:26,484 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:22:26,484 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:22:26,485 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:22:26,485 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:22:26,486 - main_menu - INFO - Entered main menu state
+2025-03-01 19:22:26,486 - main - INFO - Game initialized successfully
+2025-03-01 19:22:26,486 - main - INFO - Starting game loop
+2025-03-01 19:22:29,090 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:22:29,721 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:22:29,721 - main_menu - INFO - Starting new game
+2025-03-01 19:22:29,722 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:22:29,722 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:22:29,722 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:22:29,722 - main_menu - INFO - Exited main menu state
+2025-03-01 19:22:29,722 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:22:29,728 - world_exploration - INFO - Generating new world
+2025-03-01 19:22:29,728 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 658448
+2025-03-01 19:22:29,728 - world_generator - INFO - Starting world generation
+2025-03-01 19:22:29,728 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:22:29,766 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:22:29,766 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:22:29,766 - world_generator - INFO - Generating rivers
+2025-03-01 19:22:29,772 - world_generator - DEBUG - Found 110 mountain tiles and 1268 water tiles
+2025-03-01 19:22:29,773 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:22:29,773 - world_generator - DEBUG - Generating river from (84, 60) to nearest water at (92, 44)
+2025-03-01 19:22:29,773 - world_generator - DEBUG - River reached water at (93, 44)
+2025-03-01 19:22:29,773 - world_generator - DEBUG - Generated river path with 19 points
+2025-03-01 19:22:29,773 - world_generator - DEBUG - Generated river 1 with 19 points
+2025-03-01 19:22:29,774 - world_generator - DEBUG - Generating river from (81, 60) to nearest water at (92, 44)
+2025-03-01 19:22:29,774 - world_generator - DEBUG - River reached water at (92, 47)
+2025-03-01 19:22:29,774 - world_generator - DEBUG - Generated river path with 14 points
+2025-03-01 19:22:29,774 - world_generator - DEBUG - Generated river 2 with 14 points
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generating river from (81, 57) to nearest water at (92, 44)
+2025-03-01 19:22:29,775 - world_generator - DEBUG - River reached water at (92, 46)
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generated river 3 with 12 points
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generating river from (3, 74) to nearest water at (3, 76)
+2025-03-01 19:22:29,775 - world_generator - DEBUG - River reached water at (3, 76)
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:22:29,775 - world_generator - DEBUG - Generated river 4 with 4 points
+2025-03-01 19:22:29,776 - world_generator - DEBUG - Generating river from (81, 61) to nearest water at (92, 44)
+2025-03-01 19:22:29,776 - world_generator - DEBUG - River reached water at (92, 50)
+2025-03-01 19:22:29,776 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:22:29,776 - world_generator - DEBUG - Generated river 5 with 12 points
+2025-03-01 19:22:29,776 - world_generator - DEBUG - Generating river from (79, 57) to nearest water at (92, 44)
+2025-03-01 19:22:29,777 - world_generator - DEBUG - River reached water at (91, 44)
+2025-03-01 19:22:29,777 - world_generator - DEBUG - Generated river path with 14 points
+2025-03-01 19:22:29,777 - world_generator - DEBUG - Generated river 6 with 14 points
+2025-03-01 19:22:29,777 - world_generator - DEBUG - Generating river from (79, 90) to nearest water at (53, 58)
+2025-03-01 19:22:29,778 - world_generator - DEBUG - River reached water at (53, 58)
+2025-03-01 19:22:29,778 - world_generator - DEBUG - Generated river path with 33 points
+2025-03-01 19:22:29,778 - world_generator - DEBUG - Generated river 7 with 33 points
+2025-03-01 19:22:29,778 - world_generator - DEBUG - Generating river from (85, 59) to nearest water at (92, 44)
+2025-03-01 19:22:29,778 - world_generator - DEBUG - River reached water at (86, 58)
+2025-03-01 19:22:29,779 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:22:29,779 - world_generator - DEBUG - Generated river 8 with 2 points
+2025-03-01 19:22:29,779 - world_generator - DEBUG - Generating river from (1, 74) to nearest water at (3, 76)
+2025-03-01 19:22:29,779 - world_generator - DEBUG - River reached water at (2, 75)
+2025-03-01 19:22:29,780 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:22:29,780 - world_generator - DEBUG - Generated river 9 with 2 points
+2025-03-01 19:22:29,780 - world_generator - DEBUG - Generating river from (81, 90) to nearest water at (53, 58)
+2025-03-01 19:22:29,780 - world_generator - DEBUG - River reached water at (53, 61)
+2025-03-01 19:22:29,780 - world_generator - DEBUG - Generated river path with 30 points
+2025-03-01 19:22:29,781 - world_generator - DEBUG - Generated river 10 with 30 points
+2025-03-01 19:22:29,781 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:22:29,781 - world_generator - INFO - River generation completed
+2025-03-01 19:22:29,781 - world_generator - INFO - Generating locations
+2025-03-01 19:22:29,781 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:22:29,852 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:22:29,858 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:22:29,862 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 0 and 7
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 0 and 21
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 0 and 22
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 22 and 29
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 21 and 3
+2025-03-01 19:22:29,863 - world_generator - DEBUG - Connected locations 3 and 15
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 7 and 12
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 12 and 26
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 26 and 27
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 12 and 4
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 4 and 10
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 10 and 19
+2025-03-01 19:22:29,864 - world_generator - DEBUG - Connected locations 19 and 2
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 2 and 28
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 27 and 24
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 2 and 6
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 6 and 8
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 8 and 5
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 8 and 9
+2025-03-01 19:22:29,865 - world_generator - DEBUG - Connected locations 9 and 1
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 1 and 20
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 20 and 13
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 20 and 14
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 28 and 18
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 18 and 16
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 16 and 11
+2025-03-01 19:22:29,866 - world_generator - DEBUG - Connected locations 18 and 25
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Connected locations 16 and 23
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Connected locations 11 and 17
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Added extra connection between 8 and 3
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Added extra connection between 27 and 18
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:22:29,867 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:22:29,867 - world_generator - INFO - Locations generation completed
+2025-03-01 19:22:29,867 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:22:29,868 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:22:29,868 - world_exploration - INFO - Entered world exploration at position (74, 84)
+2025-03-01 19:22:29,868 - world_exploration - INFO - Discovered location: Springvale
+2025-03-01 19:22:29,868 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:22:29,868 - notification - DEBUG - Added notification: Location Discovered - You discovered Springvale!
+2025-03-01 19:22:29,868 - world_exploration - DEBUG - Now at location: Elmwood
+2025-03-01 19:22:33,359 - world_exploration - DEBUG - Left location
+2025-03-01 19:22:37,271 - world_exploration - INFO - Discovered location: Forgotten Catacombs
+2025-03-01 19:22:37,272 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:22:37,272 - notification - DEBUG - Added notification: Location Discovered - You discovered Forgotten Catacombs!
+2025-03-01 19:22:39,182 - world_exploration - INFO - Visited location: Springvale
+2025-03-01 19:22:39,182 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:22:39,182 - notification - DEBUG - Added notification: Location Visited - You arrived at Springvale!
+2025-03-01 19:22:39,183 - world_exploration - DEBUG - Now at location: Springvale
+2025-03-01 19:22:40,542 - world_exploration - INFO - Interacting with location: Springvale
+2025-03-01 19:22:40,542 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:22:40,543 - notification - DEBUG - Added notification: Entering Town - Welcome to Springvale!
+2025-03-01 19:22:40,543 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:22:40,543 - state_manager - INFO - Changing state to: town
+2025-03-01 19:22:40,543 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:22:40,543 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:22:40,543 - TownState - INFO - Entered state: TownState
+2025-03-01 19:22:40,543 - event_bus - ERROR - Error in event handler for 'request_state_change': 'StateManager' object has no attribute 'get_screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\event_bus.py", line 62, in publish
+    callback(data)
+    ~~~~~~~~^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 173, in _handle_state_change_request
+    self.change_state(state_id, state_data)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 74, in change_state
+    new_state.enter(merged_data)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 208, in enter
+    self.screen = self.state_manager.get_screen()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'StateManager' object has no attribute 'get_screen'
+2025-03-01 19:22:52,449 - main - INFO - Cleaning up resources
+2025-03-01 19:31:05,031 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:31:05,031 - settings - INFO - Settings initialized
+2025-03-01 19:31:05,078 - event_bus - INFO - EventBus initialized
+2025-03-01 19:31:05,079 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:31:05,079 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:31:05,080 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:31:05,081 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:31:05,082 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:31:05,082 - main - INFO - Quests loaded successfully
+2025-03-01 19:31:05,082 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:31:05,083 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:31:05,083 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:31:05,083 - state_manager - INFO - StateManager initialized
+2025-03-01 19:31:05,083 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:31:05,083 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:31:05,084 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:31:05,084 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:31:05,084 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:31:05,084 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:31:05,084 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:31:05,084 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:31:05,084 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:31:05,085 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:31:05,085 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:31:05,085 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:31:05,085 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:31:05,086 - town_state - INFO - TownState initialized
+2025-03-01 19:31:05,086 - state_manager - INFO - Registered state: town
+2025-03-01 19:31:05,088 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:31:05,088 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:31:05,089 - combat - INFO - CombatGameState initialized
+2025-03-01 19:31:05,089 - state_manager - INFO - Registered state: combat
+2025-03-01 19:31:05,089 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:31:05,089 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:31:05,089 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:31:05,089 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:31:05,091 - main_menu - INFO - Entered main menu state
+2025-03-01 19:31:05,091 - main - INFO - Game initialized successfully
+2025-03-01 19:31:05,091 - main - INFO - Starting game loop
+2025-03-01 19:31:08,018 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:31:08,697 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:31:08,697 - main_menu - INFO - Starting new game
+2025-03-01 19:31:08,697 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:31:08,697 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:31:08,697 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:31:08,697 - main_menu - INFO - Exited main menu state
+2025-03-01 19:31:08,698 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:31:08,703 - world_exploration - INFO - Generating new world
+2025-03-01 19:31:08,704 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 790688
+2025-03-01 19:31:08,704 - world_generator - INFO - Starting world generation
+2025-03-01 19:31:08,704 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:31:08,739 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:31:08,740 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:31:08,740 - world_generator - INFO - Generating rivers
+2025-03-01 19:31:08,746 - world_generator - DEBUG - Found 257 mountain tiles and 2363 water tiles
+2025-03-01 19:31:08,746 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:31:08,747 - world_generator - DEBUG - Generating river from (74, 41) to nearest water at (74, 40)
+2025-03-01 19:31:08,747 - world_generator - DEBUG - River reached water at (73, 40)
+2025-03-01 19:31:08,747 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:31:08,747 - world_generator - DEBUG - Generated river 1 with 2 points
+2025-03-01 19:31:08,748 - world_generator - DEBUG - Generating river from (73, 77) to nearest water at (74, 76)
+2025-03-01 19:31:08,748 - world_generator - DEBUG - River reached water at (74, 76)
+2025-03-01 19:31:08,748 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 19:31:08,748 - world_generator - DEBUG - Generated river 2 with 3 points
+2025-03-01 19:31:08,749 - world_generator - DEBUG - Generating river from (24, 49) to nearest water at (24, 48)
+2025-03-01 19:31:08,749 - world_generator - DEBUG - River reached water at (24, 48)
+2025-03-01 19:31:08,749 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:31:08,749 - world_generator - DEBUG - Generated river 3 with 2 points
+2025-03-01 19:31:08,749 - world_generator - DEBUG - Generating river from (28, 1) to nearest water at (27, 6)
+2025-03-01 19:31:08,750 - world_generator - DEBUG - River reached water at (27, 6)
+2025-03-01 19:31:08,750 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:31:08,750 - world_generator - DEBUG - Generated river 4 with 6 points
+2025-03-01 19:31:08,750 - world_generator - DEBUG - Generating river from (79, 78) to nearest water at (80, 76)
+2025-03-01 19:31:08,750 - world_generator - DEBUG - River reached water at (80, 76)
+2025-03-01 19:31:08,751 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 19:31:08,751 - world_generator - DEBUG - Generated river 5 with 3 points
+2025-03-01 19:31:08,751 - world_generator - DEBUG - Generating river from (77, 77) to nearest water at (77, 76)
+2025-03-01 19:31:08,751 - world_generator - DEBUG - River reached water at (77, 76)
+2025-03-01 19:31:08,751 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 19:31:08,751 - world_generator - DEBUG - Generated river 6 with 3 points
+2025-03-01 19:31:08,752 - world_generator - DEBUG - Generating river from (85, 74) to nearest water at (85, 73)
+2025-03-01 19:31:08,752 - world_generator - DEBUG - River reached water at (84, 74)
+2025-03-01 19:31:08,752 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:31:08,752 - world_generator - DEBUG - Generated river 7 with 2 points
+2025-03-01 19:31:08,753 - world_generator - DEBUG - Generating river from (81, 77) to nearest water at (81, 76)
+2025-03-01 19:31:08,753 - world_generator - DEBUG - River reached water at (81, 76)
+2025-03-01 19:31:08,753 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:31:08,753 - world_generator - DEBUG - Generated river 8 with 2 points
+2025-03-01 19:31:08,754 - world_generator - DEBUG - Generating river from (87, 76) to nearest water at (86, 73)
+2025-03-01 19:31:08,754 - world_generator - DEBUG - River reached water at (86, 73)
+2025-03-01 19:31:08,754 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:31:08,754 - world_generator - DEBUG - Generated river 9 with 4 points
+2025-03-01 19:31:08,754 - world_generator - DEBUG - Generating river from (9, 55) to nearest water at (16, 47)
+2025-03-01 19:31:08,754 - world_generator - DEBUG - River reached water at (16, 47)
+2025-03-01 19:31:08,755 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:31:08,755 - world_generator - DEBUG - Generated river 10 with 9 points
+2025-03-01 19:31:08,755 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:31:08,755 - world_generator - INFO - River generation completed
+2025-03-01 19:31:08,755 - world_generator - INFO - Generating locations
+2025-03-01 19:31:08,755 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:31:08,818 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:31:08,825 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Connected locations 0 and 10
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Connected locations 10 and 22
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Connected locations 22 and 3
+2025-03-01 19:31:08,829 - world_generator - DEBUG - Connected locations 3 and 12
+2025-03-01 19:31:08,830 - world_generator - DEBUG - Connected locations 12 and 27
+2025-03-01 19:31:08,830 - world_generator - DEBUG - Connected locations 12 and 19
+2025-03-01 19:31:08,830 - world_generator - DEBUG - Connected locations 19 and 21
+2025-03-01 19:31:08,830 - world_generator - DEBUG - Connected locations 21 and 16
+2025-03-01 19:31:08,830 - world_generator - DEBUG - Connected locations 16 and 23
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 16 and 9
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 9 and 4
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 4 and 13
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 23 and 11
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 13 and 1
+2025-03-01 19:31:08,831 - world_generator - DEBUG - Connected locations 1 and 28
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 28 and 14
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 14 and 2
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 2 and 17
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 17 and 7
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 23 and 20
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 20 and 6
+2025-03-01 19:31:08,832 - world_generator - DEBUG - Connected locations 6 and 8
+2025-03-01 19:31:08,833 - world_generator - DEBUG - Connected locations 6 and 15
+2025-03-01 19:31:08,833 - world_generator - DEBUG - Connected locations 15 and 26
+2025-03-01 19:31:08,833 - world_generator - DEBUG - Connected locations 26 and 24
+2025-03-01 19:31:08,833 - world_generator - DEBUG - Connected locations 11 and 18
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Connected locations 18 and 25
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Connected locations 25 and 29
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Connected locations 3 and 5
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Added extra connection between 17 and 11
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Added extra connection between 7 and 20
+2025-03-01 19:31:08,834 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:31:08,835 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:31:08,835 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:31:08,835 - world_generator - INFO - Locations generation completed
+2025-03-01 19:31:08,835 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:31:08,835 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:31:08,835 - world_exploration - INFO - Entered world exploration at position (30, 21)
+2025-03-01 19:31:08,835 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:31:09,940 - world_exploration - DEBUG - Left location
+2025-03-01 19:31:13,784 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:31:14,499 - world_exploration - INFO - Interacting with location: Stonehaven
+2025-03-01 19:31:14,499 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:31:14,499 - notification - DEBUG - Added notification: Entering Town - Welcome to Stonehaven!
+2025-03-01 19:31:14,500 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:31:14,500 - state_manager - INFO - Changing state to: town
+2025-03-01 19:31:14,500 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:31:14,500 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:31:14,500 - TownState - INFO - Entered state: TownState
+2025-03-01 19:31:14,500 - event_bus - ERROR - Error in event handler for 'request_state_change': 'StateManager' object has no attribute 'get_screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\event_bus.py", line 62, in publish
+    callback(data)
+    ~~~~~~~~^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 173, in _handle_state_change_request
+    self.change_state(state_id, state_data)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 74, in change_state
+    new_state.enter(merged_data)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 210, in enter
+    self.screen = self.state_manager.get_screen()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'StateManager' object has no attribute 'get_screen'
+2025-03-01 19:31:19,278 - main - INFO - Cleaning up resources
+2025-03-01 19:35:54,677 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:35:54,677 - settings - INFO - Settings initialized
+2025-03-01 19:35:54,724 - event_bus - INFO - EventBus initialized
+2025-03-01 19:35:54,724 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:35:54,725 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:35:54,726 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:35:54,727 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:35:54,728 - main - INFO - Quests loaded successfully
+2025-03-01 19:35:54,728 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:35:54,728 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:35:54,728 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:35:54,729 - state_manager - INFO - StateManager initialized
+2025-03-01 19:35:54,729 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:35:54,729 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:35:54,729 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:35:54,730 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:35:54,730 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:35:54,730 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:35:54,730 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:35:54,730 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:35:54,730 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:35:54,730 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:35:54,730 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:35:54,731 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:35:54,731 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:35:54,732 - town_state - INFO - TownState initialized
+2025-03-01 19:35:54,732 - state_manager - INFO - Registered state: town
+2025-03-01 19:35:54,734 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:35:54,734 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:35:54,734 - combat - INFO - CombatGameState initialized
+2025-03-01 19:35:54,735 - state_manager - INFO - Registered state: combat
+2025-03-01 19:35:54,735 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:35:54,735 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:35:54,735 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:35:54,735 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:35:54,737 - main_menu - INFO - Entered main menu state
+2025-03-01 19:35:54,737 - main - INFO - Game initialized successfully
+2025-03-01 19:35:54,737 - main - INFO - Starting game loop
+2025-03-01 19:35:56,895 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:35:57,572 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:35:57,572 - main_menu - INFO - Starting new game
+2025-03-01 19:35:57,572 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:35:57,573 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:35:57,573 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:35:57,573 - main_menu - INFO - Exited main menu state
+2025-03-01 19:35:57,573 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:35:57,579 - world_exploration - INFO - Generating new world
+2025-03-01 19:35:57,579 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 408552
+2025-03-01 19:35:57,579 - world_generator - INFO - Starting world generation
+2025-03-01 19:35:57,579 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:35:57,617 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:35:57,617 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:35:57,618 - world_generator - INFO - Generating rivers
+2025-03-01 19:35:57,624 - world_generator - DEBUG - Found 204 mountain tiles and 1340 water tiles
+2025-03-01 19:35:57,624 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:35:57,624 - world_generator - DEBUG - Generating river from (47, 34) to nearest water at (47, 33)
+2025-03-01 19:35:57,625 - world_generator - DEBUG - River reached water at (47, 33)
+2025-03-01 19:35:57,625 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:35:57,625 - world_generator - DEBUG - Generated river 1 with 2 points
+2025-03-01 19:35:57,625 - world_generator - DEBUG - Generating river from (64, 12) to nearest water at (55, 24)
+2025-03-01 19:35:57,625 - world_generator - DEBUG - River reached water at (55, 24)
+2025-03-01 19:35:57,625 - world_generator - DEBUG - Generated river path with 13 points
+2025-03-01 19:35:57,626 - world_generator - DEBUG - Generated river 2 with 13 points
+2025-03-01 19:35:57,626 - world_generator - DEBUG - Generating river from (22, 13) to nearest water at (37, 28)
+2025-03-01 19:35:57,626 - world_generator - DEBUG - River reached water at (37, 28)
+2025-03-01 19:35:57,626 - world_generator - DEBUG - Generated river path with 17 points
+2025-03-01 19:35:57,626 - world_generator - DEBUG - Generated river 3 with 17 points
+2025-03-01 19:35:57,627 - world_generator - DEBUG - Generating river from (68, 10) to nearest water at (55, 24)
+2025-03-01 19:35:57,627 - world_generator - DEBUG - River reached water at (55, 24)
+2025-03-01 19:35:57,627 - world_generator - DEBUG - Generated river path with 15 points
+2025-03-01 19:35:57,627 - world_generator - DEBUG - Generated river 4 with 15 points
+2025-03-01 19:35:57,628 - world_generator - DEBUG - Generating river from (73, 13) to nearest water at (58, 27)
+2025-03-01 19:35:57,628 - world_generator - DEBUG - River reached water at (58, 28)
+2025-03-01 19:35:57,628 - world_generator - DEBUG - Generated river path with 16 points
+2025-03-01 19:35:57,628 - world_generator - DEBUG - Generated river 5 with 16 points
+2025-03-01 19:35:57,628 - world_generator - DEBUG - Generating river from (28, 16) to nearest water at (39, 26)
+2025-03-01 19:35:57,629 - world_generator - DEBUG - River reached water at (39, 26)
+2025-03-01 19:35:57,629 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:35:57,629 - world_generator - DEBUG - Generated river 6 with 12 points
+2025-03-01 19:35:57,629 - world_generator - DEBUG - Generating river from (27, 19) to nearest water at (37, 28)
+2025-03-01 19:35:57,629 - world_generator - DEBUG - River reached water at (37, 28)
+2025-03-01 19:35:57,629 - world_generator - DEBUG - Generated river path with 11 points
+2025-03-01 19:35:57,629 - world_generator - DEBUG - Generated river 7 with 11 points
+2025-03-01 19:35:57,630 - world_generator - DEBUG - Generating river from (26, 20) to nearest water at (36, 29)
+2025-03-01 19:35:57,630 - world_generator - DEBUG - River reached water at (36, 30)
+2025-03-01 19:35:57,630 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:35:57,630 - world_generator - DEBUG - Generated river 8 with 12 points
+2025-03-01 19:35:57,630 - world_generator - DEBUG - Generating river from (44, 35) to nearest water at (44, 34)
+2025-03-01 19:35:57,631 - world_generator - DEBUG - River reached water at (45, 34)
+2025-03-01 19:35:57,631 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:35:57,631 - world_generator - DEBUG - Generated river 9 with 2 points
+2025-03-01 19:35:57,631 - world_generator - DEBUG - Generating river from (71, 55) to nearest water at (60, 43)
+2025-03-01 19:35:57,631 - world_generator - DEBUG - River reached water at (60, 43)
+2025-03-01 19:35:57,631 - world_generator - DEBUG - Generated river path with 13 points
+2025-03-01 19:35:57,631 - world_generator - DEBUG - Generated river 10 with 13 points
+2025-03-01 19:35:57,632 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:35:57,632 - world_generator - INFO - River generation completed
+2025-03-01 19:35:57,632 - world_generator - INFO - Generating locations
+2025-03-01 19:35:57,632 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:35:57,698 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:35:57,704 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:35:57,708 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:35:57,709 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:35:57,709 - world_generator - DEBUG - Connected locations 0 and 14
+2025-03-01 19:35:57,709 - world_generator - DEBUG - Connected locations 14 and 22
+2025-03-01 19:35:57,709 - world_generator - DEBUG - Connected locations 0 and 27
+2025-03-01 19:35:57,709 - world_generator - DEBUG - Connected locations 27 and 11
+2025-03-01 19:35:57,710 - world_generator - DEBUG - Connected locations 11 and 23
+2025-03-01 19:35:57,710 - world_generator - DEBUG - Connected locations 23 and 29
+2025-03-01 19:35:57,710 - world_generator - DEBUG - Connected locations 29 and 3
+2025-03-01 19:35:57,710 - world_generator - DEBUG - Connected locations 3 and 28
+2025-03-01 19:35:57,710 - world_generator - DEBUG - Connected locations 28 and 5
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 5 and 8
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 8 and 24
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 8 and 20
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 24 and 21
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 21 and 13
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 13 and 19
+2025-03-01 19:35:57,711 - world_generator - DEBUG - Connected locations 22 and 4
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 4 and 7
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 7 and 9
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 9 and 6
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 6 and 26
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 26 and 17
+2025-03-01 19:35:57,712 - world_generator - DEBUG - Connected locations 17 and 15
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 15 and 10
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 10 and 12
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 9 and 18
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 18 and 16
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 18 and 1
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 1 and 2
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Connected locations 19 and 25
+2025-03-01 19:35:57,713 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Added extra connection between 24 and 6
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Added extra connection between 11 and 16
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Added extra connection between 14 and 3
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:35:57,714 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:35:57,714 - world_generator - INFO - Locations generation completed
+2025-03-01 19:35:57,714 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:35:57,715 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:35:57,715 - world_exploration - INFO - Entered world exploration at position (11, 56)
+2025-03-01 19:35:57,715 - world_exploration - INFO - Discovered location: Ancient Temple
+2025-03-01 19:35:57,715 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:35:57,715 - notification - DEBUG - Added notification: Location Discovered - You discovered Ancient Temple!
+2025-03-01 19:35:57,715 - world_exploration - DEBUG - Now at location: Springvale
+2025-03-01 19:35:59,449 - world_exploration - INFO - Interacting with location: Springvale
+2025-03-01 19:35:59,449 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:35:59,449 - notification - DEBUG - Added notification: Entering Town - Welcome to Springvale!
+2025-03-01 19:35:59,449 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:35:59,450 - state_manager - INFO - Changing state to: town
+2025-03-01 19:35:59,450 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:35:59,450 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:35:59,450 - TownState - INFO - Entered state: TownState
+2025-03-01 19:35:59,450 - event_bus - ERROR - Error in event handler for 'request_state_change': 'StateManager' object has no attribute 'get_screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\event_bus.py", line 62, in publish
+    callback(data)
+    ~~~~~~~~^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 173, in _handle_state_change_request
+    self.change_state(state_id, state_data)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 74, in change_state
+    new_state.enter(merged_data)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 207, in enter
+    self.screen = self.state_manager.get_screen()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'StateManager' object has no attribute 'get_screen'
+2025-03-01 19:36:05,791 - main - INFO - Cleaning up resources
+2025-03-01 19:38:01,407 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:38:01,407 - settings - INFO - Settings initialized
+2025-03-01 19:38:01,463 - event_bus - INFO - EventBus initialized
+2025-03-01 19:38:01,464 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:38:01,464 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:38:01,464 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:38:01,465 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:38:01,466 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:38:01,467 - main - INFO - Quests loaded successfully
+2025-03-01 19:38:01,467 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:38:01,467 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:38:01,467 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:38:01,467 - state_manager - INFO - StateManager initialized
+2025-03-01 19:38:01,467 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:38:01,468 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:38:01,468 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:38:01,468 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:38:01,468 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:38:01,468 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:38:01,468 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:38:01,469 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:38:01,469 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:38:01,469 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:38:01,469 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:38:01,469 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:38:01,469 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:38:01,470 - town_state - INFO - TownState initialized
+2025-03-01 19:38:01,470 - state_manager - INFO - Registered state: town
+2025-03-01 19:38:01,473 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:38:01,473 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:38:01,473 - combat - INFO - CombatGameState initialized
+2025-03-01 19:38:01,473 - state_manager - INFO - Registered state: combat
+2025-03-01 19:38:01,474 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:38:01,474 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:38:01,474 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:38:01,474 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:38:01,475 - main_menu - INFO - Entered main menu state
+2025-03-01 19:38:01,475 - main - INFO - Game initialized successfully
+2025-03-01 19:38:01,476 - main - INFO - Starting game loop
+2025-03-01 19:38:04,653 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:38:05,692 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:38:05,692 - main_menu - INFO - Starting new game
+2025-03-01 19:38:05,692 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:38:05,692 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:38:05,692 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:38:05,693 - main_menu - INFO - Exited main menu state
+2025-03-01 19:38:05,693 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:38:05,698 - world_exploration - INFO - Generating new world
+2025-03-01 19:38:05,699 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 254860
+2025-03-01 19:38:05,699 - world_generator - INFO - Starting world generation
+2025-03-01 19:38:05,699 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:38:05,736 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:38:05,737 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:38:05,737 - world_generator - INFO - Generating rivers
+2025-03-01 19:38:05,743 - world_generator - DEBUG - Found 268 mountain tiles and 1704 water tiles
+2025-03-01 19:38:05,743 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:38:05,744 - world_generator - DEBUG - Generating river from (55, 77) to nearest water at (62, 54)
+2025-03-01 19:38:05,744 - world_generator - DEBUG - River reached water at (63, 54)
+2025-03-01 19:38:05,744 - world_generator - DEBUG - Generated river path with 24 points
+2025-03-01 19:38:05,744 - world_generator - DEBUG - Generated river 1 with 24 points
+2025-03-01 19:38:05,745 - world_generator - DEBUG - Generating river from (51, 81) to nearest water at (29, 80)
+2025-03-01 19:38:05,745 - world_generator - DEBUG - River reached water at (29, 80)
+2025-03-01 19:38:05,745 - world_generator - DEBUG - Generated river path with 24 points
+2025-03-01 19:38:05,745 - world_generator - DEBUG - Generated river 2 with 24 points
+2025-03-01 19:38:05,745 - world_generator - DEBUG - Generating river from (62, 62) to nearest water at (62, 54)
+2025-03-01 19:38:05,746 - world_generator - DEBUG - River reached water at (62, 61)
+2025-03-01 19:38:05,746 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:38:05,746 - world_generator - DEBUG - Generated river 3 with 2 points
+2025-03-01 19:38:05,746 - world_generator - DEBUG - Generating river from (58, 55) to nearest water at (60, 53)
+2025-03-01 19:38:05,746 - world_generator - DEBUG - River reached water at (60, 53)
+2025-03-01 19:38:05,746 - world_generator - DEBUG - Generated river path with 5 points
+2025-03-01 19:38:05,747 - world_generator - DEBUG - Generated river 4 with 5 points
+2025-03-01 19:38:05,747 - world_generator - DEBUG - Generating river from (97, 1) to nearest water at (66, 4)
+2025-03-01 19:38:05,747 - world_generator - DEBUG - River reached water at (66, 4)
+2025-03-01 19:38:05,747 - world_generator - DEBUG - Generated river path with 32 points
+2025-03-01 19:38:05,747 - world_generator - DEBUG - Generated river 5 with 32 points
+2025-03-01 19:38:05,748 - world_generator - DEBUG - Generating river from (51, 73) to nearest water at (60, 53)
+2025-03-01 19:38:05,748 - world_generator - DEBUG - River reached water at (60, 54)
+2025-03-01 19:38:05,748 - world_generator - DEBUG - Generated river path with 20 points
+2025-03-01 19:38:05,748 - world_generator - DEBUG - Generated river 6 with 20 points
+2025-03-01 19:38:05,748 - world_generator - DEBUG - Generating river from (62, 55) to nearest water at (62, 54)
+2025-03-01 19:38:05,748 - world_generator - DEBUG - River reached water at (62, 54)
+2025-03-01 19:38:05,749 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:38:05,749 - world_generator - DEBUG - Generated river 7 with 2 points
+2025-03-01 19:38:05,749 - world_generator - DEBUG - Generating river from (22, 49) to nearest water at (20, 66)
+2025-03-01 19:38:05,749 - world_generator - DEBUG - River reached water at (20, 66)
+2025-03-01 19:38:05,749 - world_generator - DEBUG - Generated river path with 18 points
+2025-03-01 19:38:05,750 - world_generator - DEBUG - Generated river 8 with 18 points
+2025-03-01 19:38:05,750 - world_generator - DEBUG - Generating river from (51, 83) to nearest water at (29, 80)
+2025-03-01 19:38:05,750 - world_generator - DEBUG - River reached water at (44, 81)
+2025-03-01 19:38:05,750 - world_generator - DEBUG - Generated river path with 8 points
+2025-03-01 19:38:05,750 - world_generator - DEBUG - Generated river 9 with 8 points
+2025-03-01 19:38:05,751 - world_generator - DEBUG - Generating river from (50, 82) to nearest water at (29, 80)
+2025-03-01 19:38:05,751 - world_generator - DEBUG - River reached water at (49, 81)
+2025-03-01 19:38:05,751 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:38:05,751 - world_generator - DEBUG - Generated river 10 with 2 points
+2025-03-01 19:38:05,751 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:38:05,751 - world_generator - INFO - River generation completed
+2025-03-01 19:38:05,751 - world_generator - INFO - Generating locations
+2025-03-01 19:38:05,752 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:38:05,817 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:38:05,823 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connected locations 0 and 19
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connected locations 0 and 29
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connected locations 29 and 9
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connected locations 9 and 25
+2025-03-01 19:38:05,828 - world_generator - DEBUG - Connected locations 9 and 15
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 15 and 14
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 15 and 6
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 6 and 22
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 22 and 5
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 5 and 27
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 27 and 23
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 23 and 24
+2025-03-01 19:38:05,829 - world_generator - DEBUG - Connected locations 22 and 13
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 13 and 2
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 6 and 26
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 26 and 20
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 20 and 3
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 3 and 10
+2025-03-01 19:38:05,830 - world_generator - DEBUG - Connected locations 10 and 4
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 4 and 18
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 18 and 12
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 18 and 8
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 8 and 7
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 7 and 28
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 27 and 21
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 2 and 11
+2025-03-01 19:38:05,831 - world_generator - DEBUG - Connected locations 11 and 16
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Connected locations 29 and 1
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Connected locations 1 and 17
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Added extra connection between 21 and 3
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Added extra connection between 28 and 24
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Added extra connection between 0 and 6
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:38:05,832 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:38:05,832 - world_generator - INFO - Locations generation completed
+2025-03-01 19:38:05,833 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:38:05,833 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:38:05,833 - world_exploration - INFO - Entered world exploration at position (70, 21)
+2025-03-01 19:38:05,833 - world_exploration - DEBUG - Now at location: Willowshire
+2025-03-01 19:38:06,993 - world_exploration - DEBUG - Left location
+2025-03-01 19:38:10,781 - world_exploration - INFO - Interacting with location: Willowshire
+2025-03-01 19:38:10,781 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:38:10,781 - notification - DEBUG - Added notification: Entering Town - Welcome to Willowshire!
+2025-03-01 19:38:10,781 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:38:10,781 - state_manager - INFO - Changing state to: town
+2025-03-01 19:38:10,781 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:38:10,781 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:38:10,782 - TownState - INFO - Entered state: TownState
+2025-03-01 19:38:10,782 - event_bus - ERROR - Error in event handler for 'request_state_change': 'TownState' object has no attribute 'screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\event_bus.py", line 62, in publish
+    callback(data)
+    ~~~~~~~~^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 173, in _handle_state_change_request
+    self.change_state(state_id, state_data)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 74, in change_state
+    new_state.enter(merged_data)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 208, in enter
+    self.ui_manager = UIManager(self.screen)
+                                ^^^^^^^^^^^
+AttributeError: 'TownState' object has no attribute 'screen'
+2025-03-01 19:38:15,595 - main - INFO - Cleaning up resources
+2025-03-01 19:39:36,127 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:39:36,127 - settings - INFO - Settings initialized
+2025-03-01 19:39:36,175 - event_bus - INFO - EventBus initialized
+2025-03-01 19:39:36,176 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:39:36,176 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:39:36,176 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:39:36,176 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:39:36,176 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:39:36,176 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:39:36,177 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:39:36,178 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:39:36,178 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:39:36,178 - main - INFO - Quests loaded successfully
+2025-03-01 19:39:36,178 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:39:36,179 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:39:36,179 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:39:36,179 - state_manager - INFO - StateManager initialized
+2025-03-01 19:39:36,179 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:39:36,179 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:39:36,179 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:39:36,180 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:39:36,180 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:39:36,180 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:39:36,180 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:39:36,180 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:39:36,180 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:39:36,180 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:39:36,180 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:39:36,181 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:39:36,181 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:39:36,182 - town_state - INFO - TownState initialized
+2025-03-01 19:39:36,182 - state_manager - INFO - Registered state: town
+2025-03-01 19:39:36,184 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:39:36,185 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:39:36,185 - combat - INFO - CombatGameState initialized
+2025-03-01 19:39:36,185 - state_manager - INFO - Registered state: combat
+2025-03-01 19:39:36,185 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:39:36,185 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:39:36,185 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:39:36,185 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:39:36,187 - main_menu - INFO - Entered main menu state
+2025-03-01 19:39:36,187 - main - INFO - Game initialized successfully
+2025-03-01 19:39:36,187 - main - INFO - Starting game loop
+2025-03-01 19:39:38,563 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:39:39,180 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:39:39,180 - main_menu - INFO - Starting new game
+2025-03-01 19:39:39,180 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:39:39,180 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:39:39,180 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:39:39,181 - main_menu - INFO - Exited main menu state
+2025-03-01 19:39:39,181 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:39:39,186 - world_exploration - INFO - Generating new world
+2025-03-01 19:39:39,187 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 158588
+2025-03-01 19:39:39,187 - world_generator - INFO - Starting world generation
+2025-03-01 19:39:39,187 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:39:39,226 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:39:39,227 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:39:39,227 - world_generator - INFO - Generating rivers
+2025-03-01 19:39:39,233 - world_generator - DEBUG - Found 384 mountain tiles and 1201 water tiles
+2025-03-01 19:39:39,233 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:39:39,233 - world_generator - DEBUG - Generating river from (36, 11) to nearest water at (60, 32)
+2025-03-01 19:39:39,234 - world_generator - DEBUG - River reached water at (60, 33)
+2025-03-01 19:39:39,234 - world_generator - DEBUG - Generated river path with 26 points
+2025-03-01 19:39:39,234 - world_generator - DEBUG - Generated river 1 with 26 points
+2025-03-01 19:39:39,234 - world_generator - DEBUG - Generating river from (14, 21) to nearest water at (5, 39)
+2025-03-01 19:39:39,234 - world_generator - DEBUG - River reached water at (5, 39)
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generated river path with 19 points
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generated river 2 with 19 points
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generating river from (93, 49) to nearest water at (94, 52)
+2025-03-01 19:39:39,235 - world_generator - DEBUG - River reached water at (94, 52)
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generated river 3 with 4 points
+2025-03-01 19:39:39,235 - world_generator - DEBUG - Generating river from (39, 14) to nearest water at (60, 32)
+2025-03-01 19:39:39,236 - world_generator - DEBUG - River reached water at (40, 15)
+2025-03-01 19:39:39,236 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:39:39,236 - world_generator - DEBUG - Generated river 4 with 2 points
+2025-03-01 19:39:39,236 - world_generator - DEBUG - Generating river from (52, 61) to nearest water at (63, 49)
+2025-03-01 19:39:39,236 - world_generator - DEBUG - River reached water at (63, 49)
+2025-03-01 19:39:39,236 - world_generator - DEBUG - Generated river path with 14 points
+2025-03-01 19:39:39,236 - world_generator - DEBUG - Generated river 5 with 14 points
+2025-03-01 19:39:39,237 - world_generator - DEBUG - Generating river from (43, 51) to nearest water at (59, 44)
+2025-03-01 19:39:39,237 - world_generator - DEBUG - River reached water at (59, 43)
+2025-03-01 19:39:39,237 - world_generator - DEBUG - Generated river path with 19 points
+2025-03-01 19:39:39,237 - world_generator - DEBUG - Generated river 6 with 19 points
+2025-03-01 19:39:39,237 - world_generator - DEBUG - Generating river from (44, 58) to nearest water at (60, 46)
+2025-03-01 19:39:39,237 - world_generator - DEBUG - River reached water at (60, 46)
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generated river path with 17 points
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generated river 7 with 17 points
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generating river from (22, 55) to nearest water at (11, 53)
+2025-03-01 19:39:39,238 - world_generator - DEBUG - River reached water at (11, 52)
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generated river 8 with 12 points
+2025-03-01 19:39:39,238 - world_generator - DEBUG - Generating river from (42, 53) to nearest water at (59, 44)
+2025-03-01 19:39:39,239 - world_generator - DEBUG - River reached water at (50, 45)
+2025-03-01 19:39:39,239 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:39:39,239 - world_generator - DEBUG - Generated river 9 with 9 points
+2025-03-01 19:39:39,239 - world_generator - DEBUG - Generating river from (25, 43) to nearest water at (11, 45)
+2025-03-01 19:39:39,239 - world_generator - DEBUG - River reached water at (11, 45)
+2025-03-01 19:39:39,239 - world_generator - DEBUG - Generated river path with 15 points
+2025-03-01 19:39:39,240 - world_generator - DEBUG - Generated river 10 with 15 points
+2025-03-01 19:39:39,240 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:39:39,240 - world_generator - INFO - River generation completed
+2025-03-01 19:39:39,240 - world_generator - INFO - Generating locations
+2025-03-01 19:39:39,240 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:39:39,310 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:39:39,316 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:39:39,320 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:39:39,320 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 0 and 4
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 0 and 5
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 0 and 13
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 13 and 7
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 7 and 6
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 13 and 8
+2025-03-01 19:39:39,321 - world_generator - DEBUG - Connected locations 8 and 2
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 4 and 25
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 25 and 18
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 25 and 3
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 6 and 26
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 26 and 22
+2025-03-01 19:39:39,322 - world_generator - DEBUG - Connected locations 7 and 14
+2025-03-01 19:39:39,323 - world_generator - DEBUG - Connected locations 14 and 17
+2025-03-01 19:39:39,323 - world_generator - DEBUG - Connected locations 17 and 9
+2025-03-01 19:39:39,323 - world_generator - DEBUG - Connected locations 9 and 1
+2025-03-01 19:39:39,323 - world_generator - DEBUG - Connected locations 1 and 16
+2025-03-01 19:39:39,323 - world_generator - DEBUG - Connected locations 16 and 29
+2025-03-01 19:39:39,324 - world_generator - DEBUG - Connected locations 29 and 15
+2025-03-01 19:39:39,324 - world_generator - DEBUG - Connected locations 29 and 11
+2025-03-01 19:39:39,324 - world_generator - DEBUG - Connected locations 11 and 21
+2025-03-01 19:39:39,324 - world_generator - DEBUG - Connected locations 3 and 10
+2025-03-01 19:39:39,324 - world_generator - DEBUG - Connected locations 10 and 12
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 10 and 20
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 26 and 28
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 28 and 24
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 8 and 19
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 19 and 27
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Connected locations 27 and 23
+2025-03-01 19:39:39,325 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:39:39,326 - world_generator - DEBUG - Added extra connection between 7 and 21
+2025-03-01 19:39:39,326 - world_generator - DEBUG - Added extra connection between 28 and 16
+2025-03-01 19:39:39,326 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:39:39,326 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:39:39,326 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:39:39,326 - world_generator - INFO - Locations generation completed
+2025-03-01 19:39:39,326 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:39:39,326 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:39:39,327 - world_exploration - INFO - Entered world exploration at position (60, 50)
+2025-03-01 19:39:39,327 - world_exploration - INFO - Discovered location: Greenholm
+2025-03-01 19:39:39,327 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:39:39,327 - notification - DEBUG - Added notification: Location Discovered - You discovered Greenholm!
+2025-03-01 19:39:39,327 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:39:40,563 - world_exploration - INFO - Interacting with location: Stonehaven
+2025-03-01 19:39:40,563 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:39:40,563 - notification - DEBUG - Added notification: Entering Town - Welcome to Stonehaven!
+2025-03-01 19:39:40,563 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:39:40,563 - state_manager - INFO - Changing state to: town
+2025-03-01 19:39:40,563 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:39:40,564 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:39:40,564 - TownState - INFO - Entered state: TownState
+2025-03-01 19:39:40,564 - town_state - WARNING - No screen available. UI elements will not be created.
+2025-03-01 19:39:40,564 - main - ERROR - Exception in main game loop: 'TownState' object has no attribute 'ui_manager'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 141, in run
+    self.update(dt)
+    ~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 116, in update
+    self.state_manager.update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 160, in update
+    self.state_stack[-1].update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 245, in update
+    self.ui_manager.update(dt)
+    ^^^^^^^^^^^^^^^
+AttributeError: 'TownState' object has no attribute 'ui_manager'. Did you mean: 'quest_manager'?
+2025-03-01 19:39:45,569 - main - INFO - Cleaning up resources
+2025-03-01 19:41:00,819 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:41:00,819 - settings - INFO - Settings initialized
+2025-03-01 19:41:00,867 - event_bus - INFO - EventBus initialized
+2025-03-01 19:41:00,868 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:41:00,868 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:41:00,868 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:41:00,868 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:41:00,868 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:41:00,868 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:41:00,869 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:41:00,870 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:41:00,870 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:41:00,870 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:41:00,870 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:41:00,870 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:41:00,871 - main - INFO - Quests loaded successfully
+2025-03-01 19:41:00,871 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:41:00,871 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:41:00,871 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:41:00,871 - state_manager - INFO - StateManager initialized
+2025-03-01 19:41:00,872 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:41:00,872 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:41:00,872 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:41:00,872 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:41:00,872 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:41:00,873 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:41:00,873 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:41:00,873 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:41:00,873 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:41:00,873 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:41:00,873 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:41:00,873 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:41:00,874 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:41:00,874 - town_state - INFO - TownState initialized
+2025-03-01 19:41:00,875 - state_manager - INFO - Registered state: town
+2025-03-01 19:41:00,877 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:41:00,877 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:41:00,877 - combat - INFO - CombatGameState initialized
+2025-03-01 19:41:00,878 - state_manager - INFO - Registered state: combat
+2025-03-01 19:41:00,878 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:41:00,878 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:41:00,878 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:41:00,878 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:41:00,879 - main_menu - INFO - Entered main menu state
+2025-03-01 19:41:00,879 - main - INFO - Game initialized successfully
+2025-03-01 19:41:00,880 - main - INFO - Starting game loop
+2025-03-01 19:41:05,306 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:41:06,320 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:41:06,321 - main_menu - INFO - Starting new game
+2025-03-01 19:41:06,321 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:41:06,321 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:41:06,321 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:41:06,321 - main_menu - INFO - Exited main menu state
+2025-03-01 19:41:06,321 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:41:06,327 - world_exploration - INFO - Generating new world
+2025-03-01 19:41:06,327 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 605122
+2025-03-01 19:41:06,328 - world_generator - INFO - Starting world generation
+2025-03-01 19:41:06,328 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:41:06,366 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:41:06,366 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:41:06,367 - world_generator - INFO - Generating rivers
+2025-03-01 19:41:06,375 - world_generator - DEBUG - Found 208 mountain tiles and 1123 water tiles
+2025-03-01 19:41:06,376 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:41:06,376 - world_generator - DEBUG - Generating river from (10, 22) to nearest water at (32, 36)
+2025-03-01 19:41:06,376 - world_generator - DEBUG - River reached water at (32, 36)
+2025-03-01 19:41:06,376 - world_generator - DEBUG - Generated river path with 23 points
+2025-03-01 19:41:06,377 - world_generator - DEBUG - Generated river 1 with 23 points
+2025-03-01 19:41:06,377 - world_generator - DEBUG - Generating river from (50, 93) to nearest water at (44, 48)
+2025-03-01 19:41:06,377 - world_generator - DEBUG - River reached water at (44, 48)
+2025-03-01 19:41:06,377 - world_generator - DEBUG - Generated river path with 46 points
+2025-03-01 19:41:06,377 - world_generator - DEBUG - Generated river 2 with 46 points
+2025-03-01 19:41:06,378 - world_generator - DEBUG - Generating river from (11, 17) to nearest water at (32, 36)
+2025-03-01 19:41:06,378 - world_generator - DEBUG - River reached water at (30, 36)
+2025-03-01 19:41:06,378 - world_generator - DEBUG - Generated river path with 20 points
+2025-03-01 19:41:06,378 - world_generator - DEBUG - Generated river 3 with 20 points
+2025-03-01 19:41:06,378 - world_generator - DEBUG - Generating river from (46, 72) to nearest water at (44, 48)
+2025-03-01 19:41:06,378 - world_generator - DEBUG - River reached water at (45, 71)
+2025-03-01 19:41:06,379 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:41:06,379 - world_generator - DEBUG - Generated river 4 with 2 points
+2025-03-01 19:41:06,379 - world_generator - DEBUG - Generating river from (47, 71) to nearest water at (44, 48)
+2025-03-01 19:41:06,379 - world_generator - DEBUG - River reached water at (44, 68)
+2025-03-01 19:41:06,379 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:41:06,379 - world_generator - DEBUG - Generated river 5 with 4 points
+2025-03-01 19:41:06,380 - world_generator - DEBUG - Generating river from (11, 22) to nearest water at (32, 36)
+2025-03-01 19:41:06,380 - world_generator - DEBUG - River reached water at (29, 37)
+2025-03-01 19:41:06,380 - world_generator - DEBUG - Generated river path with 19 points
+2025-03-01 19:41:06,380 - world_generator - DEBUG - Generated river 6 with 19 points
+2025-03-01 19:41:06,380 - world_generator - DEBUG - Generating river from (11, 18) to nearest water at (32, 36)
+2025-03-01 19:41:06,381 - world_generator - DEBUG - River reached water at (28, 34)
+2025-03-01 19:41:06,381 - world_generator - DEBUG - Generated river path with 18 points
+2025-03-01 19:41:06,381 - world_generator - DEBUG - Generated river 7 with 18 points
+2025-03-01 19:41:06,381 - world_generator - DEBUG - Generating river from (51, 68) to nearest water at (44, 48)
+2025-03-01 19:41:06,381 - world_generator - DEBUG - River reached water at (44, 59)
+2025-03-01 19:41:06,381 - world_generator - DEBUG - Generated river path with 10 points
+2025-03-01 19:41:06,382 - world_generator - DEBUG - Generated river 8 with 10 points
+2025-03-01 19:41:06,382 - world_generator - DEBUG - Generating river from (50, 71) to nearest water at (44, 48)
+2025-03-01 19:41:06,382 - world_generator - DEBUG - River reached water at (45, 66)
+2025-03-01 19:41:06,382 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:41:06,382 - world_generator - DEBUG - Generated river 9 with 6 points
+2025-03-01 19:41:06,382 - world_generator - DEBUG - Generating river from (43, 7) to nearest water at (40, 31)
+2025-03-01 19:41:06,383 - world_generator - DEBUG - River reached water at (40, 31)
+2025-03-01 19:41:06,383 - world_generator - DEBUG - Generated river path with 25 points
+2025-03-01 19:41:06,383 - world_generator - DEBUG - Generated river 10 with 25 points
+2025-03-01 19:41:06,383 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:41:06,383 - world_generator - INFO - River generation completed
+2025-03-01 19:41:06,383 - world_generator - INFO - Generating locations
+2025-03-01 19:41:06,383 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:41:06,453 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:41:06,459 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 0 and 23
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 23 and 14
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 14 and 20
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 20 and 10
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 10 and 13
+2025-03-01 19:41:06,464 - world_generator - DEBUG - Connected locations 13 and 28
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 28 and 15
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 28 and 27
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 27 and 9
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 9 and 3
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 3 and 8
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 8 and 7
+2025-03-01 19:41:06,465 - world_generator - DEBUG - Connected locations 7 and 16
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 7 and 25
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 8 and 6
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 6 and 1
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 6 and 18
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 18 and 19
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 19 and 11
+2025-03-01 19:41:06,466 - world_generator - DEBUG - Connected locations 11 and 12
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 12 and 21
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 11 and 29
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 1 and 2
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 27 and 5
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 2 and 26
+2025-03-01 19:41:06,467 - world_generator - DEBUG - Connected locations 26 and 22
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Connected locations 27 and 4
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Connected locations 4 and 17
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Connected locations 17 and 24
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Added extra connection between 15 and 10
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Added extra connection between 22 and 14
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Added extra connection between 23 and 28
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:41:06,468 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:41:06,469 - world_generator - INFO - Locations generation completed
+2025-03-01 19:41:06,469 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:41:06,469 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:41:06,469 - world_exploration - INFO - Entered world exploration at position (44, 90)
+2025-03-01 19:41:06,469 - world_exploration - DEBUG - Now at location: Willowshire
+2025-03-01 19:41:07,608 - world_exploration - INFO - Interacting with location: Willowshire
+2025-03-01 19:41:07,608 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:41:07,608 - notification - DEBUG - Added notification: Entering Town - Welcome to Willowshire!
+2025-03-01 19:41:07,608 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:41:07,608 - state_manager - INFO - Changing state to: town
+2025-03-01 19:41:07,608 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:41:07,609 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:41:07,609 - TownState - INFO - Entered state: TownState
+2025-03-01 19:41:07,609 - town_state - WARNING - No screen available. UI elements will not be created.
+2025-03-01 19:41:07,609 - town_state - INFO - Entered town: Riverdale
+2025-03-01 19:41:07,609 - main - ERROR - Exception in main game loop: 'NoneType' object has no attribute 'get_width'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 141, in run
+    self.update(dt)
+    ~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 116, in update
+    self.state_manager.update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 160, in update
+    self.state_stack[-1].update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 254, in update
+    self._update_camera()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 484, in _update_camera
+    target_x = int(self.player_grid_pos[0] * self.tile_size - self.screen.get_width() // 2)
+                                                              ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get_width'
+2025-03-01 19:41:12,619 - main - INFO - Cleaning up resources
+2025-03-01 19:44:49,405 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:44:49,405 - settings - INFO - Settings initialized
+2025-03-01 19:44:49,456 - event_bus - INFO - EventBus initialized
+2025-03-01 19:44:49,456 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:44:49,457 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:44:49,458 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:44:49,459 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:44:49,459 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:44:49,459 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:44:49,460 - main - INFO - Quests loaded successfully
+2025-03-01 19:44:49,460 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:44:49,460 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:44:49,460 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:44:49,460 - state_manager - INFO - StateManager initialized
+2025-03-01 19:44:49,461 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:44:49,461 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:44:49,461 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:44:49,461 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:44:49,461 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:44:49,462 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:44:49,462 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:44:49,462 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:44:49,462 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:44:49,462 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:44:49,462 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:44:49,462 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:44:49,463 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:44:49,463 - town_state - INFO - TownState initialized
+2025-03-01 19:44:49,464 - state_manager - INFO - Registered state: town
+2025-03-01 19:44:49,466 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:44:49,466 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:44:49,466 - combat - INFO - CombatGameState initialized
+2025-03-01 19:44:49,466 - state_manager - INFO - Registered state: combat
+2025-03-01 19:44:49,467 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:44:49,467 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:44:49,467 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:44:49,467 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:44:49,468 - main_menu - INFO - Entered main menu state
+2025-03-01 19:44:49,469 - main - INFO - Game initialized successfully
+2025-03-01 19:44:49,469 - main - INFO - Starting game loop
+2025-03-01 19:44:51,224 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:44:51,969 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:44:51,969 - main_menu - INFO - Starting new game
+2025-03-01 19:44:51,969 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:44:51,969 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:44:51,969 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:44:51,970 - main_menu - INFO - Exited main menu state
+2025-03-01 19:44:51,970 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:44:51,976 - world_exploration - INFO - Generating new world
+2025-03-01 19:44:51,976 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 522937
+2025-03-01 19:44:51,976 - world_generator - INFO - Starting world generation
+2025-03-01 19:44:51,976 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:44:52,015 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:44:52,016 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:44:52,016 - world_generator - INFO - Generating rivers
+2025-03-01 19:44:52,022 - world_generator - DEBUG - Found 242 mountain tiles and 1863 water tiles
+2025-03-01 19:44:52,022 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:44:52,023 - world_generator - DEBUG - Generating river from (1, 53) to nearest water at (6, 64)
+2025-03-01 19:44:52,023 - world_generator - DEBUG - River reached water at (6, 64)
+2025-03-01 19:44:52,023 - world_generator - DEBUG - Generated river path with 12 points
+2025-03-01 19:44:52,023 - world_generator - DEBUG - Generated river 1 with 12 points
+2025-03-01 19:44:52,024 - world_generator - DEBUG - Generating river from (1, 55) to nearest water at (6, 64)
+2025-03-01 19:44:52,024 - world_generator - DEBUG - River reached water at (6, 63)
+2025-03-01 19:44:52,024 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:44:52,024 - world_generator - DEBUG - Generated river 2 with 9 points
+2025-03-01 19:44:52,024 - world_generator - DEBUG - Generating river from (9, 57) to nearest water at (10, 63)
+2025-03-01 19:44:52,025 - world_generator - DEBUG - River reached water at (10, 63)
+2025-03-01 19:44:52,025 - world_generator - DEBUG - Generated river path with 7 points
+2025-03-01 19:44:52,025 - world_generator - DEBUG - Generated river 3 with 7 points
+2025-03-01 19:44:52,025 - world_generator - DEBUG - Generating river from (34, 86) to nearest water at (33, 86)
+2025-03-01 19:44:52,025 - world_generator - DEBUG - River reached water at (33, 86)
+2025-03-01 19:44:52,025 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:44:52,025 - world_generator - DEBUG - Generated river 4 with 2 points
+2025-03-01 19:44:52,026 - world_generator - DEBUG - Generating river from (84, 77) to nearest water at (84, 83)
+2025-03-01 19:44:52,026 - world_generator - DEBUG - River reached water at (84, 83)
+2025-03-01 19:44:52,026 - world_generator - DEBUG - Generated river path with 7 points
+2025-03-01 19:44:52,026 - world_generator - DEBUG - Generated river 5 with 7 points
+2025-03-01 19:44:52,027 - world_generator - DEBUG - Generating river from (77, 68) to nearest water at (79, 84)
+2025-03-01 19:44:52,027 - world_generator - DEBUG - River reached water at (79, 84)
+2025-03-01 19:44:52,027 - world_generator - DEBUG - Generated river path with 18 points
+2025-03-01 19:44:52,027 - world_generator - DEBUG - Generated river 6 with 18 points
+2025-03-01 19:44:52,028 - world_generator - DEBUG - Generating river from (6, 52) to nearest water at (10, 63)
+2025-03-01 19:44:52,028 - world_generator - DEBUG - River reached water at (10, 59)
+2025-03-01 19:44:52,028 - world_generator - DEBUG - Generated river path with 8 points
+2025-03-01 19:44:52,028 - world_generator - DEBUG - Generated river 7 with 8 points
+2025-03-01 19:44:52,028 - world_generator - DEBUG - Generating river from (30, 26) to nearest water at (49, 26)
+2025-03-01 19:44:52,029 - world_generator - DEBUG - River reached water at (49, 26)
+2025-03-01 19:44:52,029 - world_generator - DEBUG - Generated river path with 22 points
+2025-03-01 19:44:52,029 - world_generator - DEBUG - Generated river 8 with 22 points
+2025-03-01 19:44:52,029 - world_generator - DEBUG - Generating river from (2, 54) to nearest water at (6, 64)
+2025-03-01 19:44:52,029 - world_generator - DEBUG - River reached water at (3, 55)
+2025-03-01 19:44:52,029 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:44:52,029 - world_generator - DEBUG - Generated river 9 with 2 points
+2025-03-01 19:44:52,030 - world_generator - DEBUG - Generating river from (6, 54) to nearest water at (10, 63)
+2025-03-01 19:44:52,030 - world_generator - DEBUG - River reached water at (9, 57)
+2025-03-01 19:44:52,030 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:44:52,030 - world_generator - DEBUG - Generated river 10 with 4 points
+2025-03-01 19:44:52,030 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:44:52,031 - world_generator - INFO - River generation completed
+2025-03-01 19:44:52,031 - world_generator - INFO - Generating locations
+2025-03-01 19:44:52,031 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:44:52,098 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:44:52,105 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:44:52,109 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:44:52,109 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:44:52,109 - world_generator - DEBUG - Connected locations 0 and 11
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 11 and 7
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 7 and 25
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 25 and 24
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 24 and 2
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 2 and 6
+2025-03-01 19:44:52,110 - world_generator - DEBUG - Connected locations 2 and 4
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 4 and 1
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 6 and 10
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 6 and 29
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 29 and 15
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 15 and 13
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 13 and 20
+2025-03-01 19:44:52,111 - world_generator - DEBUG - Connected locations 20 and 17
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 17 and 21
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 21 and 12
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 12 and 18
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 12 and 3
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 15 and 23
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 23 and 14
+2025-03-01 19:44:52,112 - world_generator - DEBUG - Connected locations 14 and 19
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 19 and 28
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 18 and 27
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 14 and 5
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 18 and 8
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 25 and 22
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 22 and 16
+2025-03-01 19:44:52,113 - world_generator - DEBUG - Connected locations 16 and 9
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Connected locations 9 and 26
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Added extra connection between 12 and 14
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Added extra connection between 29 and 25
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Added extra connection between 27 and 23
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:44:52,114 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:44:52,114 - world_generator - INFO - Locations generation completed
+2025-03-01 19:44:52,115 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:44:52,115 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:44:52,115 - world_exploration - INFO - Entered world exploration at position (3, 60)
+2025-03-01 19:44:52,115 - world_exploration - INFO - Discovered location: Lost Lair
+2025-03-01 19:44:52,115 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:44:52,115 - notification - DEBUG - Added notification: Location Discovered - You discovered Lost Lair!
+2025-03-01 19:44:52,115 - world_exploration - DEBUG - Now at location: Lakeview
+2025-03-01 19:44:54,270 - world_exploration - INFO - Interacting with location: Lakeview
+2025-03-01 19:44:54,271 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:44:54,271 - notification - DEBUG - Added notification: Entering Town - Welcome to Lakeview!
+2025-03-01 19:44:54,271 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:44:54,271 - state_manager - INFO - Changing state to: town
+2025-03-01 19:44:54,271 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:44:54,271 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:44:54,272 - TownState - INFO - Entered state: TownState
+2025-03-01 19:44:54,272 - town_state - INFO - Entered town: Riverdale
+2025-03-01 19:44:54,272 - main - ERROR - Exception in main game loop: 'TownState' object has no attribute 'screen'
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 141, in run
+    self.update(dt)
+    ~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 116, in update
+    self.state_manager.update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 160, in update
+    self.state_stack[-1].update(dt)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 235, in update
+    self._update_camera()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 465, in _update_camera
+    target_x = int(self.player_grid_pos[0] * self.tile_size - self.screen.get_width() // 2)
+                                                              ^^^^^^^^^^^
+AttributeError: 'TownState' object has no attribute 'screen'
+2025-03-01 19:44:59,277 - main - INFO - Cleaning up resources
+2025-03-01 19:46:15,269 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:46:15,270 - settings - INFO - Settings initialized
+2025-03-01 19:46:15,326 - event_bus - INFO - EventBus initialized
+2025-03-01 19:46:15,326 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:46:15,327 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:46:15,328 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:46:15,329 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:46:15,329 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:46:15,329 - main - INFO - Quests loaded successfully
+2025-03-01 19:46:15,330 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:46:15,330 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:46:15,330 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:46:15,330 - state_manager - INFO - StateManager initialized
+2025-03-01 19:46:15,330 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:46:15,331 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:46:15,331 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:46:15,331 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:46:15,331 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:46:15,331 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:46:15,331 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:46:15,331 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:46:15,332 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:46:15,332 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:46:15,332 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:46:15,332 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:46:15,332 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:46:15,333 - town_state - INFO - TownState initialized
+2025-03-01 19:46:15,333 - state_manager - INFO - Registered state: town
+2025-03-01 19:46:15,336 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:46:15,336 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:46:15,336 - combat - INFO - CombatGameState initialized
+2025-03-01 19:46:15,336 - state_manager - INFO - Registered state: combat
+2025-03-01 19:46:15,336 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:46:15,336 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:46:15,337 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:46:15,337 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:46:15,338 - main_menu - INFO - Entered main menu state
+2025-03-01 19:46:15,338 - main - INFO - Game initialized successfully
+2025-03-01 19:46:15,338 - main - INFO - Starting game loop
+2025-03-01 19:46:16,768 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:46:17,413 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:46:17,413 - main_menu - INFO - Starting new game
+2025-03-01 19:46:17,413 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:46:17,413 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:46:17,414 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:46:17,414 - main_menu - INFO - Exited main menu state
+2025-03-01 19:46:17,414 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:46:17,420 - world_exploration - INFO - Generating new world
+2025-03-01 19:46:17,420 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 578627
+2025-03-01 19:46:17,420 - world_generator - INFO - Starting world generation
+2025-03-01 19:46:17,420 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:46:17,457 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:46:17,458 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:46:17,458 - world_generator - INFO - Generating rivers
+2025-03-01 19:46:17,464 - world_generator - DEBUG - Found 180 mountain tiles and 1454 water tiles
+2025-03-01 19:46:17,464 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:46:17,465 - world_generator - DEBUG - Generating river from (55, 59) to nearest water at (63, 67)
+2025-03-01 19:46:17,465 - world_generator - DEBUG - River reached water at (63, 67)
+2025-03-01 19:46:17,465 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:46:17,465 - world_generator - DEBUG - Generated river 1 with 9 points
+2025-03-01 19:46:17,465 - world_generator - DEBUG - Generating river from (50, 56) to nearest water at (42, 63)
+2025-03-01 19:46:17,466 - world_generator - DEBUG - River reached water at (42, 64)
+2025-03-01 19:46:17,466 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:46:17,466 - world_generator - DEBUG - Generated river 2 with 9 points
+2025-03-01 19:46:17,466 - world_generator - DEBUG - Generating river from (74, 67) to nearest water at (74, 66)
+2025-03-01 19:46:17,466 - world_generator - DEBUG - River reached water at (73, 67)
+2025-03-01 19:46:17,466 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:46:17,467 - world_generator - DEBUG - Generated river 3 with 2 points
+2025-03-01 19:46:17,467 - world_generator - DEBUG - Generating river from (42, 53) to nearest water at (38, 60)
+2025-03-01 19:46:17,467 - world_generator - DEBUG - River reached water at (38, 60)
+2025-03-01 19:46:17,467 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:46:17,467 - world_generator - DEBUG - Generated river 4 with 9 points
+2025-03-01 19:46:17,468 - world_generator - DEBUG - Generating river from (50, 55) to nearest water at (42, 63)
+2025-03-01 19:46:17,468 - world_generator - DEBUG - River reached water at (43, 63)
+2025-03-01 19:46:17,468 - world_generator - DEBUG - Generated river path with 9 points
+2025-03-01 19:46:17,468 - world_generator - DEBUG - Generated river 5 with 9 points
+2025-03-01 19:46:17,469 - world_generator - DEBUG - Generating river from (9, 87) to nearest water at (9, 86)
+2025-03-01 19:46:17,469 - world_generator - DEBUG - River reached water at (9, 86)
+2025-03-01 19:46:17,469 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:46:17,469 - world_generator - DEBUG - Generated river 6 with 2 points
+2025-03-01 19:46:17,469 - world_generator - DEBUG - Generating river from (50, 60) to nearest water at (42, 63)
+2025-03-01 19:46:17,470 - world_generator - DEBUG - River reached water at (44, 62)
+2025-03-01 19:46:17,470 - world_generator - DEBUG - Generated river path with 7 points
+2025-03-01 19:46:17,470 - world_generator - DEBUG - Generated river 7 with 7 points
+2025-03-01 19:46:17,470 - world_generator - DEBUG - Generating river from (91, 15) to nearest water at (78, 64)
+2025-03-01 19:46:17,470 - world_generator - DEBUG - River reached water at (77, 64)
+2025-03-01 19:46:17,471 - world_generator - DEBUG - Generated river path with 50 points
+2025-03-01 19:46:17,471 - world_generator - DEBUG - Generated river 8 with 50 points
+2025-03-01 19:46:17,471 - world_generator - DEBUG - Generating river from (50, 57) to nearest water at (42, 63)
+2025-03-01 19:46:17,471 - world_generator - DEBUG - River reached water at (45, 62)
+2025-03-01 19:46:17,471 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:46:17,471 - world_generator - DEBUG - Generated river 9 with 6 points
+2025-03-01 19:46:17,472 - world_generator - DEBUG - Generating river from (98, 13) to nearest water at (78, 64)
+2025-03-01 19:46:17,472 - world_generator - DEBUG - River reached water at (78, 33)
+2025-03-01 19:46:17,472 - world_generator - DEBUG - Generated river path with 21 points
+2025-03-01 19:46:17,472 - world_generator - DEBUG - Generated river 10 with 21 points
+2025-03-01 19:46:17,472 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:46:17,472 - world_generator - INFO - River generation completed
+2025-03-01 19:46:17,472 - world_generator - INFO - Generating locations
+2025-03-01 19:46:17,472 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:46:17,541 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:46:17,548 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:46:17,552 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:46:17,552 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:46:17,552 - world_generator - DEBUG - Connected locations 0 and 11
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 0 and 5
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 11 and 3
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 3 and 27
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 27 and 28
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 28 and 8
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 8 and 24
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 8 and 7
+2025-03-01 19:46:17,553 - world_generator - DEBUG - Connected locations 7 and 4
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 4 and 6
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 6 and 9
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 6 and 23
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 23 and 13
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 13 and 20
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 13 and 15
+2025-03-01 19:46:17,554 - world_generator - DEBUG - Connected locations 15 and 19
+2025-03-01 19:46:17,555 - world_generator - DEBUG - Connected locations 19 and 18
+2025-03-01 19:46:17,555 - world_generator - DEBUG - Connected locations 20 and 21
+2025-03-01 19:46:17,555 - world_generator - DEBUG - Connected locations 21 and 12
+2025-03-01 19:46:17,555 - world_generator - DEBUG - Connected locations 21 and 10
+2025-03-01 19:46:17,555 - world_generator - DEBUG - Connected locations 15 and 1
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 1 and 14
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 12 and 22
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 22 and 2
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 2 and 29
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 29 and 16
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 29 and 25
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 3 and 17
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Connected locations 5 and 26
+2025-03-01 19:46:17,556 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:46:17,557 - world_generator - DEBUG - Added extra connection between 3 and 25
+2025-03-01 19:46:17,557 - world_generator - DEBUG - Added extra connection between 12 and 3
+2025-03-01 19:46:17,557 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:46:17,557 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:46:17,557 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:46:17,557 - world_generator - INFO - Locations generation completed
+2025-03-01 19:46:17,557 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:46:17,557 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:46:17,557 - world_exploration - INFO - Entered world exploration at position (47, 89)
+2025-03-01 19:46:17,558 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:46:20,586 - world_exploration - DEBUG - Left location
+2025-03-01 19:46:22,150 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:46:22,284 - world_exploration - DEBUG - Left location
+2025-03-01 19:46:22,444 - world_exploration - DEBUG - Weather changed to CLEAR
+2025-03-01 19:46:24,617 - world_exploration - DEBUG - Now at location: Stonehaven
+2025-03-01 19:46:25,409 - world_exploration - INFO - Interacting with location: Stonehaven
+2025-03-01 19:46:25,410 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:46:25,410 - notification - DEBUG - Added notification: Entering Town - Welcome to Stonehaven!
+2025-03-01 19:46:25,410 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:46:25,410 - state_manager - INFO - Changing state to: town
+2025-03-01 19:46:25,410 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:46:25,410 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:46:25,410 - TownState - INFO - Entered state: TownState
+2025-03-01 19:46:25,411 - town_state - INFO - Entered town: Riverdale
+2025-03-01 19:46:25,411 - ui_system - INFO - UIManager initialized
+2025-03-01 19:46:25,422 - main - ERROR - Exception in main game loop: UIManager.render() takes 1 positional argument but 2 were given
+Traceback (most recent call last):
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 142, in run
+    self.render()
+    ~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\main.py", line 123, in render
+    self.state_manager.render()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "G:\Pygames\Multi_Genre_RPG\state_manager.py", line 167, in render
+    state.render(self.screen)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "G:\Pygames\Multi_Genre_RPG\game_states\town_state.py", line 315, in render
+    self.ui_manager.render(screen)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+TypeError: UIManager.render() takes 1 positional argument but 2 were given
+2025-03-01 19:46:30,426 - main - INFO - Cleaning up resources
+2025-03-01 19:47:19,049 - settings - INFO - Settings loaded from settings.json
+2025-03-01 19:47:19,050 - settings - INFO - Settings initialized
+2025-03-01 19:47:19,101 - event_bus - INFO - EventBus initialized
+2025-03-01 19:47:19,102 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'enemy_killed' event
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'item_collected' event
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'npc_talked' event
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'location_visited' event
+2025-03-01 19:47:19,103 - event_bus - DEBUG - Subscribed to 'item_crafted' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'item_delivered' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'structure_built' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'boss_defeated' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'puzzle_solved' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'minigame_completed' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'quest_objectives_complete' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:47:19,104 - event_bus - DEBUG - Subscribed to 'quest_available' event
+2025-03-01 19:47:19,105 - event_bus - DEBUG - Subscribed to 'quest_activated' event
+2025-03-01 19:47:19,105 - event_bus - DEBUG - Subscribed to 'quest_updated' event
+2025-03-01 19:47:19,105 - event_bus - DEBUG - Subscribed to 'quest_completed' event
+2025-03-01 19:47:19,105 - event_bus - DEBUG - Subscribed to 'quest_failed' event
+2025-03-01 19:47:19,106 - main - INFO - Quests loaded successfully
+2025-03-01 19:47:19,106 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 19:47:19,106 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 19:47:19,106 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 19:47:19,106 - state_manager - INFO - StateManager initialized
+2025-03-01 19:47:19,107 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 19:47:19,107 - main_menu - INFO - MainMenuState initialized
+2025-03-01 19:47:19,107 - state_manager - INFO - Registered state: main_menu
+2025-03-01 19:47:19,107 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 19:47:19,108 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 19:47:19,108 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 19:47:19,108 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 19:47:19,108 - investigation - INFO - InvestigationState initialized
+2025-03-01 19:47:19,108 - state_manager - INFO - Registered state: investigation
+2025-03-01 19:47:19,108 - dungeon - INFO - DungeonState initialized
+2025-03-01 19:47:19,109 - state_manager - INFO - Registered state: dungeon
+2025-03-01 19:47:19,109 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 19:47:19,109 - state_manager - INFO - Registered state: base_building
+2025-03-01 19:47:19,110 - town_state - INFO - TownState initialized
+2025-03-01 19:47:19,110 - state_manager - INFO - Registered state: town
+2025-03-01 19:47:19,113 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 19:47:19,113 - combat_integration - INFO - CombatManager initialized
+2025-03-01 19:47:19,113 - combat - INFO - CombatGameState initialized
+2025-03-01 19:47:19,113 - state_manager - INFO - Registered state: combat
+2025-03-01 19:47:19,113 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 19:47:19,113 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 19:47:19,114 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 19:47:19,114 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 19:47:19,115 - main_menu - INFO - Entered main menu state
+2025-03-01 19:47:19,115 - main - INFO - Game initialized successfully
+2025-03-01 19:47:19,115 - main - INFO - Starting game loop
+2025-03-01 19:47:21,460 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 19:47:22,198 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 19:47:22,199 - main_menu - INFO - Starting new game
+2025-03-01 19:47:22,199 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:47:22,199 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 19:47:22,199 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 19:47:22,199 - main_menu - INFO - Exited main menu state
+2025-03-01 19:47:22,199 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 19:47:22,205 - world_exploration - INFO - Generating new world
+2025-03-01 19:47:22,205 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 564297
+2025-03-01 19:47:22,206 - world_generator - INFO - Starting world generation
+2025-03-01 19:47:22,206 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 19:47:22,249 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:47:22,249 - world_generator - INFO - Terrain generation completed
+2025-03-01 19:47:22,249 - world_generator - INFO - Generating rivers
+2025-03-01 19:47:22,256 - world_generator - DEBUG - Found 274 mountain tiles and 1829 water tiles
+2025-03-01 19:47:22,256 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 19:47:22,256 - world_generator - DEBUG - Generating river from (36, 93) to nearest water at (17, 77)
+2025-03-01 19:47:22,256 - world_generator - DEBUG - River reached water at (17, 77)
+2025-03-01 19:47:22,257 - world_generator - DEBUG - Generated river path with 21 points
+2025-03-01 19:47:22,257 - world_generator - DEBUG - Generated river 1 with 21 points
+2025-03-01 19:47:22,257 - world_generator - DEBUG - Generating river from (9, 14) to nearest water at (12, 14)
+2025-03-01 19:47:22,257 - world_generator - DEBUG - River reached water at (12, 14)
+2025-03-01 19:47:22,258 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 19:47:22,258 - world_generator - DEBUG - Generated river 2 with 4 points
+2025-03-01 19:47:22,258 - world_generator - DEBUG - Generating river from (9, 21) to nearest water at (13, 17)
+2025-03-01 19:47:22,258 - world_generator - DEBUG - River reached water at (14, 17)
+2025-03-01 19:47:22,258 - world_generator - DEBUG - Generated river path with 6 points
+2025-03-01 19:47:22,259 - world_generator - DEBUG - Generated river 3 with 6 points
+2025-03-01 19:47:22,259 - world_generator - DEBUG - Generating river from (10, 19) to nearest water at (13, 17)
+2025-03-01 19:47:22,259 - world_generator - DEBUG - River reached water at (13, 17)
+2025-03-01 19:47:22,259 - world_generator - DEBUG - Generated river path with 5 points
+2025-03-01 19:47:22,259 - world_generator - DEBUG - Generated river 4 with 5 points
+2025-03-01 19:47:22,260 - world_generator - DEBUG - Generating river from (36, 92) to nearest water at (17, 77)
+2025-03-01 19:47:22,260 - world_generator - DEBUG - River reached water at (20, 78)
+2025-03-01 19:47:22,260 - world_generator - DEBUG - Generated river path with 17 points
+2025-03-01 19:47:22,260 - world_generator - DEBUG - Generated river 5 with 17 points
+2025-03-01 19:47:22,261 - world_generator - DEBUG - Generating river from (31, 93) to nearest water at (16, 78)
+2025-03-01 19:47:22,261 - world_generator - DEBUG - River reached water at (16, 78)
+2025-03-01 19:47:22,261 - world_generator - DEBUG - Generated river path with 16 points
+2025-03-01 19:47:22,261 - world_generator - DEBUG - Generated river 6 with 16 points
+2025-03-01 19:47:22,261 - world_generator - DEBUG - Generating river from (50, 15) to nearest water at (49, 14)
+2025-03-01 19:47:22,261 - world_generator - DEBUG - River reached water at (49, 14)
+2025-03-01 19:47:22,262 - world_generator - DEBUG - Generated river path with 2 points
+2025-03-01 19:47:22,262 - world_generator - DEBUG - Generated river 7 with 2 points
+2025-03-01 19:47:22,262 - world_generator - DEBUG - Generating river from (38, 95) to nearest water at (17, 77)
+2025-03-01 19:47:22,262 - world_generator - DEBUG - River reached water at (36, 93)
+2025-03-01 19:47:22,262 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 19:47:22,262 - world_generator - DEBUG - Generated river 8 with 3 points
+2025-03-01 19:47:22,263 - world_generator - DEBUG - Generating river from (78, 22) to nearest water at (81, 25)
+2025-03-01 19:47:22,263 - world_generator - DEBUG - River reached water at (81, 25)
+2025-03-01 19:47:22,263 - world_generator - DEBUG - Generated river path with 5 points
+2025-03-01 19:47:22,263 - world_generator - DEBUG - Generated river 9 with 5 points
+2025-03-01 19:47:22,263 - world_generator - DEBUG - Generating river from (68, 45) to nearest water at (81, 37)
+2025-03-01 19:47:22,264 - world_generator - DEBUG - River reached water at (81, 37)
+2025-03-01 19:47:22,264 - world_generator - DEBUG - Generated river path with 15 points
+2025-03-01 19:47:22,264 - world_generator - DEBUG - Generated river 10 with 15 points
+2025-03-01 19:47:22,264 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 19:47:22,264 - world_generator - INFO - River generation completed
+2025-03-01 19:47:22,264 - world_generator - INFO - Generating locations
+2025-03-01 19:47:22,264 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 19:47:22,328 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 19:47:22,336 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 19:47:22,341 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 19:47:22,341 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 19:47:22,341 - world_generator - DEBUG - Connected locations 0 and 19
+2025-03-01 19:47:22,341 - world_generator - DEBUG - Connected locations 19 and 8
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 8 and 14
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 14 and 16
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 16 and 24
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 0 and 3
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 3 and 22
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 3 and 25
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 22 and 29
+2025-03-01 19:47:22,342 - world_generator - DEBUG - Connected locations 29 and 17
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 17 and 15
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 15 and 12
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 15 and 5
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 25 and 11
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 11 and 18
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 11 and 13
+2025-03-01 19:47:22,343 - world_generator - DEBUG - Connected locations 18 and 7
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 7 and 26
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 26 and 1
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 26 and 9
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 1 and 2
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 2 and 28
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 28 and 6
+2025-03-01 19:47:22,344 - world_generator - DEBUG - Connected locations 6 and 10
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Connected locations 10 and 21
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Connected locations 21 and 27
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Connected locations 27 and 4
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Connected locations 6 and 20
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Connected locations 13 and 23
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Added extra connection between 13 and 18
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Added extra connection between 13 and 24
+2025-03-01 19:47:22,345 - world_generator - DEBUG - Added extra connection between 27 and 23
+2025-03-01 19:47:22,346 - world_generator - DEBUG - Location connections complete
+2025-03-01 19:47:22,346 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 19:47:22,346 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 19:47:22,346 - world_generator - INFO - Locations generation completed
+2025-03-01 19:47:22,346 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 19:47:22,346 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 19:47:22,346 - world_exploration - INFO - Entered world exploration at position (21, 68)
+2025-03-01 19:47:22,346 - world_exploration - DEBUG - Now at location: Greenholm
+2025-03-01 19:47:24,075 - world_exploration - INFO - Interacting with location: Greenholm
+2025-03-01 19:47:24,075 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 19:47:24,075 - notification - DEBUG - Added notification: Entering Town - Welcome to Greenholm!
+2025-03-01 19:47:24,075 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 19:47:24,075 - state_manager - INFO - Changing state to: town
+2025-03-01 19:47:24,075 - WorldExplorationState - INFO - Exited state: WorldExplorationState
+2025-03-01 19:47:24,076 - world_exploration - INFO - Exited world exploration
+2025-03-01 19:47:24,076 - TownState - INFO - Entered state: TownState
+2025-03-01 19:47:24,076 - town_state - INFO - Entered town: Riverdale
+2025-03-01 19:47:24,076 - ui_system - INFO - UIManager initialized
+2025-03-01 19:47:28,864 - town_state - INFO - Interacting with building: The Dancing Dragon
+2025-03-01 19:47:29,934 - town_state - INFO - Interacting with NPC: Bram Goodale
+2025-03-01 19:47:29,934 - event_bus - DEBUG - Publishing 'npc_talked' event with 1 subscribers
+2025-03-01 19:47:33,599 - town_state - INFO - Interacting with NPC: Lydia Coinpurse
+2025-03-01 19:47:33,600 - event_bus - DEBUG - Publishing 'npc_talked' event with 1 subscribers
+2025-03-01 19:47:35,198 - town_state - INFO - Opening shop with Lydia Coinpurse
+2025-03-01 19:47:43,212 - town_state - INFO - Interacting with NPC: Elder Thorne
+2025-03-01 19:47:43,212 - event_bus - DEBUG - Publishing 'npc_talked' event with 1 subscribers
+2025-03-01 19:47:46,380 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:47:46,445 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:47:49,826 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:47:49,978 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:47:52,781 - town_state - INFO - Interacting with building: Temple of Light
+2025-03-01 19:47:55,003 - town_state - INFO - Interacting with building: Forge & Anvil
+2025-03-01 19:47:56,138 - town_state - INFO - Interacting with building: Forge & Anvil
+2025-03-01 19:47:57,659 - town_state - INFO - Interacting with NPC: Gareth Ironarm
+2025-03-01 19:47:57,659 - event_bus - DEBUG - Publishing 'npc_talked' event with 1 subscribers
+2025-03-01 19:47:59,243 - town_state - INFO - Opening shop with Gareth Ironarm
+2025-03-01 19:48:01,661 - town_state - INFO - Interacting with NPC: Elder Thorne
+2025-03-01 19:48:01,661 - event_bus - DEBUG - Publishing 'npc_talked' event with 1 subscribers
+2025-03-01 19:48:02,866 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:48:02,981 - ui_system - ERROR - Error in button callback: 'str' object has no attribute 'name'
+2025-03-01 19:48:05,215 - main - INFO - Cleaning up resources

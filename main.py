@@ -15,6 +15,7 @@ from game_states.town_state import TownState
 from event_bus import EventBus
 from settings import Settings
 from save_system import SaveSystem
+from quest_system import QuestManager, QuestNotificationManager, QuestMarkerManager, create_test_quests
 
 # Configure logging
 logging.basicConfig(
@@ -57,9 +58,24 @@ class Game:
         from notification_system import NotificationManager
         self.notification_manager = NotificationManager(self.event_bus)
         
+        # Initialize quest system
+        self.quest_manager = QuestManager(self.event_bus)
+        self.quest_notification_manager = QuestNotificationManager(self.event_bus)
+        self.quest_marker_manager = QuestMarkerManager(self.quest_manager)
+        
+        # Load quest data
+        try:
+            self.quest_manager.load_quests_from_file("data/quests.json")
+            # Create some example test quests if needed
+            create_test_quests(self.quest_manager)
+            logger.info("Quests loaded successfully")
+        except Exception as e:
+            logger.error(f"Error loading quests: {e}")
+        
         # Make save system available to all states
         self.state_manager = StateManager(self.screen, self.event_bus)
         self.state_manager.set_persistent_data("save_system", self.save_system)
+        self.state_manager.set_persistent_data("quest_manager", self.quest_manager)
         
         # State manager already created above when setting persistent data
         self._register_game_states()
@@ -99,11 +115,16 @@ class Game:
         """Update game state."""
         self.state_manager.update(dt)
         self.notification_manager.update(dt)
+        self.quest_notification_manager.update(dt)
+        self.quest_marker_manager.update_markers(dt)
     
     def render(self):
         """Render the current game state."""
         self.state_manager.render()
+        # Render quest markers after the main state but before notifications
+        self.quest_marker_manager.draw_markers(self.screen)
         self.notification_manager.render(self.screen)
+        self.quest_notification_manager.draw(self.screen)
         pygame.display.flip()
     
     def run(self):

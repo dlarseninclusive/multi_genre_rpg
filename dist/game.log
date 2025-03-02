@@ -2933,3 +2933,202 @@
 2025-03-01 15:39:28,922 - combat_integration - INFO - Combat ended with result: victory
 2025-03-01 15:39:29,797 - world_exploration - DEBUG - Left location
 2025-03-01 15:39:31,217 - main - INFO - Cleaning up resources
+2025-03-01 16:45:30,517 - settings - INFO - Settings file not found: settings.json
+2025-03-01 16:45:30,521 - settings - INFO - Settings initialized
+2025-03-01 16:45:30,553 - event_bus - INFO - EventBus initialized
+2025-03-01 16:45:30,554 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 16:45:30,554 - event_bus - DEBUG - Subscribed to 'show_notification' event
+2025-03-01 16:45:30,554 - event_bus - DEBUG - Subscribed to 'request_state_change' event
+2025-03-01 16:45:30,554 - event_bus - DEBUG - Subscribed to 'push_state' event
+2025-03-01 16:45:30,555 - event_bus - DEBUG - Subscribed to 'pop_state' event
+2025-03-01 16:45:30,555 - state_manager - INFO - StateManager initialized
+2025-03-01 16:45:30,555 - save_system - INFO - SaveSystem initialized with directory: saves
+2025-03-01 16:45:30,555 - main_menu - INFO - MainMenuState initialized
+2025-03-01 16:45:30,555 - state_manager - INFO - Registered state: main_menu
+2025-03-01 16:45:30,555 - event_bus - DEBUG - Subscribed to 'enter_location' event
+2025-03-01 16:45:30,555 - event_bus - DEBUG - Subscribed to 'exit_location' event
+2025-03-01 16:45:30,555 - world_exploration - INFO - WorldExplorationState initialized
+2025-03-01 16:45:30,555 - state_manager - INFO - Registered state: world_exploration
+2025-03-01 16:45:30,556 - investigation - INFO - InvestigationState initialized
+2025-03-01 16:45:30,556 - state_manager - INFO - Registered state: investigation
+2025-03-01 16:45:30,556 - dungeon - INFO - DungeonState initialized
+2025-03-01 16:45:30,556 - state_manager - INFO - Registered state: dungeon
+2025-03-01 16:45:30,556 - base_building - INFO - BaseBuildingState initialized
+2025-03-01 16:45:30,556 - state_manager - INFO - Registered state: base_building
+2025-03-01 16:45:30,556 - town - INFO - TownState initialized
+2025-03-01 16:45:30,556 - state_manager - INFO - Registered state: town
+2025-03-01 16:45:30,561 - event_bus - DEBUG - Subscribed to 'combat_action' event
+2025-03-01 16:45:30,561 - combat_integration - INFO - CombatManager initialized
+2025-03-01 16:45:30,561 - combat - INFO - CombatGameState initialized
+2025-03-01 16:45:30,561 - state_manager - INFO - Registered state: combat
+2025-03-01 16:45:30,561 - pause_menu - INFO - PauseMenuState initialized
+2025-03-01 16:45:30,561 - state_manager - INFO - Registered state: pause_menu
+2025-03-01 16:45:30,561 - state_manager - INFO - Changing state to: main_menu
+2025-03-01 16:45:30,561 - MainMenuState - INFO - Entered state: MainMenuState
+2025-03-01 16:45:30,563 - main_menu - INFO - Entered main menu state
+2025-03-01 16:45:30,563 - main - INFO - Game initialized successfully
+2025-03-01 16:45:30,563 - main - INFO - Starting game loop
+2025-03-01 16:45:33,754 - main_menu - DEBUG - Clicked button: New Game
+2025-03-01 16:45:34,878 - main_menu - DEBUG - Clicked button: Start Game
+2025-03-01 16:45:34,878 - main_menu - INFO - Starting new game
+2025-03-01 16:45:34,878 - event_bus - DEBUG - Publishing 'request_state_change' event with 1 subscribers
+2025-03-01 16:45:34,878 - state_manager - INFO - Changing state to: world_exploration
+2025-03-01 16:45:34,878 - MainMenuState - INFO - Exited state: MainMenuState
+2025-03-01 16:45:34,878 - main_menu - INFO - Exited main menu state
+2025-03-01 16:45:34,878 - WorldExplorationState - INFO - Entered state: WorldExplorationState
+2025-03-01 16:45:34,884 - world_exploration - INFO - Generating new world
+2025-03-01 16:45:34,884 - world_generator - INFO - WorldGenerator initialized with size 100x100, seed 502747
+2025-03-01 16:45:34,885 - world_generator - INFO - Starting world generation
+2025-03-01 16:45:34,885 - world_generator - INFO - Generating terrain using simplified algorithm
+2025-03-01 16:45:34,923 - world_generator - INFO - Terrain generation completed
+2025-03-01 16:45:34,923 - world_generator - INFO - Terrain generation completed
+2025-03-01 16:45:34,923 - world_generator - INFO - Generating rivers
+2025-03-01 16:45:34,930 - world_generator - DEBUG - Found 159 mountain tiles and 1589 water tiles
+2025-03-01 16:45:34,930 - world_generator - DEBUG - Attempting to generate 10 rivers
+2025-03-01 16:45:34,931 - world_generator - DEBUG - Generating river from (16, 37) to nearest water at (10, 21)
+2025-03-01 16:45:34,931 - world_generator - DEBUG - River reached water at (9, 21)
+2025-03-01 16:45:34,931 - world_generator - DEBUG - Generated river path with 17 points
+2025-03-01 16:45:34,931 - world_generator - DEBUG - Generated river 1 with 17 points
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generating river from (4, 43) to nearest water at (4, 21)
+2025-03-01 16:45:34,932 - world_generator - DEBUG - River reached water at (4, 21)
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generated river path with 23 points
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generated river 2 with 23 points
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generating river from (4, 41) to nearest water at (4, 21)
+2025-03-01 16:45:34,932 - world_generator - DEBUG - River reached water at (4, 39)
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generated river path with 3 points
+2025-03-01 16:45:34,932 - world_generator - DEBUG - Generated river 3 with 3 points
+2025-03-01 16:45:34,933 - world_generator - DEBUG - Generating river from (4, 47) to nearest water at (4, 21)
+2025-03-01 16:45:34,933 - world_generator - DEBUG - River reached water at (4, 43)
+2025-03-01 16:45:34,933 - world_generator - DEBUG - Generated river path with 5 points
+2025-03-01 16:45:34,933 - world_generator - DEBUG - Generated river 4 with 5 points
+2025-03-01 16:45:34,933 - world_generator - DEBUG - Generating river from (9, 39) to nearest water at (9, 21)
+2025-03-01 16:45:34,933 - world_generator - DEBUG - River reached water at (9, 25)
+2025-03-01 16:45:34,934 - world_generator - DEBUG - Generated river path with 15 points
+2025-03-01 16:45:34,934 - world_generator - DEBUG - Generated river 5 with 15 points
+2025-03-01 16:45:34,934 - world_generator - DEBUG - Generating river from (54, 59) to nearest water at (48, 43)
+2025-03-01 16:45:34,934 - world_generator - DEBUG - River reached water at (48, 43)
+2025-03-01 16:45:34,934 - world_generator - DEBUG - Generated river path with 17 points
+2025-03-01 16:45:34,934 - world_generator - DEBUG - Generated river 6 with 17 points
+2025-03-01 16:45:34,935 - world_generator - DEBUG - Generating river from (13, 38) to nearest water at (10, 21)
+2025-03-01 16:45:34,935 - world_generator - DEBUG - River reached water at (11, 32)
+2025-03-01 16:45:34,935 - world_generator - DEBUG - Generated river path with 7 points
+2025-03-01 16:45:34,935 - world_generator - DEBUG - Generated river 7 with 7 points
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generating river from (5, 43) to nearest water at (5, 21)
+2025-03-01 16:45:34,936 - world_generator - DEBUG - River reached water at (5, 40)
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generated river 8 with 4 points
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generating river from (6, 43) to nearest water at (6, 21)
+2025-03-01 16:45:34,936 - world_generator - DEBUG - River reached water at (5, 23)
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generated river path with 21 points
+2025-03-01 16:45:34,936 - world_generator - DEBUG - Generated river 9 with 21 points
+2025-03-01 16:45:34,937 - world_generator - DEBUG - Generating river from (3, 43) to nearest water at (3, 21)
+2025-03-01 16:45:34,937 - world_generator - DEBUG - River reached water at (4, 40)
+2025-03-01 16:45:34,937 - world_generator - DEBUG - Generated river path with 4 points
+2025-03-01 16:45:34,937 - world_generator - DEBUG - Generated river 10 with 4 points
+2025-03-01 16:45:34,937 - world_generator - DEBUG - Generated 10 rivers successfully
+2025-03-01 16:45:34,937 - world_generator - INFO - River generation completed
+2025-03-01 16:45:34,937 - world_generator - INFO - Generating locations
+2025-03-01 16:45:34,937 - world_generator - DEBUG - Planning to generate: 10 towns, 12 dungeons, 8 special sites
+2025-03-01 16:45:35,034 - world_generator - DEBUG - Generated 10 towns
+2025-03-01 16:45:35,040 - world_generator - DEBUG - Generated 12 dungeons
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Generated 8 special sites
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connecting 30 locations
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 0 and 26
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 26 and 19
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 19 and 8
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 8 and 1
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 1 and 3
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 3 and 4
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 4 and 6
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 0 and 22
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 22 and 29
+2025-03-01 16:45:35,045 - world_generator - DEBUG - Connected locations 29 and 9
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 29 and 18
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 18 and 15
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 15 and 12
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 15 and 11
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 11 and 10
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 10 and 13
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 13 and 17
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 11 and 14
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 14 and 16
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 16 and 24
+2025-03-01 16:45:35,046 - world_generator - DEBUG - Connected locations 24 and 21
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 21 and 28
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 28 and 2
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 2 and 7
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 7 and 5
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 5 and 25
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 25 and 23
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 23 and 27
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations 22 and 20
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Adding 3 extra connections
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Added extra connection between 25 and 2
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Added extra connection between 10 and 22
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Added extra connection between 24 and 6
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Location connections complete
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Connected locations with paths
+2025-03-01 16:45:35,047 - world_generator - DEBUG - Total locations generated: 30
+2025-03-01 16:45:35,047 - world_generator - INFO - Locations generation completed
+2025-03-01 16:45:35,047 - world_generator - INFO - World generation completed with 30 locations and 10 rivers
+2025-03-01 16:45:35,047 - world_exploration - INFO - World generated with 30 locations
+2025-03-01 16:45:35,047 - world_exploration - INFO - Entered world exploration at position (4, 49)
+2025-03-01 16:45:35,047 - world_exploration - INFO - Discovered location: Crystal Cave
+2025-03-01 16:45:35,047 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:45:35,047 - notification - DEBUG - Added notification: Location Discovered - You discovered Crystal Cave!
+2025-03-01 16:45:35,047 - world_exploration - DEBUG - Now at location: Meadowbrook
+2025-03-01 16:45:35,812 - world_exploration - DEBUG - Left location
+2025-03-01 16:45:43,061 - world_exploration - INFO - Discovered location: Dark Mines
+2025-03-01 16:45:43,062 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:45:43,062 - notification - DEBUG - Added notification: Location Discovered - You discovered Dark Mines!
+2025-03-01 16:45:44,401 - world_exploration - INFO - Discovered location: Stonehaven
+2025-03-01 16:45:44,401 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:45:44,401 - notification - DEBUG - Added notification: Location Discovered - You discovered Stonehaven!
+2025-03-01 16:46:29,426 - world_exploration - DEBUG - Time of day changed to AFTERNOON
+2025-03-01 16:46:49,753 - world_exploration - INFO - Discovered location: Cursed Catacombs
+2025-03-01 16:46:49,754 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:49,754 - notification - DEBUG - Added notification: Location Discovered - You discovered Cursed Catacombs!
+2025-03-01 16:46:49,979 - world_exploration - INFO - Discovered location: Standing Stones
+2025-03-01 16:46:49,979 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:49,979 - notification - DEBUG - Added notification: Location Discovered - You discovered Standing Stones!
+2025-03-01 16:46:50,552 - world_exploration - INFO - Discovered location: Dark Catacombs
+2025-03-01 16:46:50,552 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:50,552 - notification - DEBUG - Added notification: Location Discovered - You discovered Dark Catacombs!
+2025-03-01 16:46:50,884 - world_exploration - INFO - Discovered location: Forgotten Caves
+2025-03-01 16:46:50,884 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:50,884 - notification - DEBUG - Added notification: Location Discovered - You discovered Forgotten Caves!
+2025-03-01 16:46:53,009 - world_exploration - INFO - Discovered location: Ancient Tomb
+2025-03-01 16:46:53,009 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:53,009 - notification - DEBUG - Added notification: Location Discovered - You discovered Ancient Tomb!
+2025-03-01 16:46:53,474 - world_exploration - INFO - Discovered location: Haunted Lair
+2025-03-01 16:46:53,474 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:46:53,474 - notification - DEBUG - Added notification: Location Discovered - You discovered Haunted Lair!
+2025-03-01 16:47:23,977 - world_exploration - DEBUG - Time of day changed to SUNSET
+2025-03-01 16:48:02,997 - world_exploration - INFO - Discovered location: Lost Ruins
+2025-03-01 16:48:02,997 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:02,997 - notification - DEBUG - Added notification: Location Discovered - You discovered Lost Ruins!
+2025-03-01 16:48:04,696 - world_exploration - INFO - Discovered location: Haunted Temple
+2025-03-01 16:48:04,697 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:04,697 - notification - DEBUG - Added notification: Location Discovered - You discovered Haunted Temple!
+2025-03-01 16:48:06,002 - world_exploration - INFO - Discovered location: Haunted Mines
+2025-03-01 16:48:06,002 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:06,002 - notification - DEBUG - Added notification: Location Discovered - You discovered Haunted Mines!
+2025-03-01 16:48:06,783 - world_exploration - INFO - Discovered location: Cursed Temple
+2025-03-01 16:48:06,783 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:06,783 - notification - DEBUG - Added notification: Location Discovered - You discovered Cursed Temple!
+2025-03-01 16:48:12,945 - world_exploration - INFO - Visited location: Haunted Mines
+2025-03-01 16:48:12,945 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:12,945 - notification - DEBUG - Added notification: Location Visited - You arrived at Haunted Mines!
+2025-03-01 16:48:12,945 - world_exploration - DEBUG - Now at location: Haunted Mines
+2025-03-01 16:48:13,154 - world_exploration - DEBUG - Left location
+2025-03-01 16:48:15,725 - world_exploration - INFO - Visited location: Haunted Lair
+2025-03-01 16:48:15,726 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:15,726 - notification - DEBUG - Added notification: Location Visited - You arrived at Haunted Lair!
+2025-03-01 16:48:15,726 - world_exploration - DEBUG - Now at location: Haunted Lair
+2025-03-01 16:48:15,906 - world_exploration - DEBUG - Left location
+2025-03-01 16:48:18,536 - world_exploration - DEBUG - Time of day changed to DUSK
+2025-03-01 16:48:25,579 - world_exploration - INFO - Discovered location: Sky Pillar
+2025-03-01 16:48:25,579 - event_bus - DEBUG - Publishing 'show_notification' event with 1 subscribers
+2025-03-01 16:48:25,580 - notification - DEBUG - Added notification: Location Discovered - You discovered Sky Pillar!
+2025-03-01 16:48:34,920 - world_exploration - DEBUG - Weather changed to PARTLY_CLOUDY
+2025-03-01 16:48:57,653 - main - INFO - Cleaning up resources
