@@ -203,6 +203,10 @@ class TownState(GameState):
         """Enter this state."""
         super().enter(previous_state)
         
+        # Get screen from state manager
+        if not hasattr(self, 'screen') or not self.screen:
+            self.screen = self.state_manager.get_screen()
+        
         # Initialize UI manager with screen
         self.ui_manager = UIManager(self.screen)
         
