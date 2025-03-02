@@ -199,9 +199,9 @@ class TownState(GameState):
         
         logger.info("TownState initialized")
     
-    def enter(self, previous_state=None):
+    def enter(self, data=None):
         """Enter this state."""
-        super().enter(previous_state)
+        super().enter(data)
         
         # Get screen from data or state manager
         if data and 'screen' in data:
