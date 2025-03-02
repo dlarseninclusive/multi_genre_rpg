@@ -833,29 +833,46 @@ class TownState(GameState):
                 
                 self.dialog_options = []
                 
-                # Create closures for the callbacks to avoid Python's late binding issues
+                # Create closures for the callbacks
                 def create_accept_callback(the_npc, the_quest_id, the_player):
+                    logger.info(f"Creating accept callback with quest_id: {the_quest_id}, type: {type(the_quest_id)}")
                     def callback(_):
+                        logger.info(f"Accept callback called with quest_id: {the_quest_id}")
                         self._accept_quest(the_npc, the_quest_id, the_player)
                     return callback
                 
-                def create_decline_callback(the_npc, dialog_key):
-                    def callback(_):
-                        self._continue_dialog(the_npc, dialog_key)
-                    return callback
+                # Make sure we're getting the ID as a string
+                quest_id = str(self.current_quest.id) if hasattr(self.current_quest, 'id') else "unknown"
+                logger.info(f"Using quest_id for callback: {quest_id}")
                 
-                # Add accept button
+                # Update dialog options
+                for button in self.dialog_options:
+                    self.ui_manager.remove_element(button)
+                
+                self.dialog_options = []
+                
+                # Add accept button 
                 accept_button = self.ui_manager.create_button(
                     pygame.Rect(20, 100, 150, 30),
                     "Accept Quest",
-                    create_accept_callback(npc, self.current_quest.id, player),
+                    create_accept_callback(npc, quest_id, player),
                     self.dialog_panel
                 )
                 self.dialog_options.append(accept_button)
                 
                 # Add decline button
+                def create_decline_callback(the_npc, dialog_key):
+                    def callback(_):
+                        self._continue_dialog(the_npc, dialog_key)
+                    return callback
+                
                 decline_button = self.ui_manager.create_button(
                     pygame.Rect(180, 100, 150, 30),
+                    "Decline",
+                    create_decline_callback(npc, "quest_declined"),
+                    self.dialog_panel
+                )
+                self.dialog_options.append(decline_button)
                     "Decline",
                     create_decline_callback(npc, "quest_declined"),
                     self.dialog_panel
