@@ -8,6 +8,7 @@ from world_generator import Location, LocationType
 from ui_system import UIManager, UIButton, UILabel, UIPanel, UIImage, UIProgressBar
 from quest_system import QuestManager, QuestStatus, QuestType, ObjectiveType, Quest, QuestUI
 from character import Character, Race, CharacterClass
+from faction_system.faction_system import RelationshipStatus, FactionType
 
 logger = logging.getLogger("town_state")
 
@@ -113,6 +114,7 @@ class Npc:
         self.services = []  # Services offered by this NPC
         self.schedule = {}  # Schedule by hour of day
         self.discovered = False
+        self.faction_id = None  # Added for faction system integration
     
     def get_dialog(self, dialog_key="greeting"):
         """
@@ -200,6 +202,12 @@ class TownState(GameState):
         self.quest_journal_visible = False  # To track if the journal is visible
         self.current_quest = None  # Current quest being offered
         
+        # Faction system
+        self.faction_manager = None
+        self.town_faction_id = None  # Controlling faction for the town
+        self.laws_panel = None
+        self.faction_info_visible = False
+        
         # Load tile graphics
         self._load_graphics()
         
@@ -230,12 +238,25 @@ class TownState(GameState):
         # Get the quest manager from persistent data
         self.quest_manager = self.state_manager.get_persistent_data("quest_manager")
         
+        # Get the faction manager from persistent data
+        self.faction_manager = self.state_manager.get_persistent_data("faction_manager")
+        
         # Initialize town if not already done
         if not self.buildings:
             self._generate_town()
         
         # Set up quest NPCs with available quests
         self._setup_npc_quests()
+        
+        # Update town's faction information
+        self._update_town_faction_info()
+        
+        # Notify faction system that player entered this territory
+        if self.town_faction_id and self.faction_manager:
+            self.event_bus.publish("territory_entered", {
+                "location_id": self.town_name.lower().replace(" ", "_"),
+                "name": self.town_name
+            })
         
         logger.info(f"Entered town: {self.town_name}")
     
@@ -282,6 +303,12 @@ class TownState(GameState):
             # Don't let other UI elements handle events while journal is open
             return
         
+        # If faction info is visible, handle ESC key to close it
+        if self.faction_info_visible:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.faction_info_visible = False
+                return
+        
         # Handle UI events if UI manager exists
         if self.ui_manager and self.ui_manager.handle_event(event):
             return
@@ -323,6 +350,9 @@ class TownState(GameState):
             elif event.key == pygame.K_j:
                 # Toggle quest journal
                 self._toggle_quest_journal()
+            elif event.key == pygame.K_f:
+                # Toggle faction info
+                self._toggle_faction_info()
             elif event.key == pygame.K_w:
                 # Return to world map
                 self.state_manager.change_state("world_exploration")
@@ -360,6 +390,10 @@ class TownState(GameState):
         # Render the quest journal if visible
         if self.quest_journal_visible and self.quest_ui:
             self.quest_ui.draw()
+            
+        # Render faction information if visible
+        if self.faction_info_visible:
+            self._render_faction_info()
     
     def _create_status_panel(self):
         """Create the status panel UI."""
@@ -375,6 +409,20 @@ class TownState(GameState):
             self.town_name,
             self.status_panel
         )
+        
+        # If we have faction information, show it
+        if self.town_faction_id and self.faction_manager:
+            faction = self.faction_manager.get_faction(self.town_faction_id)
+            faction_label_text = f"Controlled by: {faction.name}"
+            
+            faction_label = self.ui_manager.create_label(
+                pygame.Rect(10, 45, 280, 25),
+                faction_label_text,
+                self.status_panel
+            )
+            
+            # Set the label color to match the faction's primary color
+            faction_label.text_color = faction.primary_color
     
     def _generate_town(self):
         """Generate a random town."""
@@ -389,6 +437,250 @@ class TownState(GameState):
         
         # Create some NPCs
         self._generate_npcs()
+        
+        # Assign a faction to control the town
+        if self.faction_manager:
+            factions = list(self.faction_manager.factions.values())
+            if factions:
+                # For now, randomly select a faction
+                controlling_faction = random.choice(factions)
+                self.town_faction_id = controlling_faction.id
+                
+                # Add this town to the faction's controlled territories
+                location_id = self.town_name.lower().replace(" ", "_")
+                controlling_faction.controlled_locations.add(location_id)
+                
+                logger.info(f"Town {self.town_name} is controlled by faction: {controlling_faction.name}")
+            else:
+                logger.warning("No factions available to control town")
+    
+    def _update_town_faction_info(self):
+        """Update town information based on controlling faction."""
+        if not self.faction_manager or not self.town_faction_id:
+            return
+            
+        try:
+            # Get the controlling faction
+            faction = self.faction_manager.get_faction(self.town_faction_id)
+            
+            # Get the player's status with this faction
+            player_status = self.faction_manager.get_player_faction_status(self.town_faction_id)
+            
+            # Check if the player has a bounty with this faction
+            player_bounty = 0
+            if hasattr(self.faction_manager, 'crime_manager'):
+                player_bounty = self.faction_manager.crime_manager.get_bounty("player")
+            
+            # Update town law enforcement based on faction type
+            has_guards = faction.faction_type in [FactionType.GOVERNMENT, FactionType.MILITARY]
+            
+            # Update NPC dialog based on faction
+            for npc in self.npcs:
+                # Assign NPCs to the controlling faction
+                npc.faction_id = self.town_faction_id
+                
+                # Special dialog for guards based on player status and bounty
+                if npc.npc_type == NpcType.GUARD:
+                    if player_bounty > 0:
+                        npc.add_dialog("greeting", f"Halt! You have a bounty of {player_bounty} gold in {faction.name} territory.")
+                        npc.add_dialog("bounty", f"Pay your {player_bounty} gold bounty or face the consequences!")
+                    elif player_status == RelationshipStatus.HOSTILE:
+                        npc.add_dialog("greeting", f"You're not welcome in {self.town_name}. The {faction.name} has marked you as an enemy.")
+                    elif player_status == RelationshipStatus.UNFRIENDLY:
+                        npc.add_dialog("greeting", f"I'm watching you. The {faction.name} doesn't trust outsiders like you.")
+                    else:
+                        npc.add_dialog("greeting", f"Greetings, traveler. Obey the laws of {faction.name} while in {self.town_name}.")
+                
+                # Add faction-specific dialog to quest givers
+                elif npc.npc_type == NpcType.QUEST_GIVER:
+                    npc.add_dialog("faction", f"The {faction.name} controls this town. You'd do well to stay on their good side.")
+            
+            logger.info(f"Updated town faction info: {faction.name} controlling {self.town_name}")
+            
+        except Exception as e:
+            logger.error(f"Error updating town faction info: {e}")
+    
+    def _render_faction_info(self):
+        """Render faction information panel."""
+        if not self.faction_manager or not self.town_faction_id:
+            return
+        
+        try:
+            faction = self.faction_manager.get_faction(self.town_faction_id)
+            
+            # Create a semi-transparent panel
+            panel_width = 500
+            panel_height = 400
+            panel_x = (self.screen.get_width() - panel_width) // 2
+            panel_y = (self.screen.get_height() - panel_height) // 2
+            
+            # Create panel surface
+            panel_surface = pygame.Surface((panel_width, panel_height), pygame.SRCALPHA)
+            panel_surface.fill((40, 40, 50, 220))  # Semi-transparent dark background
+            
+            # Draw faction header with faction colors
+            header_rect = pygame.Rect(0, 0, panel_width, 60)
+            pygame.draw.rect(panel_surface, faction.primary_color, header_rect)
+            pygame.draw.rect(panel_surface, faction.secondary_color, header_rect, 2)
+            
+            # Draw faction name
+            name_text = self.font.render(faction.name, True, (255, 255, 255))
+            panel_surface.blit(name_text, (20, 15))
+            
+            # Draw faction type
+            type_text = self.small_font.render(f"Type: {faction.faction_type.name}", True, (255, 255, 255))
+            panel_surface.blit(type_text, (20, 70))
+            
+            # Draw faction description
+            desc_lines = self._wrap_text(faction.description, panel_width - 40, self.small_font)
+            for i, line in enumerate(desc_lines):
+                line_text = self.small_font.render(line, True, (255, 255, 255))
+                panel_surface.blit(line_text, (20, 100 + i * 25))
+            
+            # Draw player reputation
+            reputation = self.faction_manager.player_reputation.get(faction.id, 0)
+            status = self.faction_manager.get_player_faction_status(faction.id)
+            
+            # Reputation color based on status
+            status_colors = {
+                RelationshipStatus.ALLIED: (50, 200, 100),
+                RelationshipStatus.FRIENDLY: (100, 180, 80),
+                RelationshipStatus.NEUTRAL: (180, 180, 80),
+                RelationshipStatus.UNFRIENDLY: (200, 100, 50),
+                RelationshipStatus.HOSTILE: (200, 50, 50)
+            }
+            
+            # Draw reputation bar
+            bar_y = 180
+            bar_width = 300
+            pygame.draw.rect(panel_surface, (80, 80, 80), (100, bar_y, bar_width, 20))
+            
+            # Calculate fill width (-100 to +100 -> 0 to bar_width)
+            fill_width = int((reputation + 100) / 200 * bar_width)
+            pygame.draw.rect(panel_surface, status_colors[status], (100, bar_y, fill_width, 20))
+            
+            # Draw reputation text
+            rep_text = self.small_font.render(f"Reputation: {reputation} ({status.name})", True, (255, 255, 255))
+            panel_surface.blit(rep_text, (20, bar_y - 25))
+            
+            # Draw laws and rules
+            laws_y = 230
+            laws_text = self.small_font.render("Local Laws and Customs:", True, (255, 255, 255))
+            panel_surface.blit(laws_text, (20, laws_y))
+            
+            # Generate laws based on faction type
+            laws = self._get_faction_laws(faction)
+            for i, law in enumerate(laws):
+                law_text = self.small_font.render(f"• {law}", True, (255, 255, 255))
+                panel_surface.blit(law_text, (30, laws_y + 30 + i * 25))
+            
+            # Draw close instructions
+            close_text = self.small_font.render("Press ESC to close", True, (200, 200, 200))
+            panel_surface.blit(close_text, (panel_width - 150, panel_height - 30))
+            
+            # Draw panel to screen
+            self.screen.blit(panel_surface, (panel_x, panel_y))
+            
+        except Exception as e:
+            logger.error(f"Error rendering faction info: {e}")
+    
+    def _get_faction_laws(self, faction):
+        """Generate laws based on faction type."""
+        laws = []
+        
+        if faction.faction_type == FactionType.GOVERNMENT:
+            laws = [
+                "All visitors must register at the town hall",
+                "Tax of 10% on all transactions",
+                "Weapons must be peace-bonded in public",
+                "Curfew in effect from midnight to dawn"
+            ]
+        elif faction.faction_type == FactionType.MILITARY:
+            laws = [
+                "Martial law is in effect - obey all guard orders",
+                "No unauthorized gatherings of more than 3 people",
+                "All weapons must be declared upon entry",
+                "Travel papers required for entry/exit after dark"
+            ]
+        elif faction.faction_type == FactionType.MERCHANT:
+            laws = [
+                "Guild membership required for commercial activity",
+                "15% sales tax on all transactions",
+                "Price fixing is punishable by heavy fines",
+                "All disputes settled by merchant council"
+            ]
+        elif faction.faction_type == FactionType.CRIMINAL:
+            laws = [
+                "Pay protection fee to avoid 'accidents'",
+                "Don't ask too many questions",
+                "All disputes settled by the boss",
+                "No law enforcement allowed"
+            ]
+        elif faction.faction_type == FactionType.RELIGIOUS:
+            laws = [
+                "Respect holy sites and temples",
+                "Mandatory prayer times for all residents",
+                "Blasphemy is a serious offense",
+                "Tithe of 10% expected from visitors"
+            ]
+        elif faction.faction_type == FactionType.GUILD:
+            laws = [
+                "Guild membership required for specialized work",
+                "Apprenticeship system strictly enforced",
+                "Trade secrets are protected by law",
+                "Quality standards must be maintained"
+            ]
+        elif faction.faction_type == FactionType.TRIBAL:
+            laws = [
+                "Outsiders must be vouched for by a tribe member",
+                "Respect tribal customs and traditions",
+                "Natural resources are communally owned",
+                "Elders' decisions are final in all matters"
+            ]
+            
+        # Add law about slavery if applicable
+        if faction.has_slavery:
+            laws.append("Slavery is legal and practiced openly")
+            
+        # Add law about arrest powers
+        if faction.can_arrest:
+            laws.append("Guards have authority to arrest criminals on sight")
+            
+        return laws
+    
+    def _wrap_text(self, text, max_width, font):
+        """Wrap text to fit within a certain width."""
+        words = text.split(' ')
+        lines = []
+        current_line = []
+        
+        for word in words:
+            # Try adding this word to the current line
+            test_line = ' '.join(current_line + [word])
+            width, _ = font.size(test_line)
+            
+            if width <= max_width:
+                current_line.append(word)
+            else:
+                # If the line is too long, start a new line
+                lines.append(' '.join(current_line))
+                current_line = [word]
+        
+        # Add the last line
+        if current_line:
+            lines.append(' '.join(current_line))
+            
+        return lines
+    
+    def _toggle_faction_info(self):
+        """Toggle the faction information panel."""
+        self.faction_info_visible = not self.faction_info_visible
+        
+        # Close other panels when showing faction info
+        if self.faction_info_visible:
+            self.quest_journal_visible = False
+            if self.dialog_panel:
+                self._close_dialog()
     
     def _generate_buildings(self):
         """Generate town buildings."""
@@ -486,6 +778,17 @@ class TownState(GameState):
         innkeeper.add_dialog("greeting", "Welcome to the Dancing Dragon! Food, drink, and a warm bed await.")
         self.npcs.append(innkeeper)
         self.buildings[1].add_npc(innkeeper)
+        
+        # Add a guard for faction system integration
+        if self.town_faction_id and self.faction_manager:
+            # Position near town entrance
+            guard = Npc(
+                NpcType.GUARD,
+                "Town Guard",
+                (15 * self.tile_size, 25 * self.tile_size)
+            )
+            guard.add_dialog("greeting", "Halt! State your business in town.")
+            self.npcs.append(guard)
     
     def _update_player_movement(self, dt):
         """
@@ -645,7 +948,20 @@ class TownState(GameState):
                 self.screen.blit(self.tile_images['npc'], sprite_rect)
             else:
                 # Draw NPC as a circle
-                pygame.draw.circle(self.screen, (200, 200, 0), (int(screen_x), int(screen_y)), 10)
+                npc_color = (200, 200, 0)  # Default yellow
+                
+                # Use faction colors for NPCs if available
+                if npc.faction_id and self.faction_manager:
+                    try:
+                        faction = self.faction_manager.get_faction(npc.faction_id)
+                        if npc.npc_type == NpcType.GUARD:
+                            npc_color = faction.secondary_color
+                        else:
+                            npc_color = faction.primary_color
+                    except:
+                        pass
+                
+                pygame.draw.circle(self.screen, npc_color, (int(screen_x), int(screen_y)), 10)
             
             # Draw NPC name
             name_text = self.small_font.render(npc.name, True, (255, 255, 255))
@@ -822,8 +1138,44 @@ class TownState(GameState):
                 )
                 self.dialog_options.append(quest_button)
                 option_y += 40
-# The following code moved to _offer_quest method for proper context
-# This code moved to _offer_quest method for proper context
+        
+        # Add faction info button if NPC belongs to a faction
+        if npc.faction_id and self.faction_manager:
+            def create_faction_callback(specific_npc):
+                def callback(_):
+                    self._show_faction_dialog(specific_npc)
+                return callback
+            
+            faction_button = self.ui_manager.create_button(
+                pygame.Rect(180, option_y - 40, 150, 30),
+                "Ask about faction",
+                create_faction_callback(npc),
+                self.dialog_panel
+            )
+            self.dialog_options.append(faction_button)
+        
+        # Add specific guard options for bounty payment
+        if npc.npc_type == NpcType.GUARD and self.faction_manager:
+            try:
+                player_bounty = 0
+                if hasattr(self.faction_manager, 'crime_manager'):
+                    player_bounty = self.faction_manager.crime_manager.get_bounty("player")
+                
+                if player_bounty > 0:
+                    def create_pay_bounty_callback():
+                        def callback(_):
+                            self._pay_bounty(npc)
+                        return callback
+                    
+                    bounty_button = self.ui_manager.create_button(
+                        pygame.Rect(340, option_y - 40, 150, 30),
+                        f"Pay bounty ({player_bounty}g)",
+                        create_pay_bounty_callback(),
+                        self.dialog_panel
+                    )
+                    self.dialog_options.append(bounty_button)
+            except Exception as e:
+                logger.error(f"Error creating bounty button: {e}")
         
         # Add shop option for merchants
         if npc.npc_type == NpcType.MERCHANT or npc.npc_type == NpcType.BLACKSMITH:
@@ -834,7 +1186,7 @@ class TownState(GameState):
                 return callback
             
             shop_button = self.ui_manager.create_button(
-                pygame.Rect(180, option_y - 40, 150, 30),
+                pygame.Rect(340, option_y - 40, 150, 30) if "faction_button" in locals() else pygame.Rect(180, option_y - 40, 150, 30),
                 "Shop",
                 create_shop_callback(npc),
                 self.dialog_panel
@@ -854,6 +1206,72 @@ class TownState(GameState):
             self.dialog_panel
         )
         self.dialog_options.append(close_button)
+    
+    def _show_faction_dialog(self, npc):
+        """Show dialog about the NPC's faction."""
+        if not npc.faction_id or not self.faction_manager:
+            self._continue_dialog(npc, "greeting")
+            return
+        
+        try:
+            faction = self.faction_manager.get_faction(npc.faction_id)
+            player_status = self.faction_manager.get_player_faction_status(npc.faction_id)
+            
+            # Different dialog based on NPC type and player status
+            dialog_key = "faction"
+            
+            if "faction" not in npc.dialog:
+                if npc.npc_type == NpcType.GUARD:
+                    if player_status == RelationshipStatus.HOSTILE:
+                        npc.add_dialog("faction", f"The {faction.name} considers you an enemy. You're lucky I don't arrest you on sight.")
+                    elif player_status == RelationshipStatus.UNFRIENDLY:
+                        npc.add_dialog("faction", f"The {faction.name} controls this town. Watch your step - we're keeping an eye on you.")
+                    elif player_status == RelationshipStatus.NEUTRAL:
+                        npc.add_dialog("faction", f"The {faction.name} maintains order here. Obey our laws and you won't have trouble.")
+                    elif player_status == RelationshipStatus.FRIENDLY:
+                        npc.add_dialog("faction", f"The {faction.name} appreciates your past cooperation. You're welcome in our town.")
+                    else:  # ALLIED
+                        npc.add_dialog("faction", f"You're a trusted friend of the {faction.name}. Let me know if you need anything.")
+                else:
+                    npc.add_dialog("faction", f"The {faction.name} controls this town. It's best to stay on their good side.")
+            
+            # Update dialog with faction information
+            self._continue_dialog(npc, dialog_key)
+            
+        except Exception as e:
+            logger.error(f"Error showing faction dialog: {e}")
+            self._continue_dialog(npc, "greeting")
+    
+    def _pay_bounty(self, npc):
+        """Pay bounty to a guard NPC."""
+        if not npc.faction_id or not self.faction_manager or not hasattr(self.faction_manager, 'crime_manager'):
+            self._continue_dialog(npc, "greeting")
+            return
+        
+        try:
+            player_bounty = self.faction_manager.crime_manager.get_bounty("player")
+            
+            if player_bounty <= 0:
+                npc.add_dialog("bounty_paid", "You have no bounty to pay.")
+                self._continue_dialog(npc, "bounty_paid")
+                return
+            
+            # For now, automatically pay the bounty - in a real game you'd check player gold
+            faction = self.faction_manager.get_faction(npc.faction_id)
+            
+            # Pay the bounty
+            self.event_bus.publish("bounty_paid", {
+                "entity_id": "player",
+                "faction_id": npc.faction_id
+            })
+            
+            # Add dialog for paid bounty
+            npc.add_dialog("bounty_paid", f"Your bounty of {player_bounty} gold has been paid. You're free to go... for now.")
+            self._continue_dialog(npc, "bounty_paid")
+            
+        except Exception as e:
+            logger.error(f"Error paying bounty: {e}")
+            self._continue_dialog(npc, "greeting")
     
     def _close_dialog(self):
         """Close dialog panel."""
@@ -1107,6 +1525,11 @@ class TownState(GameState):
             # Create the quest UI if it doesn't exist
             if not self.quest_ui:
                 self.quest_ui = QuestUI(self.screen, self.quest_manager, self.event_bus)
+            
+            # Close other UI panels when showing quest journal
+            self.faction_info_visible = False
+            if self.dialog_panel:
+                self._close_dialog()
         else:
             # We'll keep the quest_ui instance, just not render it
             pass

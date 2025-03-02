@@ -6,6 +6,7 @@ import numpy as np
 from enum import Enum
 from game_state import GameState
 from world_generator import WorldGenerator, TerrainType, LocationType, Location
+from faction_system.faction_system import RelationshipStatus, FactionType
 
 logger = logging.getLogger("world_exploration")
 
@@ -106,6 +107,12 @@ class WorldExplorationState(GameState):
         self.show_location_labels = True
         self.current_location = None
         
+        # Faction system
+        self.faction_manager = None
+        self.show_territories = True  # Toggle for showing faction territories
+        self.territory_alpha = 128  # Transparency for territory overlay
+        self.territory_borders = {}  # Cache for territory border calculations
+        
         # Asset placeholders (replace with actual assets)
         self.tile_colors = {
             TerrainType.WATER.value: (0, 100, 255),
@@ -128,6 +135,7 @@ class WorldExplorationState(GameState):
         # Subscribe to events
         self.event_bus.subscribe("enter_location", self._handle_enter_location)
         self.event_bus.subscribe("exit_location", self._handle_exit_location)
+        self.event_bus.subscribe("territory_contested", self._handle_territory_contested)
         
         logger.info("WorldExplorationState initialized")
     
@@ -138,6 +146,9 @@ class WorldExplorationState(GameState):
         # Initialize font
         pygame.font.init()
         self.font = pygame.font.SysFont(None, 24)
+        
+        # Get faction manager from persistent data
+        self.faction_manager = self.state_manager.get_persistent_data("faction_manager")
         
         # Get or generate world
         world_data = self.state_manager.get_persistent_data("world")
@@ -175,6 +186,10 @@ class WorldExplorationState(GameState):
             # Generate new world
             self._generate_world()
         
+        # If we have a faction manager, assign territories to factions
+        if self.faction_manager:
+            self._setup_faction_territories()
+        
         # Get player position or set default
         player_pos = self.state_manager.get_persistent_data("player_world_position")
         if player_pos:
@@ -210,6 +225,9 @@ class WorldExplorationState(GameState):
         
         # Create player graphic matching town style
         self.player_graphic = self._create_player_graphic()
+        
+        # Check current territory for player
+        self._check_current_territory()
         
         logger.info(f"Entered world exploration at position ({self.player_x}, {self.player_y})")
     
@@ -252,105 +270,91 @@ class WorldExplorationState(GameState):
                 self.player_direction = (1, self.player_direction[1])
                 self.player_moving = True
             
-            # Toggle minimap
-            elif event.key == pygame.K_m:
-                self.show_minimap = not self.show_minimap
-            
-            # Toggle location labels
-            elif event.key == pygame.K_l:
-                self.show_location_labels = not self.show_location_labels
-            # Open quest journal
-            elif event.key == pygame.K_j:
-                # Get the quest UI from state manager
-                quest_ui = self.state_manager.get_persistent_data("quest_ui")
-                if quest_ui:
-                    quest_ui.toggle_visibility()
-                    logger.info("Toggled quest journal visibility")
-                else:
-                    logger.warning("Quest UI not available")
-            
-            # Interact key
-            elif event.key == pygame.K_e or event.key == pygame.K_RETURN:
-                self._interact_with_location()
+            # Toggle territories display with T key
+            elif event.key == pygame.K_t:
+                self.show_territories = not self.show_territories
+                logger.info(f"Territories display {'enabled' if self.show_territories else 'disabled'}")
                 return True
                 
-            # Press 'C' to enter combat (for testing)
-            elif event.key == pygame.K_c:
-                logger.info("Entering combat mode (test)")
-                self.change_state("combat")
-        
+            # View faction info with F key
+            elif event.key == pygame.K_f:
+                # Get current controlling faction
+                if self.faction_manager:
+                    current_loc = self._get_current_location_id()
+                    controlling_faction = self.faction_manager.get_controlling_faction(current_loc)
+                    if controlling_faction:
+                        faction = self.faction_manager.get_faction(controlling_faction)
+                        # Show faction info notification
+                        self.event_bus.publish("show_notification", {
+                            "title": f"Territory of {faction.name}",
+                            "message": f"Type: {faction.faction_type.name}, Status: {self.faction_manager.get_player_faction_status(controlling_faction).name}",
+                            "duration": 3.0
+                        })
+                return True
+                
         elif event.type == pygame.KEYUP:
-            # Stop movement
-            if event.key in (pygame.K_w, pygame.K_UP) and self.player_direction[1] < 0:
+            # Handle key releases for movement
+            if event.key == pygame.K_w or event.key == pygame.K_UP:
                 self.player_direction = (self.player_direction[0], 0)
-            elif event.key in (pygame.K_s, pygame.K_DOWN) and self.player_direction[1] > 0:
+            elif event.key == pygame.K_s or event.key == pygame.K_DOWN:
                 self.player_direction = (self.player_direction[0], 0)
-            elif event.key in (pygame.K_a, pygame.K_LEFT) and self.player_direction[0] < 0:
+            elif event.key == pygame.K_a or event.key == pygame.K_LEFT:
                 self.player_direction = (0, self.player_direction[1])
-            elif event.key in (pygame.K_d, pygame.K_RIGHT) and self.player_direction[0] > 0:
+            elif event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                 self.player_direction = (0, self.player_direction[1])
             
-            # Check if player is still moving
             if self.player_direction == (0, 0):
                 self.player_moving = False
-                
+        
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Handle mouse clicks
             if event.button == 1:  # Left mouse button
-                # Convert screen position to world position
                 mouse_x, mouse_y = event.pos
-                world_x = (mouse_x + self.camera_x) / self.tile_size
-                world_y = (mouse_y + self.camera_y) / self.tile_size
+                world_x, world_y = self._screen_to_world(mouse_x, mouse_y)
                 
-                # Check if clicking on a location
-                clicked_location = None
-                for location in self.world["locations"]:
-                    if location.discovered:
-                        dx = location.x - world_x
-                        dy = location.y - world_y
-                        distance = math.sqrt(dx*dx + dy*dy)
-                        if distance < 1.0:  # Within 1 tile
-                            clicked_location = location
-                            break
+                # Round to nearest tile
+                tile_x, tile_y = int(world_x), int(world_y)
                 
-                if clicked_location:
-                    # Calculate distance to clicked location
-                    dx = clicked_location.x - self.player_x
-                    dy = clicked_location.y - self.player_y
-                    distance = math.sqrt(dx*dx + dy*dy)
-                    
-                    if distance <= 1.5:  # If close enough, interact with it
-                        self.current_location = clicked_location
-                        self._interact_with_location()
-                    else:  # Otherwise, set it as the movement target
-                        self.target_x = clicked_location.x
-                        self.target_y = clicked_location.y
+                # Check if click is within map bounds
+                if 0 <= tile_x < self.world_width and 0 <= tile_y < self.world_height:
+                    # Check if clicked on a location
+                    location = self._get_location_at(tile_x, tile_y)
+                    if location and location.discovered:
+                        # Handle location click
+                        self._interact_with_location(location)
+                    else:
+                        # Otherwise move player to clicked position
+                        self.target_x = tile_x
+                        self.target_y = tile_y
                         self.player_moving = True
-                    return True
-                else:
-                    # If clicking on walkable terrain, set it as target
-                    if self._is_position_walkable(world_x, world_y):
-                        self.target_x = world_x
-                        self.target_y = world_y
-                        self.player_moving = True
-                        return True
+                        logger.debug(f"Moving to ({tile_x}, {tile_y})")
+                
+                return True
+        
+        return False
     
     def update(self, dt):
         """Update game state."""
-        if not self.active:
+        if not self.visible:
             return
         
         # Update time of day
         self._update_time_and_weather(dt)
         
-        # Update player movement
-        if self.player_moving:
-            self._move_player(dt)
+        # Store player position for movement detection
+        self.last_position = (self.player_x, self.player_y)
+        
+        # Update player position
+        self._move_player(dt)
         
         # Check for location discovery
         self._check_location_discovery()
         
         # Update current location
         self._update_current_location()
+        
+        # Check if player has entered a new territory
+        self._check_current_territory()
     
     def render(self, screen):
         """Render the game state."""
@@ -362,6 +366,10 @@ class WorldExplorationState(GameState):
         
         # Render visible terrain and features
         self._render_terrain(screen)
+        
+        # Render faction territories if enabled
+        if self.show_territories and self.faction_manager:
+            self._render_territories(screen)
         
         # Render locations
         self._render_locations(screen)
@@ -385,6 +393,10 @@ class WorldExplorationState(GameState):
         
         # Render time and weather indicators
         self._render_time_weather_indicator(screen)
+        
+        # Render territory info if in a faction territory
+        if self.faction_manager:
+            self._render_territory_info(screen)
     
     def _generate_world(self):
         """Generate a new world."""
@@ -505,8 +517,6 @@ class WorldExplorationState(GameState):
                     base_chance = self.encounter_chance_per_step * terrain_modifier
                     cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                     encounter_chance = base_chance + cooldown_bonus
-                    
-                    # Decrease the base chance for better gameplay
         else:
             # Original keyboard movement code
             dx, dy = self.player_direction
@@ -546,282 +556,192 @@ class WorldExplorationState(GameState):
                         base_chance = self.encounter_chance_per_step * terrain_modifier
                         cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                         encounter_chance = base_chance + cooldown_bonus
-                        
-                        # Apply the same reduced encounter rate
-                        encounter_chance = encounter_chance * 0.1
-                        roll = random.random()
-                        logger.debug(f"Keyboard movement encounter check: chance={encounter_chance:.4f}, roll={roll:.4f}")
-                        
-                        if roll < encounter_chance:
-                            self._trigger_random_encounter(terrain_type)
-                    
-                    # Update last position
-                    self.last_position = (self.player_x, self.player_y)
     
-    def _center_camera_on_player(self):
-        """Center the camera on the player."""
-        screen_width, screen_height = pygame.display.get_surface().get_size()
-        
-        # Calculate center position
-        self.camera_x = self.player_x * self.tile_size - screen_width // 2
-        self.camera_y = self.player_y * self.tile_size - screen_height // 2
-        
-        # Clamp camera to world bounds
-        max_camera_x = self.world_width * self.tile_size - screen_width
-        max_camera_y = self.world_height * self.tile_size - screen_height
-        
-        self.camera_x = max(0, min(max_camera_x, self.camera_x))
-        self.camera_y = max(0, min(max_camera_y, self.camera_y))
-    
-    def _is_position_walkable(self, x, y):
+    def _setup_faction_territories(self):
         """
-        Check if a position is walkable.
-        
-        Args:
-            x: X position in world coordinates
-            y: Y position in world coordinates
-            
-        Returns:
-            Boolean indicating if position is walkable
+        Assign territories to factions based on world locations.
+        This is called once when the world is loaded.
         """
-        # Convert to integer grid coordinates
-        grid_x = int(x)
-        grid_y = int(y)
+        if not self.faction_manager:
+            logger.warning("No faction manager available to set up territories")
+            return
         
-        # Check if position is within world bounds
-        if not (0 <= grid_x < self.world_width and 0 <= grid_y < self.world_height):
-            return False
-        
-        # Check terrain type
         try:
-            terrain = self.world["terrain"][grid_y][grid_x]
+            # Get all factions
+            factions = list(self.faction_manager.factions.values())
+            if not factions:
+                logger.warning("No factions available to assign territories")
+                return
             
-            # Water is not walkable
-            if terrain == TerrainType.WATER.value:
-                return False
+            # For each town location, assign it to a faction if not already assigned
+            for location in self.world["locations"]:
+                if location.location_type == LocationType.TOWN:
+                    location_id = location.name.lower().replace(" ", "_")
+                    
+                    # Check if already controlled
+                    controlling_faction = self.faction_manager.get_controlling_faction(location_id)
+                    if not controlling_faction:
+                        # Assign to a random faction
+                        faction = random.choice(factions)
+                        faction.controlled_locations.add(location_id)
+                        
+                        # Create territory data if faction has territory manager
+                        if hasattr(self.faction_manager, 'territory_manager'):
+                            try:
+                                # Add territory with random control level
+                                control_level = random.randint(50, 90)
+                                self.faction_manager.territory_manager.add_territory(
+                                    location_id=location_id,
+                                    controlling_faction_id=faction.id,
+                                    control_level=control_level
+                                )
+                                logger.info(f"Assigned territory {location_id} to faction {faction.name}")
+                            except Exception as e:
+                                logger.error(f"Error adding territory to manager: {e}")
+                        else:
+                            logger.info(f"Assigned {location_id} to faction {faction.name}")
             
-            # Check if position has an impassable feature (like a mountain peak)
-            # You can add more conditions here based on your game's rules
-            if terrain == TerrainType.MOUNTAINS.value:
-                # 20% chance mountain tiles are impassable (peaks)
-                # Using a deterministic approach based on position
-                # This way the same mountain tile is always passable or impassable
-                if (grid_x * 31 + grid_y * 17) % 100 < 20:
-                    return False
+            # Calculate territory influence areas (for rendering)
+            self._calculate_territory_borders()
             
-            # All other terrain types are walkable
-            return True
         except Exception as e:
-            logger.error(f"Error checking if position is walkable: {e}")
-            return False
+            logger.error(f"Error setting up faction territories: {e}")
     
-    def _check_location_discovery(self):
-        """Check if player has discovered new locations."""
-        for location in self.world["locations"]:
-            if not location.discovered:
-                # Calculate distance to player
-                dx = location.x - self.player_x
-                dy = location.y - self.player_y
-                distance = math.sqrt(dx*dx + dy*dy)
+    def _calculate_territory_borders(self):
+        """
+        Calculate influence areas for faction territories.
+        This creates a mapping of tiles to controlling factions.
+        """
+        if not self.faction_manager:
+            return
+        
+        # Clear existing borders
+        self.territory_borders = {}
+        
+        # Get all controlled locations
+        controlled_locations = []
+        for faction_id, faction in self.faction_manager.factions.items():
+            for location_id in faction.controlled_locations:
+                # Find the actual location object
+                for loc in self.world["locations"]:
+                    loc_id = loc.name.lower().replace(" ", "_")
+                    if loc_id == location_id:
+                        controlled_locations.append((loc, faction_id))
+                        break
+        
+        # For each tile in the world, determine controlling faction based on proximity
+        for y in range(self.world_height):
+            for x in range(self.world_width):
+                # Skip water tiles
+                if self.world["terrain"][y][x] == TerrainType.WATER.value:
+                    continue
                 
-                # If within discovery radius, mark as discovered
-                if distance <= self.discover_radius:
-                    location.discovered = True
-                    logger.info(f"Discovered location: {location.name}")
+                # Find nearest controlled location
+                min_distance = float('inf')
+                controlling_faction = None
+                
+                for location, faction_id in controlled_locations:
+                    distance = math.sqrt((x - location.x)**2 + (y - location.y)**2)
+                    
+                    # Weight distance by faction power if available
+                    if hasattr(self.faction_manager.factions[faction_id], 'power_level'):
+                        power = self.faction_manager.factions[faction_id].power_level
+                        weighted_distance = distance * (100 / power)
+                    else:
+                        weighted_distance = distance
+                    
+                    # Territories extend roughly 15 tiles from center
+                    influence_radius = 15
+                    if weighted_distance < influence_radius and weighted_distance < min_distance:
+                        min_distance = weighted_distance
+                        controlling_faction = faction_id
+                
+                # If a faction controls this tile, add to borders
+                if controlling_faction:
+                    # Check if this is a border tile by looking at neighbors
+                    is_border = False
+                    
+                    # Only store border tiles for efficiency
+                    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                        nx, ny = x + dx, y + dy
+                        
+                        # If neighbor is out of bounds or water, consider this a border
+                        if (nx < 0 or nx >= self.world_width or ny < 0 or ny >= self.world_height or
+                            self.world["terrain"][ny][nx] == TerrainType.WATER.value):
+                            is_border = True
+                            break
+                    
+                    # For now, store all territory tiles (could optimize to just borders)
+                    self.territory_borders[(x, y)] = {
+                        "faction_id": controlling_faction,
+                        "is_border": is_border
+                    }
+    
+    def _check_current_territory(self):
+        """Check if player has entered a territory and notify."""
+        if not self.faction_manager:
+            return
+        
+        # Get current location ID for territory tracking
+        location_id = self._get_current_location_id()
+        
+        # Check for factions territory at player location
+        current_tile = (int(self.player_x), int(self.player_y))
+        
+        # Get controlling faction for this tile
+        if current_tile in self.territory_borders:
+            faction_id = self.territory_borders[current_tile]["faction_id"]
+            
+            # Publish territory entered event
+            self.event_bus.publish("territory_entered", {
+                "location_id": location_id,
+                "name": location_id.replace("_", " ").title(),
+                "faction_id": faction_id
+            })
+    
+    def _get_current_location_id(self):
+        """Get a identifier for the current player location."""
+        # Check if at a named location
+        for location in self.world["locations"]:
+            if math.sqrt((self.player_x - location.x)**2 + (self.player_y - location.y)**2) < 1.5:
+                return location.name.lower().replace(" ", "_")
+        
+        # Otherwise use grid coordinates
+        return f"location_{int(self.player_x)}_{int(self.player_y)}"
+    
+    def _handle_territory_contested(self, data):
+        """Handle territory contested event."""
+        location_id = data.get("location_id")
+        contesting_faction_id = data.get("contesting_faction_id")
+        
+        if not location_id or not contesting_faction_id:
+            return
+            
+        try:
+            # Find the location on the map
+            for location in self.world["locations"]:
+                loc_id = location.name.lower().replace(" ", "_")
+                if loc_id == location_id:
+                    # Visual effect for contested territory
+                    flash_color = self.faction_manager.factions[contesting_faction_id].primary_color
+                    
+                    # Update territory visuals
+                    self._calculate_territory_borders()
                     
                     # Show notification
-                    self.event_bus.publish("show_notification", {
-                        "title": "Location Discovered",
-                        "message": f"You discovered {location.name}!",
-                        "duration": 3.0
-                    })
-    
-    def _update_current_location(self):
-        """Update current location based on player position."""
-        old_location = self.current_location
-        self.current_location = None
-        
-        # Check if player is at a location
-        for location in self.world["locations"]:
-            # Only check discovered locations
-            if location.discovered:
-                # Calculate distance to player
-                dx = location.x - self.player_x
-                dy = location.y - self.player_y
-                distance = math.sqrt(dx*dx + dy*dy)
-                
-                # If close enough, mark as current
-                if distance < 0.5:  # Within half a tile
-                    self.current_location = location
-                    
-                    # If first time visiting, mark as visited
-                    if not location.visited:
-                        location.visited = True
-                        logger.info(f"Visited location: {location.name}")
+                    controlling_faction_id = self.faction_manager.get_controlling_faction(location_id)
+                    if controlling_faction_id:
+                        controller = self.faction_manager.factions[controlling_faction_id].name
+                        contester = self.faction_manager.factions[contesting_faction_id].name
                         
-                        # Show notification
                         self.event_bus.publish("show_notification", {
-                            "title": "Location Visited",
-                            "message": f"You arrived at {location.name}!",
+                            "title": "Territory Contested!",
+                            "message": f"{contester} is challenging {controller}'s control of {location.name}.",
                             "duration": 3.0
                         })
-                    
                     break
-        
-        # If changed, update UI
-        if self.current_location != old_location:
-            if self.current_location:
-                logger.debug(f"Now at location: {self.current_location.name}")
-            else:
-                logger.debug("Left location")
-    
-    def _interact_with_location(self):
-        """Interact with the current location."""
-        if not self.current_location:
-            return
-        
-        logger.info(f"Interacting with location: {self.current_location.name}")
-        
-        # Calculate distance to location
-        dx = self.current_location.x - self.player_x
-        dy = self.current_location.y - self.player_y
-        distance = math.sqrt(dx*dx + dy*dy)
-        
-        # Only allow interaction if player is close enough (within 1.5 tiles)
-        if distance > 1.5:
-            self.event_bus.publish("show_notification", {
-                "title": "Too Far Away",
-                "message": f"You need to get closer to enter {self.current_location.name}.",
-                "duration": 2.0
-            })
-            return
-        
-        try:
-            # Handle different location types
-            if self.current_location.location_type == LocationType.TOWN:
-                # Enter town state
-                self.event_bus.publish("show_notification", {
-                    "title": "Entering Town",
-                    "message": f"Welcome to {self.current_location.name}!",
-                    "duration": 3.0
-                })
-                
-                # Change to town state with location data
-                self.change_state("town", {
-                    "location": self.current_location,
-                    "town_id": f"town_{self.current_location.name.lower().replace(' ', '_')}",
-                    "town_name": self.current_location.name,
-                    "return_position": (self.player_x, self.player_y)
-                })
-                
-            elif self.current_location.location_type == LocationType.DUNGEON:
-                # Show notification
-                self.event_bus.publish("show_notification", {
-                    "title": "Entering Dungeon",
-                    "message": f"Entering {self.current_location.name}. Prepare for battle!",
-                    "duration": 3.0
-                })
-                
-                # Start combat instead of dungeon for now
-                self.change_state("combat", {"location": self.current_location})
-                
-            elif self.current_location.location_type == LocationType.SPECIAL_SITE:
-                # Handle special site interaction
-                self.event_bus.publish("show_notification", {
-                    "title": "Special Site",
-                    "message": f"{self.current_location.description}",
-                    "duration": 3.0
-                })
         except Exception as e:
-            logger.error(f"Error interacting with location: {e}", exc_info=True)
-    
-    def _update_time_and_weather(self, dt):
-        """Update time of day and weather."""
-        # Update time counter
-        self.time_counter += dt
-        
-        # Check for day/night cycle progression
-        time_per_state = self.day_night_cycle_duration / len(TimeOfDay)
-        if self.time_counter >= time_per_state:
-            # Move to next time of day
-            current_time_index = self.time_of_day.value
-            next_time_index = (current_time_index + 1) % len(TimeOfDay)
-            self.time_of_day = TimeOfDay(next_time_index)
-            
-            # Reset counter
-            self.time_counter = 0
-            
-            # Check if we completed a full day cycle
-            if next_time_index == 0 and not self.time_cycle_completed:
-                self.day_counter += 1
-                self.time_cycle_completed = True
-                logger.info(f"Day {self.day_counter} has begun")
-            elif next_time_index > 0:
-                self.time_cycle_completed = False
-            
-            logger.debug(f"Time of day changed to {self.time_of_day.name}")
-        
-        # Update weather counter and check for weather change
-        self.weather_counter += dt
-        
-        # Random chance to change weather
-        if random.random() < self.weather_change_chance * dt:
-            # Choose new weather, weighted toward current
-            current_weather = self.weather.value
-            weights = [0.1] * len(Weather)
-            weights[current_weather] = 0.5  # Higher chance to keep current weather
-            
-            # Adjust for time of day (e.g., less storms at night)
-            if self.time_of_day in [TimeOfDay.EVENING, TimeOfDay.MIDNIGHT, TimeOfDay.LATE_NIGHT]:
-                weights[Weather.STORMY.value] *= 0.5
-            
-            new_weather_index = random.choices(range(len(Weather)), weights=weights)[0]
-            self.weather = Weather(new_weather_index)
-            
-            logger.debug(f"Weather changed to {self.weather.name}")
-    
-    def _get_sky_color(self):
-        """Get sky color based on time of day and weather."""
-        # Base colors for different times of day
-        base_colors = {
-            TimeOfDay.EARLY_DAWN: (40, 40, 70),
-            TimeOfDay.DAWN: (100, 100, 150),
-            TimeOfDay.SUNRISE: (255, 170, 120),
-            TimeOfDay.MORNING: (200, 220, 255),
-            TimeOfDay.NOON: (100, 180, 255),  # Brightest at noon
-            TimeOfDay.AFTERNOON: (180, 220, 255),
-            TimeOfDay.SUNSET: (255, 170, 120),
-            TimeOfDay.DUSK: (255, 120, 100),
-            TimeOfDay.EVENING: (100, 100, 180),
-            TimeOfDay.MIDNIGHT: (30, 30, 60),
-            TimeOfDay.LATE_NIGHT: (20, 20, 40)
-        }
-        
-        # Weather modifiers
-        weather_modifiers = {
-            Weather.CLEAR: (0, 0, 0),
-            Weather.PARTLY_CLOUDY: (-10, -10, -10),
-            Weather.CLOUDY: (-30, -30, -20),
-            Weather.MISTY: (10, -5, -10),
-            Weather.LIGHT_RAIN: (-20, -20, -10),
-            Weather.RAINY: (-50, -50, -30),
-            Weather.STORMY: (-80, -80, -50),
-            Weather.FOGGY: (20, 0, -20),
-            Weather.LIGHT_SNOW: (20, 20, 30),
-            Weather.SNOWY: (40, 40, 40),
-            Weather.BLIZZARD: (60, 60, 70)
-        }
-        
-        # Get base color for current time
-        r, g, b = base_colors[self.time_of_day]
-        
-        # Apply weather modifier
-        mr, mg, mb = weather_modifiers[self.weather]
-        r = max(0, min(255, r + mr))
-        g = max(0, min(255, g + mg))
-        b = max(0, min(255, b + mb))
-        
-        return (r, g, b)
+            logger.error(f"Error handling territory contested event: {e}")
     
     def _render_terrain(self, screen):
         """Render visible terrain."""
@@ -862,6 +782,52 @@ class WorldExplorationState(GameState):
             self._render_fog(screen)
         elif self.weather in [Weather.LIGHT_SNOW, Weather.SNOWY, Weather.BLIZZARD]:
             self._render_snow(screen)
+    
+    def _render_territories(self, screen):
+        """Render faction territory overlays."""
+        if not self.faction_manager or not self.territory_borders:
+            return
+        
+        # Calculate visible tile range
+        screen_width, screen_height = screen.get_size()
+        start_x = max(0, int(self.camera_x / self.tile_size))
+        start_y = max(0, int(self.camera_y / self.tile_size))
+        end_x = min(self.world_width, start_x + (screen_width // self.tile_size) + 2)
+        end_y = min(self.world_height, start_y + (screen_height // self.tile_size) + 2)
+        
+        # Create a semi-transparent surface for territories
+        territory_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        
+        # Render territories
+        for y in range(start_y, end_y):
+            for x in range(start_x, end_x):
+                if (x, y) in self.territory_borders:
+                    # Get faction and check if it's a border tile
+                    territory = self.territory_borders[(x, y)]
+                    faction_id = territory["faction_id"]
+                    is_border = territory["is_border"]
+                    
+                    # Get faction colors
+                    if faction_id in self.faction_manager.factions:
+                        faction = self.faction_manager.factions[faction_id]
+                        
+                        # Calculate screen position
+                        screen_x = x * self.tile_size - self.camera_x
+                        screen_y = y * self.tile_size - self.camera_y
+                        
+                        # Fill area with semi-transparent faction color
+                        primary_color = list(faction.primary_color) + [50]  # Add alpha channel
+                        pygame.draw.rect(territory_surface, primary_color, 
+                                       (screen_x, screen_y, self.tile_size, self.tile_size))
+                        
+                        # Draw stronger border for territory edges
+                        if is_border:
+                            secondary_color = list(faction.secondary_color) + [150]  # More opaque
+                            pygame.draw.rect(territory_surface, secondary_color, 
+                                           (screen_x, screen_y, self.tile_size, self.tile_size), 2)
+        
+        # Blend territory surface onto screen
+        screen.blit(territory_surface, (0, 0))
     
     def _render_locations(self, screen):
         """Render discovered locations."""
@@ -907,6 +873,50 @@ class WorldExplorationState(GameState):
             # Draw river line
             if len(screen_points) > 1:
                 pygame.draw.lines(screen, (0, 100, 200), False, screen_points, 3)
+    
+    def _render_territory_info(self, screen):
+        """Render territory information if player is in a faction territory."""
+        # Check if player is in a faction territory
+        current_tile = (int(self.player_x), int(self.player_y))
+        if current_tile not in self.territory_borders:
+            return
+            
+        faction_id = self.territory_borders[current_tile]["faction_id"]
+        if not faction_id or faction_id not in self.faction_manager.factions:
+            return
+            
+        faction = self.faction_manager.factions[faction_id]
+        player_status = self.faction_manager.get_player_faction_status(faction_id)
+        
+        # Create territory info panel at bottom of screen
+        panel_height = 40
+        panel_rect = pygame.Rect(
+            10, 
+            screen.get_height() - panel_height - 10,
+            screen.get_width() - 20,
+            panel_height
+        )
+        
+        # Create semi-transparent panel
+        panel_surface = pygame.Surface((panel_rect.width, panel_rect.height), pygame.SRCALPHA)
+        panel_surface.fill((40, 40, 50, 180))  # Semi-transparent background
+        
+        # Add faction color stripe
+        pygame.draw.rect(panel_surface, faction.primary_color, 
+                        (0, 0, panel_rect.width, 5))
+        
+        # Add faction information text
+        text = f"Territory: {faction.name} ({faction.faction_type.name}) - Status: {player_status.name}"
+        text_surface = self.font.render(text, True, (255, 255, 255))
+        panel_surface.blit(text_surface, (10, 12))
+        
+        # Add key hint
+        hint = "Press F for details"
+        hint_surface = self.font.render(hint, True, (200, 200, 200))
+        panel_surface.blit(hint_surface, (panel_rect.width - hint_surface.get_width() - 10, 12))
+        
+        # Draw panel to screen
+        screen.blit(panel_surface, panel_rect)
     
     def _render_rain(self, screen):
         """Render rain overlay."""
@@ -974,268 +984,14 @@ class WorldExplorationState(GameState):
             size_range = (1, 3)
         else:  # BLIZZARD
             count = 500
-            size_range = (1, 4)
+            size_range = (2, 4)
         
         # Draw snowflakes
         for _ in range(count):
             x = random.randint(0, screen_width)
             y = random.randint(0, screen_height)
             size = random.randint(*size_range)
-            pygame.draw.circle(snow_surface, (255, 255, 255, 200), (x, y), size)
+            pygame.draw.circle(snow_surface, (255, 255, 255, 150), (x, y), size)
         
         # Blit snow surface onto screen
         screen.blit(snow_surface, (0, 0))
-    
-    def _render_player(self, screen):
-        """Render player character on the world map."""
-        # Calculate screen position
-        screen_x = int(self.player_x * self.tile_size - self.camera_x + self.tile_size // 2)
-        screen_y = int(self.player_y * self.tile_size - self.camera_y + self.tile_size // 2)
-        
-        # Use the created player graphic if available
-        if hasattr(self, 'player_graphic') and self.player_graphic:
-            player_rect = self.player_graphic.get_rect(center=(screen_x, screen_y))
-            screen.blit(self.player_graphic, player_rect)
-        else:
-            # Fallback to simple rectangle if graphic not available
-            pygame.draw.rect(screen, (0, 0, 255), pygame.Rect(screen_x-5, screen_y-5, 10, 10))
-    
-    def _render_minimap(self, screen):
-        """Render mini-map in corner of screen."""
-        minimap_size = 150
-        minimap_tile_size = minimap_size / max(self.world_width, self.world_height)
-        padding = 10
-        
-        # Create minimap surface
-        minimap = pygame.Surface((minimap_size, minimap_size))
-        minimap.set_alpha(180)  # Semi-transparent
-        
-        # Draw terrain
-        for y in range(self.world_height):
-            for x in range(self.world_width):
-                terrain = self.world["terrain"][y][x]
-                color = self.tile_colors[terrain]
-                
-                # Draw minimap tile
-                pygame.draw.rect(minimap, color, (
-                    x * minimap_tile_size,
-                    y * minimap_tile_size,
-                    minimap_tile_size,
-                    minimap_tile_size
-                ))
-        
-        # Draw discovered locations
-        for location in self.world["locations"]:
-            if location.discovered:
-                color = self.location_colors[location.location_type.value]
-                
-                pygame.draw.rect(minimap, color, (
-                    location.x * minimap_tile_size,
-                    location.y * minimap_tile_size,
-                    minimap_tile_size,
-                    minimap_tile_size
-                ))
-        
-        # Draw player position
-        player_minimap_x = int(self.player_x * minimap_tile_size)
-        player_minimap_y = int(self.player_y * minimap_tile_size)
-        pygame.draw.circle(minimap, (255, 255, 255), 
-                         (player_minimap_x, player_minimap_y), 
-                         max(2, minimap_tile_size))
-        
-        # Draw viewport rectangle
-        screen_width, screen_height = screen.get_size()
-        viewport_width = (screen_width / self.tile_size) * minimap_tile_size
-        viewport_height = (screen_height / self.tile_size) * minimap_tile_size
-        
-        viewport_x = (self.camera_x / self.tile_size) * minimap_tile_size
-        viewport_y = (self.camera_y / self.tile_size) * minimap_tile_size
-        
-        pygame.draw.rect(minimap, (255, 255, 255), (
-            viewport_x, viewport_y, viewport_width, viewport_height
-        ), 1)
-        
-        # Draw minimap to screen
-        screen.blit(minimap, (screen.get_width() - minimap_size - padding, padding))
-    
-    def _render_location_labels(self, screen):
-        """Render labels for discovered locations."""
-        for location in self.world["locations"]:
-            # Only render discovered locations
-            if location.discovered:
-                # Calculate screen position
-                screen_x = location.x * self.tile_size - self.camera_x + self.tile_size // 2
-                screen_y = location.y * self.tile_size - self.camera_y - 10
-                
-                # Check if location is on screen
-                if (0 <= screen_x < screen.get_width() and 
-                    0 <= screen_y < screen.get_height()):
-                    
-                    # Render location name
-                    text_surface = self.font.render(location.name, True, (255, 255, 255))
-                    text_rect = text_surface.get_rect(center=(screen_x, screen_y))
-                    
-                    # Draw text background for better visibility
-                    bg_rect = text_rect.inflate(10, 6)
-                    pygame.draw.rect(screen, (0, 0, 0, 150), bg_rect)
-                    
-                    # Draw text
-                    screen.blit(text_surface, text_rect)
-    
-    def _render_location_info(self, screen):
-        """Render info box for current location."""
-        location = self.current_location
-        if not location:
-            return
-        
-        # Create info box at bottom of screen
-        box_height = 100
-        box_width = screen.get_width() - 20
-        box_x = 10
-        box_y = screen.get_height() - box_height - 10
-        
-        # Draw box background
-        pygame.draw.rect(screen, (0, 0, 0, 200), (box_x, box_y, box_width, box_height))
-        pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_width, box_height), 2)
-        
-        # Draw location name
-        name_text = self.font.render(location.name, True, (255, 255, 255))
-        screen.blit(name_text, (box_x + 10, box_y + 10))
-        
-        # Draw location type
-        type_text = self.font.render(f"Type: {location.location_type.name}", True, (200, 200, 200))
-        screen.blit(type_text, (box_x + 10, box_y + 35))
-        
-        # Draw location description
-        desc_text = self.font.render(location.description, True, (200, 200, 200))
-        screen.blit(desc_text, (box_x + 10, box_y + 60))
-        
-        # Draw interaction prompt
-        prompt_text = self.font.render("Press E to interact", True, (255, 255, 0))
-        screen.blit(prompt_text, (box_x + box_width - prompt_text.get_width() - 10, box_y + box_height - 30))
-    
-    def _render_time_weather_indicator(self, screen):
-        """Render time of day and weather indicators."""
-        # Create indicator at top-right
-        padding = 10
-        box_width = 150
-        box_height = 70  # Increased height for day counter
-        box_x = screen.get_width() - box_width - padding
-        box_y = padding + 150 + padding  # Below minimap
-        
-        # Draw box background
-        pygame.draw.rect(screen, (0, 0, 0, 150), (box_x, box_y, box_width, box_height))
-        pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_width, box_height), 1)
-        
-        # Draw day counter
-        day_text = self.font.render(f"Day: {self.day_counter}", True, (255, 255, 255))
-        screen.blit(day_text, (box_x + 10, box_y + 10))
-        
-        # Draw time of day
-        time_text = self.font.render(f"Time: {self.time_of_day.name}", True, (255, 255, 255))
-        screen.blit(time_text, (box_x + 10, box_y + 30))
-        
-        # Draw weather
-        weather_text = self.font.render(f"Weather: {self.weather.name}", True, (255, 255, 255))
-        screen.blit(weather_text, (box_x + 10, box_y + 50))
-    
-    def _handle_enter_location(self, data):
-        """Handle enter_location event from other states."""
-        if "location_id" in data:
-            location_id = data["location_id"]
-            
-            # Find location by ID (index in list)
-            if 0 <= location_id < len(self.world["locations"]):
-                location = self.world["locations"][location_id]
-                
-                # Set player position to location
-                self.player_x = location.x
-                self.player_y = location.y
-                
-                # Center camera
-                self._center_camera_on_player()
-                
-                logger.info(f"Entered location {location.name} from external state")
-    
-    def _handle_exit_location(self, _):
-        """Handle exit_location event from other states."""
-        logger.info("Exited location from external state")
-    def _trigger_random_encounter(self, terrain_type):
-        """Trigger a random combat encounter based on terrain."""
-        # Reset counter
-        self.steps_since_last_encounter = 0
-        
-        # Get player character
-        player_character = self.state_manager.get_persistent_data("player_character")
-        
-        # Generate enemy data based on terrain and player level
-        player_level = 1
-        if player_character:
-            player_level = player_character.level
-        
-        # Adjust encounter difficulty based on terrain
-        terrain_names = {
-            TerrainType.WATER.value: "water",
-            TerrainType.BEACH.value: "beach",
-            TerrainType.PLAINS.value: "plains",
-            TerrainType.FOREST.value: "forest",
-            TerrainType.MOUNTAINS.value: "mountains"
-        }
-        terrain_name = terrain_names.get(terrain_type, "plains")
-        
-        # Log encounter trigger
-        logger.info(f"Random encounter triggered in {terrain_name} terrain!")
-        
-        # Show encounter notification
-        self.event_bus.publish("show_notification", {
-            "title": "Combat Encounter!",
-            "message": f"You've encountered enemies in the {terrain_name}!",
-            "duration": 2.0
-        })
-        
-        # Transition to combat state
-        self.change_state("combat", {
-            "encounter_type": "random",
-            "terrain": terrain_name,
-            "player_level": player_level,
-            "return_position": (self.player_x, self.player_y)
-        })
-
-    def _create_player_graphic(self):
-        """Create a player graphic matching the town's pixel art style."""
-        tile_size = 32  # Adjust if your world map uses a different size
-        surface = pygame.Surface((tile_size, tile_size), pygame.SRCALPHA)
-        body_color = (0, 100, 200)       # Default blue
-        head_color = (240, 200, 160)      # Default skin tone
-        detail_color = (200, 200, 0)      # Default yellow
-        character = self.state_manager.get_persistent_data("player_character")
-        if character and hasattr(character, "race"):
-            race = character.race
-            if race.lower() == "elf":
-                head_color = (230, 220, 180)
-                body_color = (20, 130, 80)
-                detail_color = (200, 220, 130)
-            elif race.lower() == "dwarf":
-                head_color = (220, 170, 140)
-                body_color = (120, 70, 30)
-                detail_color = (150, 100, 50)
-            elif race.lower() == "orc":
-                head_color = (100, 170, 100)
-                body_color = (80, 80, 80)
-                detail_color = (150, 30, 30)
-        body_width = tile_size // 2
-        body_height = tile_size // 2
-        body_x = (tile_size - body_width) // 2
-        body_y = tile_size - body_height - 2
-        pygame.draw.rect(surface, body_color, (body_x, body_y, body_width, body_height))
-        head_size = tile_size // 3
-        head_x = (tile_size - head_size) // 2
-        head_y = body_y - head_size
-        pygame.draw.rect(surface, head_color, (head_x, head_y, head_size, head_size))
-        detail_size = max(2, tile_size // 8)
-        pygame.draw.rect(surface, detail_color, (body_x, body_y, body_width, detail_size))
-        eye_size = max(1, tile_size // 10)
-        eye_y = head_y + head_size // 3
-        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size // 4 - eye_size // 2, eye_y, eye_size, eye_size))
-        pygame.draw.rect(surface, (0, 0, 0), (head_x + head_size * 3 // 4 - eye_size // 2, eye_y, eye_size, eye_size))
-        return surface

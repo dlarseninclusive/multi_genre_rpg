@@ -262,12 +262,28 @@ class PauseMenuState(GameState):
             
             logger.debug(f"Preparing to save: world={type(world)}, player_pos={player_pos}")
             
+            # Get faction data if available
+            faction_manager = self.state_manager.get_persistent_data("faction_manager")
+            
             # Create game state to save
             game_state = {
                 "world": world,
                 "player_world_position": player_pos,
                 "player_character": player_character
             }
+            
+            # Add faction data if available
+            if faction_manager:
+                # Set a flag so we know to save/load faction data
+                game_state["has_faction_data"] = True
+                
+                # Create a subdirectory for faction data
+                import os
+                faction_save_dir = os.path.join(self.state_manager.get_persistent_data("save_system").save_dir, "faction_data")
+                os.makedirs(faction_save_dir, exist_ok=True)
+                
+                # Save faction data
+                faction_manager.save_state(faction_save_dir)
             
             # Get save system
             save_system = self.state_manager.get_persistent_data("save_system")
