@@ -71,6 +71,29 @@ class CombatGameState(GameState):
         except Exception as e:
             logger.error(f"Error entering combat state: {e}", exc_info=True)
     
+    def _generate_random_enemies(self, player_character, terrain):
+        """Generate random enemies based on terrain and player level."""
+        logger.info(f"Generating random enemies for {terrain} terrain")
+        
+        # Default to level 1 if player_character is None
+        player_level = getattr(player_character, 'level', 1)
+        
+        # Determine enemy count based on terrain and player level
+        enemy_count = random.randint(1, 3)
+        
+        # Notify about enemy encounter
+        self.event_bus.publish("show_notification", {
+            "title": "Combat",
+            "message": f"Encountered {enemy_count} enemies!",
+            "duration": 2.0
+        })
+        
+        logger.info(f"Generated {enemy_count} random enemies")
+        
+        # Placeholder for enemy creation and combat setup:
+        # e.g., enemy_entities = [ ... ]
+        # self.active_combat = self.combat_manager.start_combat(player_character, enemy_entities)
+        
     def exit(self):
         """Exit the combat state."""
         super().exit()

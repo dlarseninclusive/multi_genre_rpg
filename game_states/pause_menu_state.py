@@ -176,6 +176,7 @@ class PauseMenuState(GameState):
         """Resume the game."""
         logger.info("Resuming game")
         self.pop_state()
+        self.pop_state()
     
     def _toggle_character_sheet(self, button):
         """Toggle the character sheet."""
