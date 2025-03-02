@@ -88,9 +88,9 @@ class WorldExplorationState(GameState):
         self.discover_radius = 5  # Radius (in tiles) around player to discover locations
 
         # Random encounters
-        self.encounter_chance_per_step = 0.02  # Base chance of encounter per tile moved
+        self.encounter_chance_per_step = 0.05  # Increased from 0.02
         self.steps_since_last_encounter = 0
-        self.encounter_cooldown = 10  # Minimum steps before another encounter can happen
+        self.encounter_cooldown = 5  # Reduced from 10
         self.terrain_encounter_modifiers = {
             TerrainType.WATER.value: 0.3,  # Low chance in water
             TerrainType.BEACH.value: 0.8,  # Slightly lower chance on beaches
@@ -482,6 +482,10 @@ class WorldExplorationState(GameState):
             if abs(self.player_x - self.last_position[0]) > 0.1 or abs(self.player_y - self.last_position[1]) > 0.1:
                 self.steps_since_last_encounter += 1
                 
+                # Log every 10 steps
+                if self.steps_since_last_encounter % 10 == 0:
+                    logger.debug(f"Steps since last encounter: {self.steps_since_last_encounter}")
+                
                 # Get terrain type at current position
                 terrain_x, terrain_y = int(self.player_x), int(self.player_y)
                 if 0 <= terrain_x < self.world_width and 0 <= terrain_y < self.world_height:
@@ -493,7 +497,12 @@ class WorldExplorationState(GameState):
                     cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                     encounter_chance = base_chance + cooldown_bonus
                     
-                    if random.random() < encounter_chance:
+                    # Increase the base chance for testing
+                    encounter_chance = encounter_chance * 5
+                    roll = random.random()
+                    logger.debug(f"Encounter check: chance={encounter_chance:.4f}, roll={roll:.4f}")
+                    
+                    if roll < encounter_chance:
                         self._trigger_random_encounter(terrain_type)
                 
                 # Update last position for next check
@@ -1101,15 +1110,15 @@ class WorldExplorationState(GameState):
         """Trigger a random combat encounter based on terrain."""
         # Reset counter
         self.steps_since_last_encounter = 0
-
+        
         # Get player character
         player_character = self.state_manager.get_persistent_data("player_character")
-
+        
         # Generate enemy data based on terrain and player level
         player_level = 1
         if player_character:
             player_level = player_character.level
-
+        
         # Adjust encounter difficulty based on terrain
         terrain_names = {
             TerrainType.WATER.value: "water",
@@ -1119,14 +1128,17 @@ class WorldExplorationState(GameState):
             TerrainType.MOUNTAINS.value: "mountains"
         }
         terrain_name = terrain_names.get(terrain_type, "plains")
-
+        
+        # Log encounter trigger
+        logger.info(f"Random encounter triggered in {terrain_name} terrain!")
+        
         # Show encounter notification
         self.event_bus.publish("show_notification", {
             "title": "Combat Encounter!",
             "message": f"You've encountered enemies in the {terrain_name}!",
             "duration": 2.0
         })
-
+        
         # Transition to combat state
         self.change_state("combat", {
             "encounter_type": "random",
