@@ -195,13 +195,12 @@ class TownState(GameState):
         # Quest system
         self.quest_manager = None
         
-        # Create UI elements
         
         logger.info("TownState initialized")
     
-    def enter(self, data=None):
+    def enter(self, previous_state=None):
         """Enter this state."""
-        super().enter(data)
+        super().enter(previous_state)
         
         # Get screen from data or state manager
         if data and 'screen' in data:
