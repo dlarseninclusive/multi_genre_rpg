@@ -506,26 +506,26 @@ def _render_location_info(self, screen):
     hint_x = panel_x + panel_width - hint_text.get_width() - 10
     screen.blit(hint_text, (hint_x, panel_y + 35))
         
-        # Render player
-        self._render_player(screen)
+    # Render player
+    self._render_player(screen)
         
-        # Render UI overlays
-        if self.show_minimap:
-            self._render_minimap(screen)
+    # Render UI overlays
+    if self.show_minimap:
+        self._render_minimap(screen)
         
-        if self.show_location_labels:
-            self._render_location_labels(screen)
+    if self.show_location_labels:
+        self._render_location_labels(screen)
         
-        # Render current location info if player is at a location
-        if self.current_location:
-            self._render_location_info(screen)
+    # Render current location info if player is at a location
+    if self.current_location:
+        self._render_location_info(screen)
         
-        # Render time and weather indicators
-        self._render_time_weather_indicator(screen)
+    # Render time and weather indicators
+    self._render_time_weather_indicator(screen)
         
-        # Render territory info if in a faction territory
-        if self.faction_manager:
-            self._render_territory_info(screen)
+    # Render territory info if in a faction territory
+    if self.faction_manager:
+        self._render_territory_info(screen)
     
     def _generate_world(self):
         """Generate a new world."""
