@@ -1392,3 +1392,35 @@ class WorldExplorationState(GameState):
         world_x = (screen_x + self.camera_x) / self.tile_size
         world_y = (screen_y + self.camera_y) / self.tile_size
         return world_x, world_y
+
+    def _handle_territory_contested(self, data):
+        """Handle territory contested event."""
+        location_id = data.get("location_id")
+        contesting_faction_id = data.get("contesting_faction_id")
+        
+        if not location_id or not contesting_faction_id:
+            return
+            
+        try:
+            # Find the location on the map
+            for location in self.world["locations"]:
+                loc_id = location.name.lower().replace(" ", "_")
+                if loc_id == location_id:
+                    # Visual effect for contested territory
+                    if contesting_faction_id in self.faction_manager.factions:
+                        flash_color = self.faction_manager.factions[contesting_faction_id].primary_color
+                    # Update territory visuals
+                    self._calculate_territory_borders()
+                    # Show notification
+                    controlling_faction_id = self.faction_manager.get_controlling_faction(location_id)
+                    if controlling_faction_id:
+                        controller = self.faction_manager.factions[controlling_faction_id].name
+                        contester = self.faction_manager.factions[contesting_faction_id].name
+                        self.event_bus.publish("show_notification", {
+                            "title": "Territory Contested!",
+                            "message": f"{contester} is challenging {controller}'s control of {location.name}.",
+                            "duration": 3.0
+                        })
+                    break
+        except Exception as e:
+            logger.error(f"Error handling territory contested event: {e}")
