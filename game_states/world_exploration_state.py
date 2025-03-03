@@ -863,6 +863,25 @@ def _render_location_info(self, screen):
                         cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                         encounter_chance = base_chance + cooldown_bonus
     
+    def _update_current_location(self):
+        """Update current location information based on player position."""
+        current_location = None
+        for location in self.world["locations"]:
+            if math.sqrt((self.player_x - location.x)**2 + (self.player_y - location.y)**2) < 1.0:
+                if location.discovered:
+                    current_location = {
+                        "name": location.name,
+                        "type": location.location_type.value,
+                        "id": location.name.lower().replace(" ", "_")
+                    }
+                    break
+        if current_location != self.current_location:
+            self.current_location = current_location
+            if current_location:
+                logger.debug(f"Player entered location: {current_location['name']}")
+            else:
+                logger.debug("Player left location")
+    
     def _is_position_walkable(self, x, y):
         """Check if a position is walkable by the player."""
         # Convert to integer grid coordinates
@@ -1333,3 +1352,43 @@ def _render_location_info(self, screen):
         
         # Blit snow surface onto screen
         screen.blit(snow_surface, (0, 0))
+def _render_location_labels(self, screen):
+    """Render labels for discovered locations."""
+    if not self.font:
+        return
+    for location in self.world["locations"]:
+        if location.discovered:
+            screen_x = location.x * self.tile_size - self.camera_x
+            screen_y = location.y * self.tile_size - self.camera_y
+            if (-100 <= screen_x <= screen.get_width() + 100 and 
+                -50 <= screen_y <= screen.get_height() + 50):
+                text = location.name
+                text_surface = self.font.render(text, True, (255, 255, 255))
+                text_x = screen_x + self.tile_size // 2 - text_surface.get_width() // 2
+                text_y = screen_y - text_surface.get_height() - 5
+                shadow_surface = self.font.render(text, True, (0, 0, 0))
+                screen.blit(shadow_surface, (text_x + 1, text_y + 1))
+                screen.blit(text_surface, (text_x, text_y))
+def _render_time_weather_indicator(self, screen):
+    """Render time of day and weather indicators."""
+    if not self.font:
+        return
+    time_text = f"Day {self.day_counter} - {self.time_of_day.name.replace('_', ' ').title()}"
+    weather_text = f"Weather: {self.weather.name.replace('_', ' ').title()}"
+    time_surface = self.font.render(time_text, True, (255, 255, 255))
+    weather_surface = self.font.render(weather_text, True, (255, 255, 255))
+    time_x = screen.get_width() - time_surface.get_width() - 10
+    time_y = 10
+    weather_x = screen.get_width() - weather_surface.get_width() - 10
+    weather_y = 40
+    shadow_time = self.font.render(time_text, True, (0, 0, 0))
+    shadow_weather = self.font.render(weather_text, True, (0, 0, 0))
+    screen.blit(shadow_time, (time_x + 1, time_y + 1))
+    screen.blit(time_surface, (time_x, time_y))
+    screen.blit(shadow_weather, (weather_x + 1, weather_y + 1))
+    screen.blit(weather_surface, (weather_x, weather_y))
+def _screen_to_world(self, screen_x, screen_y):
+    """Convert screen coordinates to world coordinates."""
+    world_x = (screen_x + self.camera_x) / self.tile_size
+    world_y = (screen_y + self.camera_y) / self.tile_size
+    return world_x, world_y
