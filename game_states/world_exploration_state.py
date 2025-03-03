@@ -824,7 +824,7 @@ class WorldExplorationState(GameState):
                     cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
                     encounter_chance = base_chance + cooldown_bonus
         else:
-            # Original keyboard movement code
+            # Keyboard movement
             dx, dy = self.player_direction
             
             # Normalize diagonal movement
@@ -832,8 +832,12 @@ class WorldExplorationState(GameState):
                 dx *= 0.7071  # 1/sqrt(2)
                 dy *= 0.7071
             
-            new_x = self.player_x + dx * self.camera_speed * dt / self.tile_size
-            new_y = self.player_y + dy * self.camera_speed * dt / self.tile_size
+            # Calculate player movement speed (not camera speed)
+            player_speed = self.move_speed  # Tiles per second
+            
+            # Calculate new position
+            new_x = self.player_x + dx * player_speed * dt
+            new_y = self.player_y + dy * player_speed * dt
             
             # Ensure new position is within world bounds
             new_x = max(0, min(self.world_width - 1, new_x))
@@ -850,18 +854,7 @@ class WorldExplorationState(GameState):
                 
                 # Check for random encounters with keyboard movement too
                 if abs(new_x - old_x) > 0.05 or abs(new_y - old_y) > 0.05:
-                    self.steps_since_last_encounter += 1
-                    
-                    # Get terrain type at current position
-                    terrain_x, terrain_y = int(self.player_x), int(self.player_y)
-                    if 0 <= terrain_x < self.world_width and 0 <= terrain_y < self.world_height:
-                        terrain_type = self.world["terrain"][terrain_y][terrain_x]
-                        terrain_modifier = self.terrain_encounter_modifiers.get(terrain_type, 1.0)
-                        
-                        # Calculate encounter chance for keyboard movement
-                        base_chance = self.encounter_chance_per_step * terrain_modifier
-                        cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
-                        encounter_chance = base_chance + cooldown_bonus
+                    self._check_for_encounters()
     
     def _update_current_location(self):
         """Update current location information based on player position."""
