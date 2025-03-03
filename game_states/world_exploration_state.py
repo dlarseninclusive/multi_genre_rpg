@@ -1387,6 +1387,35 @@ class WorldExplorationState(GameState):
         screen.blit(time_surface, (time_x, time_y))
         screen.blit(shadow_weather, (weather_x + 1, weather_y + 1))
         screen.blit(weather_surface, (weather_x, weather_y))
+    def _check_for_encounters(self):
+        """Check for random encounters based on player movement."""
+        self.steps_since_last_encounter += 1
+
+        # Log every 10 steps
+        if self.steps_since_last_encounter % 10 == 0:
+            logger.debug(f"Steps since last encounter: {self.steps_since_last_encounter}")
+
+        # Get terrain type at current position
+        terrain_x, terrain_y = int(self.player_x), int(self.player_y)
+        if 0 <= terrain_x < self.world_width and 0 <= terrain_y < self.world_height:
+            terrain_type = self.world["terrain"][terrain_y][terrain_x]
+            terrain_modifier = self.terrain_encounter_modifiers.get(terrain_type, 1.0)
+
+            # Calculate encounter chance based on terrain and steps since last encounter
+            base_chance = self.encounter_chance_per_step * terrain_modifier
+            cooldown_bonus = max(0, self.steps_since_last_encounter - self.encounter_cooldown) * 0.001
+            encounter_chance = base_chance + cooldown_bonus
+
+            # Roll for encounter
+            if random.random() < encounter_chance:
+                logger.info(f"Random encounter triggered at ({self.player_x}, {self.player_y})")
+                self.steps_since_last_encounter = 0
+                self.event_bus.publish("random_encounter", {
+                    "x": self.player_x,
+                    "y": self.player_y,
+                    "terrain_type": terrain_type
+                })
+
     def _screen_to_world(self, screen_x, screen_y):
         """Convert screen coordinates to world coordinates."""
         world_x = (screen_x + self.camera_x) / self.tile_size
