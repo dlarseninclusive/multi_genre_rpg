@@ -1348,7 +1348,8 @@ if __name__ == "__main__":
     player = MockPlayer()
     
     # Create UI systems
-    quest_ui = QuestUI(screen, event_bus, quest_manager)
+    # Fix parameter order to match constructor: (screen, quest_manager, event_bus)
+    quest_ui = QuestUI(screen, quest_manager, event_bus)
     marker_manager = QuestMarkerManager(quest_manager)
     notification_manager = QuestNotificationManager(event_bus)
     

@@ -387,24 +387,6 @@ class WorldExplorationState(GameState):
                 self.show_territories = not self.show_territories
                 logger.info(f"Territories display {'enabled' if self.show_territories else 'disabled'}")
                 return True
-
-            # Toggle quest journal with J key
-            elif event.key == pygame.K_j:
-                logger.info("Journal key pressed in world exploration")
-                # Get quest manager from state manager
-                quest_manager = self.state_manager.get_persistent_data("quest_manager")
-                if not quest_manager:
-                    logger.warning("Cannot open quest journal: No quest manager available")
-                    return True
-                
-                # Create temporary notification since journal not fully implemented yet
-                self.event_bus.publish("show_notification", {
-                    "title": "Quest Journal",
-                    "message": "Quest journal is not yet implemented in world exploration mode.",
-                    "duration": 3.0
-                })
-                return True
-                
                 
             # View faction info with F key
             elif event.key == pygame.K_f:
@@ -541,22 +523,7 @@ class WorldExplorationState(GameState):
         name_text = self.font.render(self.current_location["name"], True, (255, 255, 255))
         screen.blit(name_text, (panel_x + 10, panel_y + 10))
         location_type = self.current_location["type"]
-        
-        # Handle different types of location_type (enum, string, int)
-        if isinstance(location_type, str):
-            type_name = location_type.replace('_', ' ').title()
-        elif isinstance(location_type, int):
-            # Try to convert int to LocationType enum name if possible
-            for terrain_type in LocationType:
-                if terrain_type.value == location_type:
-                    type_name = terrain_type.name.replace('_', ' ').title()
-                    break
-            else:
-                type_name = f"Type {location_type}"  # Fallback
-        else:
-            type_name = str(location_type)
-            
-        type_text = self.font.render(f"Type: {type_name}", True, (200, 200, 200))
+        type_text = self.font.render(f"Type: {location_type.replace('_', ' ').title()}", True, (200, 200, 200))
         screen.blit(type_text, (panel_x + 10, panel_y + 35))
         hint_text = self.font.render("Press ENTER to interact", True, (255, 255, 100))
         hint_x = panel_x + panel_width - hint_text.get_width() - 10
