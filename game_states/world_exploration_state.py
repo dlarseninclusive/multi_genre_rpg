@@ -487,6 +487,25 @@ class WorldExplorationState(GameState):
         # Render rivers
         self._render_rivers(screen)
         
+def _render_location_info(self, screen):
+    """Render information about the current location."""
+    if not self.current_location:
+        return
+    panel_height = 60
+    panel_width = 400
+    panel_x = (screen.get_width() - panel_width) // 2
+    panel_y = 10
+    pygame.draw.rect(screen, (0, 0, 0, 180), (panel_x, panel_y, panel_width, panel_height))
+    pygame.draw.rect(screen, (255, 255, 255), (panel_x, panel_y, panel_width, panel_height), 2)
+    name_text = self.font.render(self.current_location["name"], True, (255, 255, 255))
+    screen.blit(name_text, (panel_x + 10, panel_y + 10))
+    location_type = self.current_location["type"]
+    type_text = self.font.render(f"Type: {location_type.replace('_', ' ').title()}", True, (200, 200, 200))
+    screen.blit(type_text, (panel_x + 10, panel_y + 35))
+    hint_text = self.font.render("Press ENTER to interact", True, (255, 255, 100))
+    hint_x = panel_x + panel_width - hint_text.get_width() - 10
+    screen.blit(hint_text, (hint_x, panel_y + 35))
+        
         # Render player
         self._render_player(screen)
         
