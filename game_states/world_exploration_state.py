@@ -487,45 +487,45 @@ class WorldExplorationState(GameState):
         # Render rivers
         self._render_rivers(screen)
         
-def _render_location_info(self, screen):
-    """Render information about the current location."""
-    if not self.current_location:
-        return
-    panel_height = 60
-    panel_width = 400
-    panel_x = (screen.get_width() - panel_width) // 2
-    panel_y = 10
-    pygame.draw.rect(screen, (0, 0, 0, 180), (panel_x, panel_y, panel_width, panel_height))
-    pygame.draw.rect(screen, (255, 255, 255), (panel_x, panel_y, panel_width, panel_height), 2)
-    name_text = self.font.render(self.current_location["name"], True, (255, 255, 255))
-    screen.blit(name_text, (panel_x + 10, panel_y + 10))
-    location_type = self.current_location["type"]
-    type_text = self.font.render(f"Type: {location_type.replace('_', ' ').title()}", True, (200, 200, 200))
-    screen.blit(type_text, (panel_x + 10, panel_y + 35))
-    hint_text = self.font.render("Press ENTER to interact", True, (255, 255, 100))
-    hint_x = panel_x + panel_width - hint_text.get_width() - 10
-    screen.blit(hint_text, (hint_x, panel_y + 35))
-        
-    # Render player
-    self._render_player(screen)
-        
-    # Render UI overlays
-    if self.show_minimap:
-        self._render_minimap(screen)
-        
-    if self.show_location_labels:
-        self._render_location_labels(screen)
-        
-    # Render current location info if player is at a location
-    if self.current_location:
-        self._render_location_info(screen)
-        
-    # Render time and weather indicators
-    self._render_time_weather_indicator(screen)
-        
-    # Render territory info if in a faction territory
-    if self.faction_manager:
-        self._render_territory_info(screen)
+    def _render_location_info(self, screen):
+        """Render information about the current location."""
+        if not self.current_location:
+            return
+        panel_height = 60
+        panel_width = 400
+        panel_x = (screen.get_width() - panel_width) // 2
+        panel_y = 10
+        pygame.draw.rect(screen, (0, 0, 0, 180), (panel_x, panel_y, panel_width, panel_height))
+        pygame.draw.rect(screen, (255, 255, 255), (panel_x, panel_y, panel_width, panel_height), 2)
+        name_text = self.font.render(self.current_location["name"], True, (255, 255, 255))
+        screen.blit(name_text, (panel_x + 10, panel_y + 10))
+        location_type = self.current_location["type"]
+        type_text = self.font.render(f"Type: {location_type.replace('_', ' ').title()}", True, (200, 200, 200))
+        screen.blit(type_text, (panel_x + 10, panel_y + 35))
+        hint_text = self.font.render("Press ENTER to interact", True, (255, 255, 100))
+        hint_x = panel_x + panel_width - hint_text.get_width() - 10
+        screen.blit(hint_text, (hint_x, panel_y + 35))
+            
+        # Render player
+        self._render_player(screen)
+            
+        # Render UI overlays
+        if self.show_minimap:
+            self._render_minimap(screen)
+            
+        if self.show_location_labels:
+            self._render_location_labels(screen)
+            
+        # Render current location info if player is at a location
+        if self.current_location:
+            self._render_location_info(screen)
+            
+        # Render time and weather indicators
+        self._render_time_weather_indicator(screen)
+            
+        # Render territory info if in a faction territory
+        if self.faction_manager:
+            self._render_territory_info(screen)
     
     def _generate_world(self):
         """Generate a new world."""
@@ -1352,43 +1352,43 @@ def _render_location_info(self, screen):
         
         # Blit snow surface onto screen
         screen.blit(snow_surface, (0, 0))
-def _render_location_labels(self, screen):
-    """Render labels for discovered locations."""
-    if not self.font:
-        return
-    for location in self.world["locations"]:
-        if location.discovered:
-            screen_x = location.x * self.tile_size - self.camera_x
-            screen_y = location.y * self.tile_size - self.camera_y
-            if (-100 <= screen_x <= screen.get_width() + 100 and 
-                -50 <= screen_y <= screen.get_height() + 50):
-                text = location.name
-                text_surface = self.font.render(text, True, (255, 255, 255))
-                text_x = screen_x + self.tile_size // 2 - text_surface.get_width() // 2
-                text_y = screen_y - text_surface.get_height() - 5
-                shadow_surface = self.font.render(text, True, (0, 0, 0))
-                screen.blit(shadow_surface, (text_x + 1, text_y + 1))
-                screen.blit(text_surface, (text_x, text_y))
-def _render_time_weather_indicator(self, screen):
-    """Render time of day and weather indicators."""
-    if not self.font:
-        return
-    time_text = f"Day {self.day_counter} - {self.time_of_day.name.replace('_', ' ').title()}"
-    weather_text = f"Weather: {self.weather.name.replace('_', ' ').title()}"
-    time_surface = self.font.render(time_text, True, (255, 255, 255))
-    weather_surface = self.font.render(weather_text, True, (255, 255, 255))
-    time_x = screen.get_width() - time_surface.get_width() - 10
-    time_y = 10
-    weather_x = screen.get_width() - weather_surface.get_width() - 10
-    weather_y = 40
-    shadow_time = self.font.render(time_text, True, (0, 0, 0))
-    shadow_weather = self.font.render(weather_text, True, (0, 0, 0))
-    screen.blit(shadow_time, (time_x + 1, time_y + 1))
-    screen.blit(time_surface, (time_x, time_y))
-    screen.blit(shadow_weather, (weather_x + 1, weather_y + 1))
-    screen.blit(weather_surface, (weather_x, weather_y))
-def _screen_to_world(self, screen_x, screen_y):
-    """Convert screen coordinates to world coordinates."""
-    world_x = (screen_x + self.camera_x) / self.tile_size
-    world_y = (screen_y + self.camera_y) / self.tile_size
-    return world_x, world_y
+    def _render_location_labels(self, screen):
+        """Render labels for discovered locations."""
+        if not self.font:
+            return
+        for location in self.world["locations"]:
+            if location.discovered:
+                screen_x = location.x * self.tile_size - self.camera_x
+                screen_y = location.y * self.tile_size - self.camera_y
+                if (-100 <= screen_x <= screen.get_width() + 100 and 
+                    -50 <= screen_y <= screen.get_height() + 50):
+                    text = location.name
+                    text_surface = self.font.render(text, True, (255, 255, 255))
+                    text_x = screen_x + self.tile_size // 2 - text_surface.get_width() // 2
+                    text_y = screen_y - text_surface.get_height() - 5
+                    shadow_surface = self.font.render(text, True, (0, 0, 0))
+                    screen.blit(shadow_surface, (text_x + 1, text_y + 1))
+                    screen.blit(text_surface, (text_x, text_y))
+    def _render_time_weather_indicator(self, screen):
+        """Render time of day and weather indicators."""
+        if not self.font:
+            return
+        time_text = f"Day {self.day_counter} - {self.time_of_day.name.replace('_', ' ').title()}"
+        weather_text = f"Weather: {self.weather.name.replace('_', ' ').title()}"
+        time_surface = self.font.render(time_text, True, (255, 255, 255))
+        weather_surface = self.font.render(weather_text, True, (255, 255, 255))
+        time_x = screen.get_width() - time_surface.get_width() - 10
+        time_y = 10
+        weather_x = screen.get_width() - weather_surface.get_width() - 10
+        weather_y = 40
+        shadow_time = self.font.render(time_text, True, (0, 0, 0))
+        shadow_weather = self.font.render(weather_text, True, (0, 0, 0))
+        screen.blit(shadow_time, (time_x + 1, time_y + 1))
+        screen.blit(time_surface, (time_x, time_y))
+        screen.blit(shadow_weather, (weather_x + 1, weather_y + 1))
+        screen.blit(weather_surface, (weather_x, weather_y))
+    def _screen_to_world(self, screen_x, screen_y):
+        """Convert screen coordinates to world coordinates."""
+        world_x = (screen_x + self.camera_x) / self.tile_size
+        world_y = (screen_y + self.camera_y) / self.tile_size
+        return world_x, world_y
